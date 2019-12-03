@@ -1,0 +1,100 @@
+
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <link href="nes.min.css" rel="stylesheet" />
+    <title>Test</title>
+
+    <style>
+      html, body, pre, code, kbd, samp {
+        font-family: "Press Start 2P";
+      }
+      html, body {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        margin: 0;
+        padding: 0;
+        display: block;
+      }
+      body {
+        box-sizing: border-box;
+        height: 100%;
+        width: 100%;
+        background-color: #212529;
+        color: #fff;
+      }
+      .body {
+        display: flex;
+        align-items: stretch;
+        flex-wrap: nowrap;
+        object-fit: contain;
+        flex-direction: column;
+        height: 100%;
+      }
+      .brand-icon {
+        vertical-align: middle;
+      }
+      h1.brand {
+        color: #f30000;
+        font-style: italic;
+        text-shadow: #009243 1px 1px 0px, #009243 2px 2px 0px, #009243 3px 3px 0px, #009243 4px 4px 0px, #009243 5px 5px 0px, #009243 6px 6px 0px, #009243 7px 7px 0px, #009243 8px 8px 0px, #009243 9px 9px 0px, #009243 10px 10px 0px;
+      }
+      .header, .footer {
+        text-align: center;
+      }
+
+      .main {
+        flex: 1;
+        flex-grow: 1;
+        box-sizing: border-box;
+        align-items: stretch;
+      }
+
+      .content {
+        /*height: auto;*/
+        flex: 1;
+        flex-grow: 1;
+        height: 100%;
+        overflow-y: auto;
+      }
+
+
+      .footer {
+        box-sizing: border-box;
+        padding: 10px;
+      }
+    </style>
+</head>
+<body>
+  <div class="body">
+  <div class="header">
+    <h1 class="brand">
+      <i class="nes-icon tomato is-small brand-icon"></i>
+      <i class="nes-icon tomato brand-icon"></i>
+      <i class="nes-icon tomato is-medium brand-icon"></i>
+      Tomato Radio Automation
+      <i class="nes-icon tomato is-medium brand-icon"></i>
+      <i class="nes-icon tomato brand-icon"></i>
+      <i class="nes-icon tomato is-small brand-icon"></i>
+    </h1>
+  </div class="header">
+  <div class="main">
+    <div class="nes-container is-dark with-title content">
+        <p class="title">Rotator</p>
+        <div style="overflow-y: auto; flex-grow:1">
+        t nulla pariatur. Excepteur sint occaecat cupidatat non
+        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <small>Copyright David Cooper &copy; 2019-2020</small>
+  </div>
+</div>
+</body>
+</style>

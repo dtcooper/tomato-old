@@ -1,0 +1,2 @@
+django-material-admin
+psycopg2

@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test</title>
+  <link href="nes.min.css" rel="stylesheet" />
+</head>
+<style>
+  @font-face {
+    font-family: "Press Start 2P";
+    src: url("PressStart2P-Regular.ttf") format('truetype');
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    background-color: #555555;
+  }
+  ::-webkit-scrollbar:hover {
+    background-color: #cccccc;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #ffffff;
+    width: 5px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body, pre, code, kbd, samp {
+    font-family: "Press Start 2P";
+    background-color: #212529;
+    color: #ffffff;
+  }
+
+  body, html {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overscroll-behavior: none;
+  }
+
+  header, footer {
+    text-align: center;
+  }
+
+  header i {
+    vertical-align: middle;
+  }
+  header h1 {
+    color: tomato;
+    font-style: italic;
+    text-shadow: #009243 1px 1px 0px, #009243 2px 2px 0px, #009243 3px 3px 0px, #009243 4px 4px 0px, #009243 5px 5px 0px, #009243 6px 6px 0px, #009243 7px 7px 0px, #009243 8px 8px 0px, #009243 9px 9px 0px, #009243 10px 10px 0px;
+  }
+
+  .content {
+    display: flex;
+    flex-flow: column;
+    align-items: stretch;
+    height: 100%;
+  }
+
+  .main {
+    flex: 1;
+    width: 750px;
+  }
+
+  .main-inner {
+    overflow-y: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    margin: 20px 10px 5px 10px;
+  }
+</style>
+<body>
+  <div class="content">
+    <header>
+    <h1 class="brand">
+        <i class="nes-icon tomato is-small brand-icon"></i>
+        <i class="nes-icon tomato brand-icon"></i>
+        <i class="nes-icon tomato is-medium brand-icon"></i>
+        Tomato Radio Automation
+        <i class="nes-icon tomato is-medium brand-icon"></i>
+        <i class="nes-icon tomato brand-icon"></i>
+        <i class="nes-icon tomato is-small brand-icon"></i>
+    </header>
+
+    <div class="main nes-container with-title is-dark">
+      <p class="title">
+        Rotator
+      </p>
+      <div class="main-inner">
+        <div class="nes-container with-title is-dark">
+          <p class="title"><small>This is this asset's long name (filename.mp3)</small></p>
+          <progress class="nes-progress is-success" value="75" max="100"></progress>
+          Elapsed: 0:33/0:45 (84%)<br>
+          <button type="button" class="nes-btn is-primary">Click For Some</button>
+          <button type="button" class="nes-btn is-success">Action</button>
+          <button type="button" class="nes-btn is-error">or Stop</button>
+        </div>
+        <div class="nes-container with-title is-dark">
+          <p class="title"><small>This is a new (filename_two.mp3)</small></p>
+          <progress class="nes-progress is-primary" value="15" max="100"></progress>
+          Elapsed: 0:00/1:03 (0%)<br>
+          <button type="button" class="nes-btn is-primary">Click For Some</button>
+          <button type="button" class="nes-btn is-success">Action</button>
+          <button type="button" class="nes-btn is-error">or Stop</button>
+        </div>
+        <div class="nes-container with-title is-dark">
+          <p class="title"><small>Track three</small></p>
+        </div>
+        <div class="nes-container with-title is-dark">
+          <p class="title"><small>Track four</small></p>
+        </div>
+        <div class="nes-container with-title is-dark">
+          <p class="title"><small>Track five</small></p>
+        </div>
+        <div class="nes-container with-title is-dark">
+          <p class="title"><small>Track six</small></p>
+        </div>
+        <div class="nes-container with-title is-dark">
+          <p class="title"><small>Track seven</small></p>
+        </div>
+        <div class="nes-container with-title is-dark">
+          <p class="title"><small>Track eight</small></p>
+        </div>
+        <div class="nes-container with-title is-dark">
+          <p class="title"><small>Track nine</small></p>
+        </div>
+        <div class="nes-container with-title is-dark">
+          <p class="title"><small>Track ten</small></p>
+        </div>
+        <div class="nes-container with-title is-dark">
+          <p class="title"><small>Track eleven</small></p>
+        </div>
+      </div>
+    </div>
+
+
+    <footer>
+      <small>Copyright &copy; David Cooper</small>
+    </footer>
+  </div>
+</body>
+</html>
