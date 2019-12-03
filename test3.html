@@ -17,7 +17,6 @@
           $(elem).addClass(color);
       });
     });
-
   </script>
 </head>
 <style>
@@ -48,6 +47,7 @@
   html, body, pre, code, kbd, samp {
     font-family: "Press Start 2P";
     font-size: 12px;
+    user-select: none;
   }
 
   body, html {
@@ -55,6 +55,11 @@
     height: 100%;
     margin: 0;
     overscroll-behavior: none;
+  }
+
+  button:focus, .nes-btn:focus {
+    outline: 0 !important;
+    box-shadow: none !important;
   }
 
   header, footer {
