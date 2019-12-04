@@ -2,12 +2,11 @@ import os
 
 BASE_DIR = os.path.realpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-SECRET_KEY = '*8^5)xb^mn49bcb)7p7ewh&yhz9&h=c2l8l2u0iz2a68+n7z^8'
+SECRET_KEY = 'hackme'
 
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
