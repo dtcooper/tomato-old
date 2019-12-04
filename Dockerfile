@@ -1,6 +1,6 @@
 FROM python:3.8
 
-EXPOSE 5000
+EXPOSE 8000
 
 # Add psql
 ENV PGHOST db

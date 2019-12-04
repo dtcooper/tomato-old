@@ -17,7 +17,6 @@ def main():
         ) from exc
 
     runserver.default_addr = '0.0.0.0'
-    runserver.default_port = '5000'
 
     execute_from_command_line(sys.argv)
 
