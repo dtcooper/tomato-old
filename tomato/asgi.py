@@ -3,5 +3,5 @@ import os
 from django.core.asgi import get_asgi_application
 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tomato.settings.server')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tomato.settings')
 application = get_asgi_application()
