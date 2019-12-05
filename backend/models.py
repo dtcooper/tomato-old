@@ -85,28 +85,25 @@ class StopSetEntryQuerySet(models.QuerySet):
 
 
 class StopSetEntry(models.Model):
-    objects = StopSetEntryQuerySet.as_manager()
+    # objects = StopSetEntryQuerySet.as_manager()
 
-    ordering = models.SmallIntegerField(
-        'Sort Order Hint', default=1,
-        help_text=('Where this rotation should play. Minus plays from the end, eg '
-                   "'-1' is last and '-2' is 2nd last. Equal values order randomly. "))
+    # TODO: Maybe get rid of ordering and use natural ordering
+    # TODO: get rid of this intermediary model (potentially unneeded)
+    # ordering = models.SmallIntegerField(
+    #     'Sort Order Hint', default=1,
+    #     help_text=('Where this rotation should play. Negative numbers play from the end, eg '
+    #                "'-1' is last and '-2' is 2nd last. Equal values order randomly. "))
     stop_set = models.ForeignKey(StopSet, on_delete=models.CASCADE)
     asset_rotation = models.ForeignKey(
         AssetRotation, on_delete=models.CASCADE, verbose_name='Asset Rotation')
 
     def __str__(self):
-        if self.ordering > 1:
-            ordering = self.ordering
-        elif self.ordering == -1:
-            ordering = 'last'
-        else:
-            ordering = f'{ordinal(abs(self.ordering))} from last'
-        return f'{self.asset_rotation.name} (sort hint: {ordering})'
+        return self.asset_rotation.name
 
     class Meta:
         verbose_name = 'Rotation Entry'
         verbose_name_plural = 'Rotation Entries'
+        ordering = ('id',)
 
 
 class Asset(EnabledBeginEndWeightMixin, models.Model):

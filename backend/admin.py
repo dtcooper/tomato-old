@@ -13,10 +13,10 @@ from .models import AssetRotation, StopSet, StopSetEntry
 # Can be done in middleware, process_template by reordering context variable
 
 
-class StopSetEntryInline(admin.StackedInline):
+class StopSetEntryInline(admin.TabularInline):
     model = StopSetEntry
     extra = 0
-    fields = ('asset_rotation', 'ordering', 'color')
+    fields = ('asset_rotation', 'color')
     readonly_fields = ('color',)
 
     def get_formset(self, request, obj, **kwargs):
@@ -32,8 +32,8 @@ class StopSetEntryInline(admin.StackedInline):
             instance.asset_rotation.color, instance.asset_rotation.get_color_display())
     color.short_description = 'Color'
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).ordered()
+    # def get_queryset(self, request):
+    #     return super().get_queryset(request).ordered()
 
 
 class StopSetEntryModelAdmin(admin.ModelAdmin):
