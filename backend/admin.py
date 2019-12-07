@@ -49,9 +49,6 @@ class StopSetEntryModelAdmin(admin.ModelAdmin):
     )
     list_display = ('__str__',)
 
-    class Media:
-        js = ('admin/js/stop_set.js',)
-
 
 class AssetRotationModelForm(admin.ModelAdmin):
     icon_name = 'radio'
