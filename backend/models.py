@@ -1,26 +1,51 @@
+from functools import partial
+import hashlib
+import os
+
 from django.conf import settings
-from django.contrib.humanize.templatetags.humanize import ordinal
 from django.db import models
+from django.utils import timezone
 
 
 class EnabledBeginEndWeightMixin(models.Model):
     enabled = models.BooleanField(
-        default=True,
+        'Enabled', default=True,
         help_text=('If this is checked, enabled to be randomly selected. If unchecked '
-                   'selection is disabled, regardless of begin and end date below.'))
+                   'random selection is disabled, regardless of begin and end date below.'))
     begin = models.DateTimeField(
         'Begin Date', null=True, blank=True,
         help_text=('Optional date when eligibility for random selection *begins*. If specified, '
-                   f'selection is disabled after this date. (Timezone: {settings.TIME_ZONE})'))
+                   f'random selection is disabled after this date. (Timezone: {settings.TIME_ZONE})'))
     end = models.DateTimeField(
         'End Date', null=True, blank=True,
         help_text=('Optional date when eligibility for random selection *ends*. If specified, '
-                   f'selection is disabled after this date. (Timezone: {settings.TIME_ZONE})'))
+                   f'random selection is disabled after this date. (Timezone: {settings.TIME_ZONE})'))
     weight = models.PositiveSmallIntegerField(
         'Random Weight', default=1,
         help_text=('The weight (ie selection bias) for how likely random '
                    "selection occurs, eg '1' is just as likely as all others, "
                    " '2' is 2x as likely, '3' is 3x as likely and so on."))
+
+    def is_currently_enabled(self):
+        now = timezone.now()
+        return (self.enabled and (self.begin is None or self.begin < now)
+                and (self.end is None or self.end > now))
+    is_currently_enabled.boolean = True
+    is_currently_enabled.short_description = 'Currently Enabled?'
+
+    def is_currently_enabled_reason(self):
+        reasons = []
+        if not self.enabled:
+            reasons.append('via checkbox')
+
+        now = timezone.now()
+        if self.begin is not None and now < self.begin:
+            reasons.append('Begin Date in the future')
+        if self.end is not None and now > self.end:
+            reasons.append('End Date in the past')
+
+        return f'Disabled: {", ".join(reasons)}' if reasons else 'Enabled'
+    is_currently_enabled_reason.short_description = 'Currently Enabled?'
 
     def save(self, *args, **kwargs):
         if self.weight <= 0:
@@ -35,20 +60,20 @@ class StopSet(EnabledBeginEndWeightMixin, models.Model):
     name = models.CharField('Name', max_length=50)
 
     def __str__(self):
-        return f'{"" if self.enabled else "[DISABLED] "}{self.name}'
+        return self.name
 
     class Meta:
         verbose_name = 'Stop Set'
         verbose_name_plural = 'Stop Sets'
 
 
-class AssetRotation(models.Model):
+class Rotation(models.Model):
     name = models.CharField(
-        'Rotation Name', max_length=50,
-        help_text=("Category name of this asset rotation, eg 'AD', 'Station ID', "
-                   "'Diary of the Dust', etc."))
+        'Rotation Name', max_length=50, db_index=True,
+        help_text=("Category name of this asset rotation, eg 'ADs', 'Station IDs, "
+                   "'Short Interviews', etc."))
     color = models.CharField(
-        default='80d8ff', max_length=6,
+        'Color', default='80d8ff', max_length=6,
         choices=(
             # accent-1 choices from https://materializecss.com/color.html
             ('ff8a80', 'Red'), ('ff80ab', 'Pink'), ('ea80fc', 'Purple'),
@@ -61,8 +86,8 @@ class AssetRotation(models.Model):
         help_text='Color that appears in the desktop software for assets in this rotation.')
     stop_sets = models.ManyToManyField(
         StopSet,
-        through='StopSetEntry',
-        through_fields=('asset_rotation', 'stop_set'))
+        through='StopSetRotation',
+        through_fields=('rotation', 'stop_set'))
 
     def __str__(self):
         return self.name
@@ -73,32 +98,13 @@ class AssetRotation(models.Model):
         ordering = ('name',)
 
 
-class StopSetEntryQuerySet(models.QuerySet):
-    def ordered(self):
-        return self.annotate(
-            ordering_sign=models.Case(
-                models.When(ordering__lt=0, then=models.Value(1)),
-                default=models.Value(0),
-                output_field=models.IntegerField(),
-            )
-        ).order_by('ordering_sign', 'ordering')
-
-
-class StopSetEntry(models.Model):
-    # objects = StopSetEntryQuerySet.as_manager()
-
-    # TODO: Maybe get rid of ordering and use natural ordering
-    # TODO: get rid of this intermediary model (potentially unneeded)
-    # ordering = models.SmallIntegerField(
-    #     'Sort Order Hint', default=1,
-    #     help_text=('Where this rotation should play. Negative numbers play from the end, eg '
-    #                "'-1' is last and '-2' is 2nd last. Equal values order randomly. "))
-    stop_set = models.ForeignKey(StopSet, on_delete=models.CASCADE)
-    asset_rotation = models.ForeignKey(
-        AssetRotation, on_delete=models.CASCADE, verbose_name='Asset Rotation')
+class StopSetRotation(models.Model):
+    stop_set = models.ForeignKey(StopSet, on_delete=models.CASCADE, null=False)
+    rotation = models.ForeignKey(
+        Rotation, on_delete=models.CASCADE, null=False, verbose_name='Asset Rotation')
 
     def __str__(self):
-        return self.asset_rotation.name
+        return self.rotation.name
 
     class Meta:
         verbose_name = 'Rotation Entry'
@@ -107,6 +113,45 @@ class StopSetEntry(models.Model):
 
 
 class Asset(EnabledBeginEndWeightMixin, models.Model):
-    label = models.CharField(max_length=50)
-    # md5_sum
-    # file
+    name = models.CharField('Optional Name', max_length=50, blank=True, db_index=True)
+    md5sum = models.CharField(max_length=32)
+    audio = models.FileField('Audio File', upload_to='assets/')
+    rotations = models.ManyToManyField(
+        Rotation,
+        through='RotationAsset',
+        through_fields=('asset', 'rotation'))
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        # Hash in 64kb chunks
+        md5_hasher = hashlib.md5()
+        for data_chunk in iter(partial(self.audio.read, 64 * 1024), b''):
+            md5_hasher.update(data_chunk)
+        self.md5sum = md5_hasher.hexdigest()
+
+        # Give asset a name based on filename
+        if not self.name.strip():
+            self.name = os.path.splitext(os.path.basename(self.audio.name))[0]
+
+        return super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'Audio Asset'
+        verbose_name_plural = 'Audio Assets'
+        ordering = ('name', 'id')
+
+
+class RotationAsset(models.Model):
+    rotation = models.ForeignKey(
+        Rotation, on_delete=models.CASCADE, null=False, verbose_name='Rotation')
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, null=False,)
+
+    def __str__(self):
+        return self.rotation.name
+
+    class Meta:
+        verbose_name = 'Rotation'
+        verbose_name_plural = 'Rotations'
+        ordering = ('id',)

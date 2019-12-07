@@ -1,5 +1,5 @@
-from .models import AssetRotation
+from .models import Rotation
 
 
-def ad_rotation_colors(request):
-    return {'ad_rotation_colors': dict(AssetRotation.objects.values_list('id', 'color'))}
+def rotation_colors(request):
+    return {'rotation_colors': dict(Rotation.objects.values_list('id', 'color'))}
