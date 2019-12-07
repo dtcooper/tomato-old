@@ -1,23 +1,22 @@
 from django.contrib import admin
-from django.utils.html import format_html, mark_safe
+from django.utils.html import mark_safe
 
 
 from .models import AssetRotation, StopSet, StopSetEntry
 
 
-# class BimmerAdminSite(admin.AdminSite):
-#     site_header = 'Monty Python administration'
-# TODO: just use site admin, unregister user/group models
+class DisplayColorMixin:
+    def display_color(self, obj):
+        return mark_safe('<div class="color-preview" style="width: 8em; height: 3em; '
+                         'border: 1px solid #333; display: inline-block;"></div>')
+    display_color.short_description = 'Display Color'
 
-# https://stackoverflow.com/questions/398163/ordering-admin-modeladmin-objects
-# Can be done in middleware, process_template by reordering context variable
 
-
-class StopSetEntryInline(admin.TabularInline):
+class StopSetEntryInline(DisplayColorMixin, admin.TabularInline):
     model = StopSetEntry
     extra = 0
-    fields = ('asset_rotation', 'color')
-    readonly_fields = ('color',)
+    fields = ('asset_rotation', 'display_color')
+    readonly_fields = ('display_color',)
 
     def get_formset(self, request, obj, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
@@ -25,15 +24,6 @@ class StopSetEntryInline(admin.TabularInline):
         widget.can_add_related = False
         widget.can_change_related = False
         return formset
-
-    def color(self, instance):
-        return format_html(
-            '<p style="background-color: #{}; padding: 4px 10px">{}</p>',
-            instance.asset_rotation.color, instance.asset_rotation.get_color_display())
-    color.short_description = 'Color'
-
-    # def get_queryset(self, request):
-    #     return super().get_queryset(request).ordered()
 
 
 class StopSetEntryModelAdmin(admin.ModelAdmin):
@@ -50,17 +40,9 @@ class StopSetEntryModelAdmin(admin.ModelAdmin):
     list_display = ('__str__',)
 
 
-class AssetRotationModelForm(admin.ModelAdmin):
+class AssetRotationModelForm(DisplayColorMixin, admin.ModelAdmin):
     icon_name = 'radio'
-    readonly_fields = ('color_preview',)
-
-    def color_preview(self, obj):
-        return mark_safe('<div id="id_color_preview" style="width: 7em; '
-                         'height: 3em; border: 1px solid #333"></div>')
-    color_preview.short_description = 'Color Preview'
-
-    class Media:
-        js = ('admin/js/asset_rotation.js',)
+    readonly_fields = ('display_color',)
 
 
 admin.site.register(StopSet, StopSetEntryModelAdmin)

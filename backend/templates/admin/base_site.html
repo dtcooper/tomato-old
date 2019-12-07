@@ -1,0 +1,40 @@
+{% extends 'admin/base_site.html' %}
+
+{% block extrahead %}
+    {{ block.super }}
+
+    {{ ad_rotation_colors|json_script:'ad-rotation-colors' }}
+    <script>
+        var adRotationColors = JSON.parse(document.getElementById(
+            'ad-rotation-colors').textContent);
+
+        $(function() {
+            /* AssetRotations admin */
+            var setColorAssetRotationAdmin = function() {
+                var color = $('#id_color').val();
+                $('.color-preview').css('background-color', '#' + color);
+            }
+
+            $('#id_color').change(setColorAssetRotationAdmin);
+            setColorAssetRotationAdmin();
+
+
+            /* StopSets admin */
+            var setColorStopSetsAdmin = function($elem) {
+                var color = adRotationColors[$elem.val()];
+                if (!color) {
+                    color = 'ffffff';
+                }
+                $elem.closest('tr').find('.color-preview').css(
+                    'background-color', '#' + color);
+            }
+            $('body').on('change', 'select[name$="asset_rotation"]', function() {
+                setColorStopSetsAdmin($(this));
+            });
+
+            $('select[name$="asset_rotation"]').each(function(i, elem) {
+                setColorStopSetsAdmin($(elem));
+            });
+        });
+    </script>
+{% endblock %}
