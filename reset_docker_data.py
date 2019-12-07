@@ -10,8 +10,8 @@ from django.core.files import File
 
 def main():
     os.chdir(os.path.dirname(__file__))
-    shutil.rmtree('uploads')
 
+    subprocess.call(['rm', '-rf', 'uploads'])
     subprocess.call(['dropdb', '--if-exists', 'postgres'])
     subprocess.call(['createdb', 'postgres'])
     subprocess.call(['./manage.py', 'migrate'])
@@ -44,17 +44,17 @@ def main():
         RotationAsset.objects.create(asset=asset, rotation=rotation)
 
     pre = StopSet.objects.create(name='Pre-event 1')
-    StopSetRotation.objects.create(stop_set=pre, rotation=rotations['station-id'])
-    StopSetRotation.objects.create(stop_set=pre, rotation=rotations['ad'])
-    StopSetRotation.objects.create(stop_set=pre, rotation=rotations['ad'])
-    StopSetRotation.objects.create(stop_set=pre, rotation=rotations['spotlight'])
-    StopSetRotation.objects.create(stop_set=pre, rotation=rotations['station-id'])
+    StopSetRotation.objects.create(stopset=pre, rotation=rotations['station-id'])
+    StopSetRotation.objects.create(stopset=pre, rotation=rotations['ad'])
+    StopSetRotation.objects.create(stopset=pre, rotation=rotations['ad'])
+    StopSetRotation.objects.create(stopset=pre, rotation=rotations['spotlight'])
+    StopSetRotation.objects.create(stopset=pre, rotation=rotations['station-id'])
     during = StopSet.objects.create(name='During Event', enabled=False)
-    StopSetRotation.objects.create(stop_set=during, rotation=rotations['station-id'])
-    StopSetRotation.objects.create(stop_set=during, rotation=rotations['spotlight'])
-    StopSetRotation.objects.create(stop_set=during, rotation=rotations['ad'])
-    StopSetRotation.objects.create(stop_set=during, rotation=rotations['spotlight'])
-    StopSetRotation.objects.create(stop_set=during, rotation=rotations['station-id'])
+    StopSetRotation.objects.create(stopset=during, rotation=rotations['station-id'])
+    StopSetRotation.objects.create(stopset=during, rotation=rotations['spotlight'])
+    StopSetRotation.objects.create(stopset=during, rotation=rotations['ad'])
+    StopSetRotation.objects.create(stopset=during, rotation=rotations['spotlight'])
+    StopSetRotation.objects.create(stopset=during, rotation=rotations['station-id'])
 
 
 if __name__ == '__main__':

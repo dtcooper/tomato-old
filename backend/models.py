@@ -11,13 +11,13 @@ class EnabledBeginEndWeightMixin(models.Model):
     enabled = models.BooleanField(
         'Enabled', default=True,
         help_text=('If this is checked, enabled to be randomly selected. If unchecked '
-                   'random selection is disabled, regardless of begin and end date below.'))
+                   'random selection is disabled, regardless of begin and end air date below.'))
     begin = models.DateTimeField(
-        'Begin Date', null=True, blank=True,
+        'Begin Air Date', null=True, blank=True,
         help_text=('Optional date when eligibility for random selection *begins*. If specified, '
                    f'random selection is disabled after this date. (Timezone: {settings.TIME_ZONE})'))
     end = models.DateTimeField(
-        'End Date', null=True, blank=True,
+        'End Air Date', null=True, blank=True,
         help_text=('Optional date when eligibility for random selection *ends*. If specified, '
                    f'random selection is disabled after this date. (Timezone: {settings.TIME_ZONE})'))
     weight = models.PositiveSmallIntegerField(
@@ -63,6 +63,7 @@ class StopSet(EnabledBeginEndWeightMixin, models.Model):
         return self.name
 
     class Meta:
+        db_table = 'stopsets'
         verbose_name = 'Stop Set'
         verbose_name_plural = 'Stop Sets'
 
@@ -84,29 +85,31 @@ class Rotation(models.Model):
             ('ff9e80', 'Deep Orange'),
         ),
         help_text='Color that appears in the desktop software for assets in this rotation.')
-    stop_sets = models.ManyToManyField(
+    stopsets = models.ManyToManyField(
         StopSet,
         through='StopSetRotation',
-        through_fields=('rotation', 'stop_set'))
+        through_fields=('rotation', 'stopset'))
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name = 'Asset Rotation'
-        verbose_name_plural = 'Asset Rotations'
+        db_table = 'rotations'
+        verbose_name = 'Rotation'
+        verbose_name_plural = 'Rotations'
         ordering = ('name',)
 
 
 class StopSetRotation(models.Model):
-    stop_set = models.ForeignKey(StopSet, on_delete=models.CASCADE, null=False)
+    stopset = models.ForeignKey(StopSet, on_delete=models.CASCADE, null=False)
     rotation = models.ForeignKey(
-        Rotation, on_delete=models.CASCADE, null=False, verbose_name='Asset Rotation')
+        Rotation, on_delete=models.CASCADE, null=False, verbose_name='Rotation')
 
     def __str__(self):
         return self.rotation.name
 
     class Meta:
+        db_table = 'stopset_entries'
         verbose_name = 'Rotation Entry'
         verbose_name_plural = 'Rotation Entries'
         ordering = ('id',)
@@ -121,9 +124,6 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
         through='RotationAsset',
         through_fields=('asset', 'rotation'))
 
-    def __str__(self):
-        return self.name
-
     def save(self, *args, **kwargs):
         # Hash in 64kb chunks
         md5_hasher = hashlib.md5()
@@ -137,7 +137,11 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
 
         return super().save(*args, **kwargs)
 
+    def __str__(self):
+        return self.name
+
     class Meta:
+        db_table = 'assets'
         verbose_name = 'Audio Asset'
         verbose_name_plural = 'Audio Assets'
         ordering = ('name', 'id')
@@ -146,12 +150,19 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
 class RotationAsset(models.Model):
     rotation = models.ForeignKey(
         Rotation, on_delete=models.CASCADE, null=False, verbose_name='Rotation')
-    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, null=False,)
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, null=False)
+
+    def save(self, *args, **kwargs):
+        # Enforce uniqueness
+        if not RotationAsset.objects.filter(rotation=self.rotation,
+                                            asset=self.asset).exists():
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return self.rotation.name
 
     class Meta:
+        db_table = 'rotation_entries'
         verbose_name = 'Rotation'
         verbose_name_plural = 'Rotations'
         ordering = ('id',)
