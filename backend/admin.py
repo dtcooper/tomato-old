@@ -65,8 +65,10 @@ class RotationAssetInline(RotationInlineBase, admin.StackedInline):
 class AssetModelAdmin(ModelAdmin):
     icon_name = 'music_note'
     inlines = (RotationAssetInline,)
-    list_display = ('__str__', 'is_currently_enabled', 'rotation_list')
+    list_display = ('view_name', 'rotation_list', 'is_currently_enabled',
+                    'enabled_dates', 'list_audio_player')
     readonly_fields = ('audio_player', 'is_currently_enabled_reason', 'rotation_list')
+    ordering = ('name',)
 
     def get_fieldsets(self, request, obj):
         return (
@@ -80,6 +82,11 @@ class AssetModelAdmin(ModelAdmin):
             }),
         )
 
+    def view_name(self, obj):  # Get rid of "Optional Name"
+        return obj.name
+    view_name.short_description = 'Name'
+    view_name.admin_order_field = 'name'
+
     def rotation_list(self, obj):
         return ', '.join(obj.rotations.values_list('name', flat=True))
     rotation_list.short_description = 'Rotations'
@@ -87,6 +94,12 @@ class AssetModelAdmin(ModelAdmin):
     def audio_player(self, obj):
         return format_html('<audio src="{}" style="width: 100%" preload="auto" controls></audio>',
                            obj.audio.url)
+    audio_player.short_description = 'Audio Player'
+
+    def list_audio_player(self, obj):
+        return format_html('<audio src="{}" style="width: 275px" preload="auto" controls></audio>',
+                           obj.audio.url)
+    list_audio_player.short_description = 'Audio Player'
 
 
 admin.site.register(StopSet, StopSetRotationEntryModelAdmin)

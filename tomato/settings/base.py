@@ -29,17 +29,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-if DEBUG:
-    # Django debug toolbar
-    def show_toolbar(request):
-        if request.is_ajax():
-            return False
-        return True
-
-    INSTALLED_APPS.append('debug_toolbar')
-    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
-    DEBUG_TOOLBAR_CONFIG = {'SHOW_TOOLBAR_CALLBACK': 'tomato.settings.show_toolbar'}
-
 ROOT_URLCONF = 'tomato.urls'
 
 TEMPLATES = [

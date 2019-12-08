@@ -13,5 +13,18 @@ class BackendAdminTests(TestCase):
         self.client.login(username='test', password='test')
 
     def test_index(self):
-        response = self.client.get('')
+        response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
+
+        expected_strings = (
+            b'Tomato Radio Automation Administration'
+            b'Audio Assets',
+            b'Rotations',
+            b'Stop Sets',
+        )
+
+        for expected_string in expected_strings:
+            self.assertIn(expected_string, response.content)
+
+    def test_app_index(self):
+        pass

@@ -4,7 +4,9 @@ import os
 
 from django.conf import settings
 from django.db import models
+from django.db.models.functions import Coalesce
 from django.utils import timezone
+from django.utils.html import format_html
 
 
 class EnabledBeginEndWeightMixin(models.Model):
@@ -46,6 +48,25 @@ class EnabledBeginEndWeightMixin(models.Model):
 
         return f'Disabled: {", ".join(reasons)}' if reasons else 'Enabled'
     is_currently_enabled_reason.short_description = 'Currently Enabled?'
+
+    def enabled_dates(self):
+        tz = timezone.get_default_timezone()
+        fmt = '%a %b %-d %Y %-I:%M %p'
+
+        if self.begin and self.end:
+            return '{} to {}'.format(
+                tz.normalize(self.begin).strftime(fmt),
+                tz.normalize(self.end).strftime(fmt))
+        elif self.begin:
+            return format_html(
+                '<b>Begins</b> {}', tz.normalize(self.begin).strftime(fmt))
+        elif self.end:
+            return format_html(
+                '<b>Ends</b> {}', tz.normalize(self.end).strftime(fmt))
+        else:
+            return 'Always'
+    enabled_dates.short_description = 'Air Dates'
+    enabled_dates.admin_order_field = Coalesce('begin', 'end')
 
     def save(self, *args, **kwargs):
         if self.weight <= 0:
@@ -151,6 +172,7 @@ class RotationAsset(models.Model):
     rotation = models.ForeignKey(
         Rotation, on_delete=models.CASCADE, null=False, verbose_name='Rotation')
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE, null=False)
+    # TODO: length?
 
     def save(self, *args, **kwargs):
         # Enforce uniqueness
