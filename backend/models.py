@@ -34,6 +34,7 @@ class EnabledBeginEndWeightMixin(models.Model):
                 and (self.end is None or self.end > now))
     is_currently_enabled.boolean = True
     is_currently_enabled.short_description = 'Currently Enabled?'
+    # TODO: annotate queryset in model admin with new field, then order by that
 
     def is_currently_enabled_reason(self):
         reasons = []
