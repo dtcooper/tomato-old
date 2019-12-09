@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db.models.functions import Coalesce
+from django.utils import timezone
 from django.utils.html import format_html, mark_safe
 
 
@@ -14,6 +16,49 @@ class DisplayColorMixin:
         return mark_safe('<div class="color-preview" style="width: 8em; height: 3em; '
                          'border: 1px solid #333; display: inline-block;"></div>')
     display_color.short_description = 'Display Color'
+
+
+class EnabledBeginEndMixin:
+    def is_currently_enabled(self, obj):
+        now = timezone.now()
+        return (obj.enabled and (obj.begin is None or obj.begin < now)
+                and (obj.end is None or obj.end > now))
+    is_currently_enabled.boolean = True
+    is_currently_enabled.short_description = 'Currently Enabled?'
+    # TODO: figure out a way to express this in SQL and then sort by it
+
+    def is_currently_enabled_reason(self, obj):
+        reasons = []
+        if not obj.enabled:
+            reasons.append('via checkbox')
+
+        now = timezone.now()
+        if obj.begin is not None and now < obj.begin:
+            reasons.append('Begin Date in the future')
+        if obj.end is not None and now > obj.end:
+            reasons.append('End Date in the past')
+
+        return f'Disabled: {", ".join(reasons)}' if reasons else 'Enabled'
+    is_currently_enabled_reason.short_description = 'Currently Enabled?'
+
+    def enabled_dates(self, obj):
+        tz = timezone.get_default_timezone()
+        fmt = '%a %b %-d %Y %-I:%M %p'
+
+        if obj.begin and obj.end:
+            return '{} to {}'.format(
+                tz.normalize(obj.begin).strftime(fmt),
+                tz.normalize(obj.end).strftime(fmt))
+        elif obj.begin:
+            return format_html(
+                '<b>Begins</b> {}', tz.normalize(obj.begin).strftime(fmt))
+        elif obj.end:
+            return format_html(
+                '<b>Ends</b> {}', tz.normalize(obj.end).strftime(fmt))
+        else:
+            return 'Always'
+    enabled_dates.short_description = 'Air Dates'
+    enabled_dates.admin_order_field = Coalesce('begin', 'end')
 
 
 class RotationInlineBase(DisplayColorMixin):
@@ -34,7 +79,7 @@ class StopSetRotationInline(RotationInlineBase, admin.TabularInline):
     model = StopSetRotation
 
 
-class StopSetRotationEntryModelAdmin(ModelAdmin):
+class StopSetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
     inlines = (StopSetRotationInline,)
     icon_name = 'queue_music'
     readonly_fields = ('is_currently_enabled_reason',)
@@ -62,7 +107,7 @@ class RotationAssetInline(RotationInlineBase, admin.StackedInline):
     ordering = ('rotation__name',)
 
 
-class AssetModelAdmin(ModelAdmin):
+class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
     icon_name = 'music_note'
     inlines = (RotationAssetInline,)
     list_display = ('view_name', 'rotation_list', 'is_currently_enabled',
@@ -102,6 +147,6 @@ class AssetModelAdmin(ModelAdmin):
     list_audio_player.short_description = 'Audio Player'
 
 
-admin.site.register(StopSet, StopSetRotationEntryModelAdmin)
+admin.site.register(StopSet, StopSetModelAdmin)
 admin.site.register(Rotation, RotationModelAdmin)
 admin.site.register(Asset, AssetModelAdmin)

@@ -4,9 +4,6 @@ import os
 
 from django.conf import settings
 from django.db import models
-from django.db.models.functions import Coalesce
-from django.utils import timezone
-from django.utils.html import format_html
 
 
 class EnabledBeginEndWeightMixin(models.Model):
@@ -27,47 +24,6 @@ class EnabledBeginEndWeightMixin(models.Model):
         help_text=('The weight (ie selection bias) for how likely random '
                    "selection occurs, eg '1' is just as likely as all others, "
                    " '2' is 2x as likely, '3' is 3x as likely and so on."))
-
-    def is_currently_enabled(self):
-        now = timezone.now()
-        return (self.enabled and (self.begin is None or self.begin < now)
-                and (self.end is None or self.end > now))
-    is_currently_enabled.boolean = True
-    is_currently_enabled.short_description = 'Currently Enabled?'
-    # TODO: annotate queryset in model admin with new field, then order by that
-
-    def is_currently_enabled_reason(self):
-        reasons = []
-        if not self.enabled:
-            reasons.append('via checkbox')
-
-        now = timezone.now()
-        if self.begin is not None and now < self.begin:
-            reasons.append('Begin Date in the future')
-        if self.end is not None and now > self.end:
-            reasons.append('End Date in the past')
-
-        return f'Disabled: {", ".join(reasons)}' if reasons else 'Enabled'
-    is_currently_enabled_reason.short_description = 'Currently Enabled?'
-
-    def enabled_dates(self):
-        tz = timezone.get_default_timezone()
-        fmt = '%a %b %-d %Y %-I:%M %p'
-
-        if self.begin and self.end:
-            return '{} to {}'.format(
-                tz.normalize(self.begin).strftime(fmt),
-                tz.normalize(self.end).strftime(fmt))
-        elif self.begin:
-            return format_html(
-                '<b>Begins</b> {}', tz.normalize(self.begin).strftime(fmt))
-        elif self.end:
-            return format_html(
-                '<b>Ends</b> {}', tz.normalize(self.end).strftime(fmt))
-        else:
-            return 'Always'
-    enabled_dates.short_description = 'Air Dates'
-    enabled_dates.admin_order_field = Coalesce('begin', 'end')
 
     def save(self, *args, **kwargs):
         if self.weight <= 0:
