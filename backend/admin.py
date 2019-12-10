@@ -24,7 +24,7 @@ class EnabledBeginEndMixin:
         return (obj.enabled and (obj.begin is None or obj.begin < now)
                 and (obj.end is None or obj.end > now))
     is_currently_enabled.boolean = True
-    is_currently_enabled.short_description = 'Currently Enabled?'
+    is_currently_enabled.short_description = 'Enabled?'
     # TODO: figure out a way to express this in SQL and then sort by it
 
     def is_currently_enabled_reason(self, obj):
@@ -46,15 +46,16 @@ class EnabledBeginEndMixin:
         fmt = '%a %b %-d %Y %-I:%M %p'
 
         if obj.begin and obj.end:
-            return '{} to {}'.format(
+            return format_html(
+                '<b>Begins:</b> {}<br><b>Ends:</b> {}',
                 tz.normalize(obj.begin).strftime(fmt),
                 tz.normalize(obj.end).strftime(fmt))
         elif obj.begin:
             return format_html(
-                '<b>Begins</b> {}', tz.normalize(obj.begin).strftime(fmt))
+                '<b>Begins:</b> {}', tz.normalize(obj.begin).strftime(fmt))
         elif obj.end:
             return format_html(
-                '<b>Ends</b> {}', tz.normalize(obj.end).strftime(fmt))
+                '<b>Ends:</b> {}', tz.normalize(obj.end).strftime(fmt))
         else:
             return 'Always'
     enabled_dates.short_description = 'Air Dates'
@@ -142,7 +143,7 @@ class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
     audio_player.short_description = 'Audio Player'
 
     def list_audio_player(self, obj):
-        return format_html('<audio src="{}" style="width: 275px" preload="auto" controls></audio>',
+        return format_html('<audio src="{}" style="width: 250px" preload="auto" controls></audio>',
                            obj.audio.url)
     list_audio_player.short_description = 'Audio Player'
 
