@@ -1,4 +1,4 @@
-from .base import *  # noqa
+from .base import *
 
 
 def show_toolbar(request):
@@ -13,6 +13,6 @@ if DEBUG:
     DEBUG_TOOLBAR_CONFIG = {'SHOW_TOOLBAR_CALLBACK': 'tomato.settings.runserver.show_toolbar'}
 
 try:
-    from .site import *  # noqa
+    from .site import *
 except ImportError:
     pass
