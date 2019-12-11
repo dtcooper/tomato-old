@@ -1,3 +1,4 @@
 django-debug-toolbar
-ipython
+flake8
 ipdb
+ipython

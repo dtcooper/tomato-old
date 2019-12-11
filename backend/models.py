@@ -47,21 +47,21 @@ class StopSet(EnabledBeginEndWeightMixin, models.Model):
 
 
 class Rotation(models.Model):
+    COLOR_CHOICES = (
+        # accent-1 choices from https://materializecss.com/color.html
+        ('ff8a80', 'Red'), ('ff80ab', 'Pink'), ('ea80fc', 'Purple'), ('b388ff', 'Deep Purple'),
+        ('8c9eff', 'Indigo'), ('82b1ff', 'Blue'), ('80d8ff', 'Light Blue'), ('84ffff', 'Cyan'),
+        ('a7ffeb', 'Teal'), ('b9f6ca', 'Green'), ('ccff90', 'Light Green'), ('f4ff81', 'Lime'),
+        ('ffff8d', 'Yellow'), ('ffe57f', 'Amber'), ('ffd180', 'Orange'), ('ff9e80', 'Deep Orange'),
+    )
+
     name = models.CharField(
         'Rotation Name', max_length=50, db_index=True,
         help_text=("Category name of this asset rotation, eg 'ADs', 'Station IDs, "
                    "'Short Interviews', etc."))
     color = models.CharField(
-        'Color', default='80d8ff', max_length=6,
-        choices=(
-            # accent-1 choices from https://materializecss.com/color.html
-            ('ff8a80', 'Red'), ('ff80ab', 'Pink'), ('ea80fc', 'Purple'),
-            ('b388ff', 'Deep Purple'), ('8c9eff', 'Indigo'), ('82b1ff', 'Blue'),
-            ('80d8ff', 'Light Blue'), ('84ffff', 'Cyan'), ('a7ffeb', 'Teal'),
-            ('b9f6ca', 'Green'), ('ccff90', 'Light Green'), ('f4ff81', 'Lime'),
-            ('ffff8d', 'Yellow'), ('ffe57f', 'Amber'), ('ffd180', 'Orange'),
-            ('ff9e80', 'Deep Orange'),
-        ),
+        'Color', default=COLOR_CHOICES[0][0], max_length=6,
+        choices=COLOR_CHOICES,
         help_text='Color that appears in the desktop software for assets in this rotation.')
     stopsets = models.ManyToManyField(
         StopSet,

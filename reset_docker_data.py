@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import shutil
 import subprocess
 
 import django
@@ -30,7 +29,7 @@ def main():
         last_name='User',
     )
 
-    colors = {color: hexcode for hexcode, color in Rotation._meta.get_field('color').choices}
+    colors = {v: k for k, v in Rotation.COLOR_CHOICES}
     rotations = {
         'ad': Rotation.objects.create(name='ADs', color=colors['Light Blue']),
         'spotlight': Rotation.objects.create(name='Spotlight on Art', color=colors['Pink']),
