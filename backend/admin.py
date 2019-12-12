@@ -41,6 +41,10 @@ class EnabledBeginEndMixin:
         return f'Disabled: {", ".join(reasons)}' if reasons else 'Enabled'
     is_currently_enabled_reason.short_description = 'Currently Enabled?'
 
+    def rotation_list(self, obj):
+        return ', '.join(obj.rotations.values_list('name', flat=True))
+    rotation_list.short_description = 'Rotations'
+
     def enabled_dates(self, obj):
         tz = timezone.get_default_timezone()
         fmt = '%a %b %-d %Y %-I:%M %p'
@@ -84,7 +88,16 @@ class StopSetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
     inlines = (StopSetRotationInline,)
     icon_name = 'queue_music'
     readonly_fields = ('is_currently_enabled_reason',)
-    list_display = ('__str__', 'is_currently_enabled')
+    list_display = ('__str__', 'is_currently_enabled', 'rotation_list', 'assets')
+
+    def assets(self, obj):
+        num_enabled = Asset.objects.filter(rotations__in=obj.rotations.all()).currently_enabled().count()
+        num_disabled = Asset.objects.filter(rotations__in=obj.rotations.all()).count() - num_enabled
+        s = f'{num_enabled} Enabled'
+        if num_disabled > 0:
+            s += f' / {num_disabled} Disabled'
+        return s
+    assets.short_description = 'Total Assets'
 
     def get_fieldsets(self, request, obj):
         return (
@@ -132,10 +145,6 @@ class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
         return obj.name
     view_name.short_description = 'Name'
     view_name.admin_order_field = 'name'
-
-    def rotation_list(self, obj):
-        return ', '.join(obj.rotations.values_list('name', flat=True))
-    rotation_list.short_description = 'Rotations'
 
     def audio_player(self, obj):
         return format_html('<audio src="{}" style="width: 100%" preload="auto" controls></audio>',

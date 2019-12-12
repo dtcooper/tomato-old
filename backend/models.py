@@ -4,9 +4,22 @@ import os
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
+
+
+class CurrentlyEnabledQueryset(models.QuerySet):
+    def currently_enabled(self):
+        now = timezone.now()
+        return self.filter(
+            models.Q(enabled=True)
+            & (models.Q(begin__isnull=True) | models.Q(begin__lt=now))
+            & (models.Q(end__isnull=True) | models.Q(end__gt=now))
+        )
 
 
 class EnabledBeginEndWeightMixin(models.Model):
+    objects = CurrentlyEnabledQueryset.as_manager()
+
     enabled = models.BooleanField(
         'Enabled', default=True,
         help_text=('If this is checked, enabled to be randomly selected. If unchecked '
@@ -66,7 +79,8 @@ class Rotation(models.Model):
     stopsets = models.ManyToManyField(
         StopSet,
         through='StopSetRotation',
-        through_fields=('rotation', 'stopset'))
+        through_fields=('rotation', 'stopset'),
+        related_name='rotations')
 
     def __str__(self):
         return self.name
@@ -100,7 +114,8 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
     rotations = models.ManyToManyField(
         Rotation,
         through='RotationAsset',
-        through_fields=('asset', 'rotation'))
+        through_fields=('asset', 'rotation'),
+        related_name='assets')
 
     def save(self, *args, **kwargs):
         # Hash in 64kb chunks
