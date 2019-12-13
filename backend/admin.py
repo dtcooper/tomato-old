@@ -1,10 +1,10 @@
 from django.contrib import admin
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from django.utils.html import format_html, mark_safe
+from django.utils.html import format_html, mark_safe, escape
 
 
-from .models import Asset, Rotation, RotationAsset, StopSet, StopSetRotation
+from .models import Asset, Rotator, RotatorAsset, StopSet, StopSetRotator
 
 
 class ModelAdmin(admin.ModelAdmin):
@@ -13,8 +13,9 @@ class ModelAdmin(admin.ModelAdmin):
 
 class DisplayColorMixin:
     def display_color(self, obj):
-        return mark_safe('<div class="color-preview" style="width: 8em; height: 3em; '
-                         'border: 1px solid #333; display: inline-block;"></div>')
+        return format_html('<div class="color-preview" style="width: 8em; height: 3em; '
+                           'border: 1px solid #333; display: inline-block;{}"></div>',
+                           f'background-color: #{obj.color}' if isinstance(obj, Rotator) else '')
     display_color.short_description = 'Display Color'
 
 
@@ -24,7 +25,7 @@ class EnabledBeginEndMixin:
         return (obj.enabled and (obj.begin is None or obj.begin < now)
                 and (obj.end is None or obj.end > now))
     is_currently_enabled.boolean = True
-    is_currently_enabled.short_description = 'Enabled?'
+    is_currently_enabled.short_description = 'Currently Enabled?'
     # TODO: figure out a way to express this in SQL and then sort by it
 
     def is_currently_enabled_reason(self, obj):
@@ -57,7 +58,7 @@ class EnabledBeginEndMixin:
             return format_html(
                 '<b>Ends:</b> {}', tz.normalize(obj.end).strftime(fmt))
         else:
-            return 'Always'
+            return 'Always Airs'
     enabled_dates.short_description = 'Air Dates'
     enabled_dates.admin_order_field = Coalesce('begin', 'end')
 
@@ -65,44 +66,50 @@ class EnabledBeginEndMixin:
 class NumAssetsMixin:
     def num_assets(self, obj):
         if isinstance(obj, StopSet):
-            filter_kwargs = {'rotations__in': obj.rotations.all()}
+            filter_kwargs = {'rotators__in': obj.rotators.all()}
         else:
-            filter_kwargs = {'rotations': obj}
+            filter_kwargs = {'rotators': obj}
 
         num_enabled = Asset.objects.filter(**filter_kwargs).currently_enabled().count()
         num_disabled = Asset.objects.filter(**filter_kwargs).count() - num_enabled
         s = f'{num_enabled} Enabled'
         if num_disabled > 0:
             s += f' / {num_disabled} Disabled'
-        if isinstance(obj, StopSet):
-            s += f' in {obj.rotations.count()} rotation(s)'
         return s
     num_assets.short_description = 'Audio Assets'
 
 
-class RotationInlineBase(DisplayColorMixin):
+class RotatorInlineBase(DisplayColorMixin):
     extra = 0
     min_num = 1
-    fields = ('rotation', 'display_color')
+    fields = ('rotator', 'display_color')
     readonly_fields = ('display_color',)
 
     def get_formset(self, request, obj, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        widget = formset.form.base_fields['rotation'].widget
+        widget = formset.form.base_fields['rotator'].widget
         widget.can_add_related = False
         widget.can_change_related = False
         return formset
 
 
-class StopSetRotationInline(RotationInlineBase, admin.TabularInline):
-    model = StopSetRotation
+class StopSetRotatorInline(RotatorInlineBase, admin.TabularInline):
+    model = StopSetRotator
 
 
 class StopSetModelAdmin(EnabledBeginEndMixin, NumAssetsMixin, ModelAdmin):
-    inlines = (StopSetRotationInline,)
+    inlines = (StopSetRotatorInline,)
     icon_name = 'queue_music'
     readonly_fields = ('is_currently_enabled_reason',)
-    list_display = ('__str__', 'is_currently_enabled', 'num_assets')
+    list_display = ('name', 'rotator_entry_list', 'is_currently_enabled', 'num_assets')
+
+    def rotator_entry_list(self, obj):
+        return mark_safe('<br>'.join(
+            f'<span style="background-color: #{color}">{num}. {escape(name)}</span>'
+            for num, (name, color) in enumerate(
+                StopSetRotator.objects.filter(stopset=obj).order_by(
+                    'id').values_list('rotator__name', 'rotator__color'), 1)))
+    rotator_entry_list.short_description = 'Rotator Entries'
 
     def get_fieldsets(self, request, obj):
         return (
@@ -115,23 +122,30 @@ class StopSetModelAdmin(EnabledBeginEndMixin, NumAssetsMixin, ModelAdmin):
         )
 
 
-class RotationModelAdmin(DisplayColorMixin, NumAssetsMixin, ModelAdmin):
+class RotatorModelAdmin(DisplayColorMixin, NumAssetsMixin, ModelAdmin):
     icon_name = 'library_music'
     readonly_fields = ('display_color',)
-    list_display = ('name', 'color', 'display_color', 'num_assets')
+    list_display = ('name', 'stopset_list', 'display_color', 'num_assets')
+
+    def stopset_list(self, obj):
+        return mark_safe('<br>'.join(
+            f'{escape(name)}'  # TODO: bullet instead of num
+            for num, name in enumerate(obj.stopsets.distinct(
+                ).order_by('name').values_list('name', flat=True), 1)))
+    stopset_list.short_description = 'Stop Sets'
 
 
-class RotationAssetInline(RotationInlineBase, admin.StackedInline):
-    model = RotationAsset
-    ordering = ('rotation__name',)
+class RotatorAssetInline(RotatorInlineBase, admin.StackedInline):
+    model = RotatorAsset
+    ordering = ('rotator__name',)
 
 
 class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
     icon_name = 'music_note'
-    inlines = (RotationAssetInline,)
-    list_display = ('view_name', 'rotation_list', 'is_currently_enabled',
+    inlines = (RotatorAssetInline,)
+    list_display = ('view_name', 'rotator_list', 'is_currently_enabled',
                     'enabled_dates', 'list_audio_player')
-    readonly_fields = ('audio_player', 'is_currently_enabled_reason', 'rotation_list')
+    readonly_fields = ('audio_player', 'is_currently_enabled_reason', 'rotator_list')
     ordering = ('name',)
 
     def get_fieldsets(self, request, obj):
@@ -151,9 +165,9 @@ class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
     view_name.short_description = 'Name'
     view_name.admin_order_field = 'name'
 
-    def rotation_list(self, obj):
-        return ', '.join(obj.rotations.values_list('name', flat=True))
-    rotation_list.short_description = 'Rotations'
+    def rotator_list(self, obj):
+        return ', '.join(obj.rotators.order_by('name').values_list('name', flat=True))
+    rotator_list.short_description = 'Rotators'
 
     def audio_player(self, obj):
         return format_html('<audio src="{}" style="width: 100%" preload="auto" controls></audio>',
@@ -167,5 +181,5 @@ class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
 
 
 admin.site.register(StopSet, StopSetModelAdmin)
-admin.site.register(Rotation, RotationModelAdmin)
+admin.site.register(Rotator, RotatorModelAdmin)
 admin.site.register(Asset, AssetModelAdmin)

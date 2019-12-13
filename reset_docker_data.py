@@ -19,7 +19,7 @@ def main():
     django.setup()
 
     from django.contrib.auth.models import User
-    from backend.models import Asset, RotationAsset, Rotation, StopSet, StopSetRotation
+    from backend.models import Asset, RotatorAsset, Rotator, StopSet, StopSetRotator
 
     User.objects.create_superuser(
         username='test',
@@ -29,31 +29,31 @@ def main():
         last_name='User',
     )
 
-    colors = {v: k for k, v in Rotation.COLOR_CHOICES}
-    rotations = {
-        'ad': Rotation.objects.create(name='ADs', color=colors['Light Blue']),
-        'spotlight': Rotation.objects.create(name='Spotlight on Art', color=colors['Pink']),
-        'station-id': Rotation.objects.create(name='Station IDs', color=colors['Orange']),
+    colors = {v: k for k, v in Rotator.COLOR_CHOICES}
+    rotators = {
+        'ad': Rotator.objects.create(name='ADs', color=colors['Light Blue']),
+        'spotlight': Rotator.objects.create(name='Spotlight on Art', color=colors['Pink']),
+        'station-id': Rotator.objects.create(name='Station IDs', color=colors['Orange']),
     }
 
     os.chdir('sample_sounds')
     for filename in os.listdir('.'):
         asset = Asset.objects.create(audio=File(open(filename, 'rb')))
-        rotation = rotations[filename.rsplit('-', 1)[0]]
-        RotationAsset.objects.create(asset=asset, rotation=rotation)
+        rotator = rotators[filename.rsplit('-', 1)[0]]
+        RotatorAsset.objects.create(asset=asset, rotator=rotator)
 
     pre = StopSet.objects.create(name='Pre-event 1')
-    StopSetRotation.objects.create(stopset=pre, rotation=rotations['station-id'])
-    StopSetRotation.objects.create(stopset=pre, rotation=rotations['ad'])
-    StopSetRotation.objects.create(stopset=pre, rotation=rotations['ad'])
-    StopSetRotation.objects.create(stopset=pre, rotation=rotations['spotlight'])
-    StopSetRotation.objects.create(stopset=pre, rotation=rotations['station-id'])
+    StopSetRotator.objects.create(stopset=pre, rotator=rotators['station-id'])
+    StopSetRotator.objects.create(stopset=pre, rotator=rotators['ad'])
+    StopSetRotator.objects.create(stopset=pre, rotator=rotators['ad'])
+    StopSetRotator.objects.create(stopset=pre, rotator=rotators['spotlight'])
+    StopSetRotator.objects.create(stopset=pre, rotator=rotators['station-id'])
     during = StopSet.objects.create(name='During Event', enabled=False)
-    StopSetRotation.objects.create(stopset=during, rotation=rotations['station-id'])
-    StopSetRotation.objects.create(stopset=during, rotation=rotations['spotlight'])
-    StopSetRotation.objects.create(stopset=during, rotation=rotations['ad'])
-    StopSetRotation.objects.create(stopset=during, rotation=rotations['spotlight'])
-    StopSetRotation.objects.create(stopset=during, rotation=rotations['station-id'])
+    StopSetRotator.objects.create(stopset=during, rotator=rotators['station-id'])
+    StopSetRotator.objects.create(stopset=during, rotator=rotators['spotlight'])
+    StopSetRotator.objects.create(stopset=during, rotator=rotators['ad'])
+    StopSetRotator.objects.create(stopset=during, rotator=rotators['spotlight'])
+    StopSetRotator.objects.create(stopset=during, rotator=rotators['station-id'])
 
 
 if __name__ == '__main__':

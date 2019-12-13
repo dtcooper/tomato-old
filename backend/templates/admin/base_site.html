@@ -3,36 +3,36 @@
 {% block extrahead %}
     {{ block.super }}
 
-    {{ rotation_colors|json_script:'rotation-colors' }}
+    {{ rotator_colors|json_script:'rotator-colors' }}
     <script>
-        var rotationColors = JSON.parse(document.getElementById(
-            'rotation-colors').textContent);
+        var rotatorColors = JSON.parse(document.getElementById(
+            'rotator-colors').textContent);
 
         $(function() {
-            /* Rotations admin */
-            var setColorRotationAdmin = function() {
+            /* Rotators admin */
+            var setColorRotatorAdmin = function() {
                 var color = $('#id_color').val();
                 $('.color-preview').css('background-color', '#' + color);
             }
 
-            $('#id_color').change(setColorRotationAdmin);
-            setColorRotationAdmin();
+            $('#id_color').change(setColorRotatorAdmin);
+            setColorRotatorAdmin();
 
 
             /* StopSets admin */
             var setColorStopSetsAdmin = function($elem) {
-                var color = rotationColors[$elem.val()];
+                var color = rotatorColors[$elem.val()];
                 if (!color) {
                     color = 'ffffff';
                 }
                 $elem.closest('tr, fieldset').find('.color-preview').css(
                     'background-color', '#' + color);
             }
-            $('body').on('change', 'select[name$="rotation"]', function() {
+            $('body').on('change', 'select[name$="rotator"]', function() {
                 setColorStopSetsAdmin($(this));
             });
 
-            $('select[name$="rotation"]').each(function(i, elem) {
+            $('select[name$="rotator"]').each(function(i, elem) {
                 setColorStopSetsAdmin($(elem));
             });
         });

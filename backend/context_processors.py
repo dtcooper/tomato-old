@@ -1,5 +1,5 @@
-from .models import Rotation
+from .models import Rotator
 
 
-def rotation_colors(request):
-    return {'rotation_colors': dict(Rotation.objects.values_list('id', 'color'))}
+def rotator_colors(request):
+    return {'rotator_colors': dict(Rotator.objects.values_list('id', 'color'))}

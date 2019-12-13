@@ -27,11 +27,11 @@ class EnabledBeginEndWeightMixin(models.Model):
     begin = models.DateTimeField(
         'Begin Air Date', null=True, blank=True,
         help_text=('Optional date when eligibility for random selection *begins*. If specified, '
-                   f'random selection is disabled after this date. (Timezone: {settings.TIME_ZONE})'))
+                   f'random selection is enabled after this date. (Timezone: {settings.TIME_ZONE})'))
     end = models.DateTimeField(
         'End Air Date', null=True, blank=True,
         help_text=('Optional date when eligibility for random selection *ends*. If specified, '
-                   f'random selection is disabled after this date. (Timezone: {settings.TIME_ZONE})'))
+                   f'random selection is enabled before this date. (Timezone: {settings.TIME_ZONE})'))
     weight = models.PositiveSmallIntegerField(
         'Random Weight', default=1,
         help_text=('The weight (ie selection bias) for how likely random '
@@ -59,7 +59,7 @@ class StopSet(EnabledBeginEndWeightMixin, models.Model):
         verbose_name_plural = 'Stop Sets'
 
 
-class Rotation(models.Model):
+class Rotator(models.Model):
     COLOR_CHOICES = (
         # accent-1 choices from https://materializecss.com/color.html
         ('ff8a80', 'Red'), ('ff80ab', 'Pink'), ('ea80fc', 'Purple'), ('b388ff', 'Deep Purple'),
@@ -69,41 +69,41 @@ class Rotation(models.Model):
     )
 
     name = models.CharField(
-        'Rotation Name', max_length=50, db_index=True,
-        help_text=("Category name of this asset rotation, eg 'ADs', 'Station IDs, "
+        'Rotator Name', max_length=50, db_index=True,
+        help_text=("Category name of this asset rotator, eg 'ADs', 'Station IDs, "
                    "'Short Interviews', etc."))
     color = models.CharField(
         'Color', default=COLOR_CHOICES[0][0], max_length=6,
         choices=COLOR_CHOICES,
-        help_text='Color that appears in the desktop software for assets in this rotation.')
+        help_text='Color that appears in the desktop software for assets in this rotator.')
     stopsets = models.ManyToManyField(
         StopSet,
-        through='StopSetRotation',
-        through_fields=('rotation', 'stopset'),
-        related_name='rotations')
+        through='StopSetRotator',
+        through_fields=('rotator', 'stopset'),
+        related_name='rotators')
 
     def __str__(self):
         return self.name
 
     class Meta:
-        db_table = 'rotations'
-        verbose_name = 'Rotation'
-        verbose_name_plural = 'Rotations'
+        db_table = 'rotators'
+        verbose_name = 'Rotator'
+        verbose_name_plural = 'Rotators'
         ordering = ('name',)
 
 
-class StopSetRotation(models.Model):
+class StopSetRotator(models.Model):
     stopset = models.ForeignKey(StopSet, on_delete=models.CASCADE, null=False)
-    rotation = models.ForeignKey(
-        Rotation, on_delete=models.CASCADE, null=False, verbose_name='Rotation')
+    rotator = models.ForeignKey(
+        Rotator, on_delete=models.CASCADE, null=False, verbose_name='Rotator')
 
     def __str__(self):
-        return self.rotation.name
+        return self.rotator.name
 
     class Meta:
         db_table = 'stopset_entries'
-        verbose_name = 'Rotation Entry'
-        verbose_name_plural = 'Rotation Entries'
+        verbose_name = 'Rotator Entry'
+        verbose_name_plural = 'Rotator Entries'
         ordering = ('id',)
 
 
@@ -111,10 +111,10 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
     name = models.CharField('Optional Name', max_length=50, blank=True, db_index=True)
     md5sum = models.CharField(max_length=32)
     audio = models.FileField('Audio File', upload_to='assets/')
-    rotations = models.ManyToManyField(
-        Rotation,
-        through='RotationAsset',
-        through_fields=('asset', 'rotation'),
+    rotators = models.ManyToManyField(
+        Rotator,
+        through='RotatorAsset',
+        through_fields=('asset', 'rotator'),
         related_name='assets')
 
     def save(self, *args, **kwargs):
@@ -140,23 +140,23 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
         ordering = ('name', 'id')
 
 
-class RotationAsset(models.Model):
-    rotation = models.ForeignKey(
-        Rotation, on_delete=models.CASCADE, null=False, verbose_name='Rotation')
+class RotatorAsset(models.Model):
+    rotator = models.ForeignKey(
+        Rotator, on_delete=models.CASCADE, null=False, verbose_name='Rotator')
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE, null=False)
     # TODO: length?
 
     def save(self, *args, **kwargs):
         # Enforce uniqueness
-        if not RotationAsset.objects.filter(rotation=self.rotation,
-                                            asset=self.asset).exists():
+        if not RotatorAsset.objects.filter(rotator=self.rotator,
+                                           asset=self.asset).exists():
             super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.rotation.name
+        return self.rotator.name
 
     class Meta:
-        db_table = 'rotation_entries'
-        verbose_name = 'Rotation'
-        verbose_name_plural = 'Rotations'
+        db_table = 'rotator_entries'
+        verbose_name = 'Rotator'
+        verbose_name_plural = 'Rotators'
         ordering = ('id',)
