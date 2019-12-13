@@ -10,6 +10,9 @@ from .models import Asset, Rotator, RotatorAsset, StopSet, StopSetRotator
 class ModelAdmin(admin.ModelAdmin):
     save_on_top = True
 
+    class Media:
+        js = ('admin/js/backend/rotator_color.js',)
+
 
 class DisplayColorMixin:
     def display_color(self, obj):
@@ -101,7 +104,8 @@ class StopSetModelAdmin(EnabledBeginEndMixin, NumAssetsMixin, ModelAdmin):
     inlines = (StopSetRotatorInline,)
     icon_name = 'queue_music'
     readonly_fields = ('is_currently_enabled_reason',)
-    list_display = ('name', 'rotator_entry_list', 'is_currently_enabled', 'num_assets')
+    list_display = ('name', 'rotator_entry_list', 'is_currently_enabled',
+                    'enabled_dates', 'num_assets')
 
     def rotator_entry_list(self, obj):
         return mark_safe('<br>'.join(
@@ -170,12 +174,12 @@ class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
     rotator_list.short_description = 'Rotators'
 
     def audio_player(self, obj):
-        return format_html('<audio src="{}" style="width: 100%" preload="auto" controls></audio>',
+        return format_html('<audio src="{}" style="width: 100%" preload="auto" controls />',
                            obj.audio.url)
     audio_player.short_description = 'Audio Player'
 
     def list_audio_player(self, obj):
-        return format_html('<audio src="{}" style="width: 250px" preload="auto" controls></audio>',
+        return format_html('<audio src="{}" style="width: 250px" preload="auto" controls />',
                            obj.audio.url)
     list_audio_player.short_description = 'Audio Player'
 

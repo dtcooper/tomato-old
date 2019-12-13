@@ -75,7 +75,7 @@ class Rotator(models.Model):
     color = models.CharField(
         'Color', default=COLOR_CHOICES[0][0], max_length=6,
         choices=COLOR_CHOICES,
-        help_text='Color that appears in the desktop software for assets in this rotator.')
+        help_text='Color that appears in the playout software for assets in this rotator.')
     stopsets = models.ManyToManyField(
         StopSet,
         through='StopSetRotator',
