@@ -10,7 +10,7 @@ services:
     depends_on:
       - db
   db:
-    image: postgres
+    image: postgres:10
     volumes:
       - db-data:/var/lib/postgresql/data
 volumes:
