@@ -6,13 +6,14 @@ from django.utils.html import format_html
 from django.templatetags.static import static as static_url
 
 
+icon_url = static_url("admin/images/backend/tomato.png")
+logo_img = '<img src="{url}" style="height: 40px; width: 40px; image-rendering: pixelated;">'
+
 admin.site.site_url = None
 admin.site.site_title = admin.site.site_header = format_html(
-    ('<img src="{logo_url}" style="height: 32px; width: 32px">'
-     ' Tomato Radio Automation '
-     '<img src="{logo_url}" style="height: 32px; width: 32px">'),
-    logo_url=static_url("admin/images/backend/tomato.png"))
-admin.site.show_themes = False
+    logo_img + ' Tomato Radio Automation ' + logo_img, url=icon_url)
+admin.site.show_themes = True
+admin.site.favicon = icon_url
 
 urlpatterns = [
     path('', include('backend.urls')),

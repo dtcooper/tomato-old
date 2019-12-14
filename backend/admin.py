@@ -18,7 +18,7 @@ class DisplayColorMixin:
     def display_color(self, obj):
         return format_html('<div class="color-preview" style="width: 8em; height: 3em; '
                            'border: 1px solid #333; display: inline-block;{}"></div>',
-                           f'background-color: #{obj.color}' if isinstance(obj, Rotator) else '')
+                           f' background-color: #{obj.color}' if isinstance(obj, Rotator) else '')
     display_color.short_description = 'Display Color'
 
 
@@ -109,7 +109,7 @@ class StopSetModelAdmin(EnabledBeginEndMixin, NumAssetsMixin, ModelAdmin):
     icon_name = 'queue_music'
     readonly_fields = ('is_currently_enabled_reason',)
     list_display = ('name', 'rotator_entry_list', 'is_currently_enabled',
-                    'enabled_dates', 'num_assets')
+                    'enabled_dates', 'weight', 'num_assets')
 
     def rotator_entry_list(self, obj):
         rotator_entries = list(StopSetRotator.objects.filter(stopset=obj).order_by(
@@ -162,7 +162,7 @@ class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
     icon_name = 'music_note'
     inlines = (RotatorAssetInline,)
     list_display = ('view_name', 'rotator_list', 'is_currently_enabled',
-                    'enabled_dates', 'list_audio_player')
+                    'enabled_dates', 'weight', 'list_audio_player')
     readonly_fields = ('audio_player', 'is_currently_enabled_reason', 'rotator_list')
     ordering = ('name',)
 
