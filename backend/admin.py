@@ -75,11 +75,15 @@ class NumAssetsMixin:
 
         num_enabled = Asset.objects.filter(**filter_kwargs).currently_enabled().count()
         num_disabled = Asset.objects.filter(**filter_kwargs).count() - num_enabled
-        s = f'{num_enabled} Enabled'
-        if num_disabled > 0:
-            s += f' / {num_disabled} Disabled'
+
+        if num_enabled == num_disabled == 0:
+            s = mark_safe('<em>None</em>')
+        else:
+            s = f'{num_enabled} Enabled'
+            if num_disabled > 0:
+                s += f' / {num_disabled} Disabled'
         return s
-    num_assets.short_description = 'Audio Assets'
+    num_assets.short_description = 'Total Audio Assets'
 
 
 class RotatorInlineBase(DisplayColorMixin):
@@ -108,11 +112,17 @@ class StopSetModelAdmin(EnabledBeginEndMixin, NumAssetsMixin, ModelAdmin):
                     'enabled_dates', 'num_assets')
 
     def rotator_entry_list(self, obj):
-        return mark_safe('<br>'.join(
-            f'<span style="background-color: #{color}">{num}. {escape(name)}</span>'
-            for num, (name, color) in enumerate(
-                StopSetRotator.objects.filter(stopset=obj).order_by(
-                    'id').values_list('rotator__name', 'rotator__color'), 1)))
+        rotator_entries = list(StopSetRotator.objects.filter(stopset=obj).order_by(
+            'id').values_list('rotator__name', 'rotator__color'))
+
+        if rotator_entries:
+            html = '<br>'.join(
+                f'<span style="background-color: #{color}">{num}. {escape(name)}</span>'
+                for num, (name, color) in enumerate(rotator_entries, 1))
+        else:
+            html = '<em>None</em>'
+
+        return mark_safe(html)
     rotator_entry_list.short_description = 'Rotator Entries'
 
     def get_fieldsets(self, request, obj):
@@ -132,10 +142,14 @@ class RotatorModelAdmin(DisplayColorMixin, NumAssetsMixin, ModelAdmin):
     list_display = ('name', 'stopset_list', 'display_color', 'num_assets')
 
     def stopset_list(self, obj):
-        return mark_safe('<br>'.join(
-            f'{escape(name)}'  # TODO: bullet instead of num
-            for num, name in enumerate(obj.stopsets.distinct(
-                ).order_by('name').values_list('name', flat=True), 1)))
+        stopsets = list(obj.stopsets.distinct().order_by('name').values_list(
+            'name', flat=True))
+        if stopsets:
+            html = '<br>'.join(
+                f'&bull; {escape(name)}' for num, name in enumerate(stopsets, 1))
+        else:
+            html = '<em>None</em>'
+        return mark_safe(html)
     stopset_list.short_description = 'Stop Sets'
 
 
@@ -170,7 +184,14 @@ class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
     view_name.admin_order_field = 'name'
 
     def rotator_list(self, obj):
-        return ', '.join(obj.rotators.order_by('name').values_list('name', flat=True))
+        rotators = list(obj.rotators.order_by('name').values_list('name', 'color'))
+        if rotators:
+            html = '<br>'.join(
+                f'&bull; <span style="background-color: #{color}">{escape(name)}</span>'
+                for name, color in rotators)
+        else:
+            html = '<em>None</em>'
+        return mark_safe(html)
     rotator_list.short_description = 'Rotators'
 
     def audio_player(self, obj):

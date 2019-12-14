@@ -2,17 +2,17 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django.utils.html import mark_safe, escape
+from django.utils.html import format_html
 from django.templatetags.static import static as static_url
 
 
-logo_img = (f'<img src="{escape(static_url("admin/images/backend/tomato.png"))}" '
-            'style="height: 32px; width: 32px">')
-
 admin.site.site_url = None
-admin.site.site_title = admin.site.site_header = mark_safe(
-    f'{logo_img} Tomato Radio Automation {logo_img}')
-admin.site.show_themes = True
+admin.site.site_title = admin.site.site_header = format_html(
+    ('<img src="{logo_url}" style="height: 32px; width: 32px">'
+     ' Tomato Radio Automation '
+     '<img src="{logo_url}" style="height: 32px; width: 32px">'),
+    logo_url=static_url("admin/images/backend/tomato.png"))
+admin.site.show_themes = False
 
 urlpatterns = [
     path('', admin.site.urls),

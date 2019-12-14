@@ -102,8 +102,8 @@ class StopSetRotator(models.Model):
 
     class Meta:
         db_table = 'stopset_entries'
-        verbose_name = 'Rotator Entry'
-        verbose_name_plural = 'Rotator Entries'
+        verbose_name = 'Stop Set Rotator Entry'
+        verbose_name_plural = 'Stop Set Rotator Entries'
         ordering = ('id',)
 
 
