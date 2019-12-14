@@ -72,6 +72,9 @@ class BackendAdminTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_export_view(self):
+        response = self.client.get(reverse('export'))
+        self.assertEqual(response.status_code, 403)
+
         self.client.login(username='user', password='user')
         response = self.client.get(reverse('export'))
         self.assertEqual(response.status_code, 200)

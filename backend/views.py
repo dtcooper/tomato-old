@@ -22,14 +22,24 @@ def authenticate(request):
 def export(request):
     response = HttpResponseForbidden()
 
-    if request.user.is_authenticated:
+    if request.user.is_authenticated or settings.DEBUG:
+        assets = []
+        for asset in Asset.objects.order_by('id').values():
+            audio_url = '{}{}'.format(settings.MEDIA_URL, asset['audio'])
+            if '//' not in settings.MEDIA_URL:
+                audio_url = request.build_absolute_uri(audio_url)
+            asset['audio'] = audio_url
+            assets.append(asset)
+
+        objects = {
+            model._meta.db_table: list(model.objects.order_by('id').values())
+            for model in (RotatorAsset, Rotator, StopSet, StopSetRotator)
+        }
+        objects[Asset._meta.db_table] = assets
+
         response = JsonResponse({
             'timezone': settings.TIME_ZONE,
-            'media_url': settings.MEDIA_URL,
-            'objects': {
-                model._meta.db_table: list(model.objects.order_by('id').values())
-                for model in (Asset, RotatorAsset, Rotator, StopSet, StopSetRotator)
-            },
+            'objects': assets,
         })
 
     return response
