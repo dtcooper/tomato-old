@@ -1,10 +1,42 @@
 from functools import partial
 import hashlib
 import os
+import secrets
 
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser, User
 from django.db import models
 from django.utils import timezone
+
+
+class ApiToken(models.Model):
+    TOKEN_LENGTH = 36
+    token = models.CharField(max_length=TOKEN_LENGTH, db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    @classmethod
+    def generate(cls, user):
+        token = secrets.token_hex(cls.TOKEN_LENGTH // 2)
+        cls.objects.update_or_create(user=user, defaults={'token': token})
+        return token
+
+    @classmethod
+    def clear(cls, user):
+        cls.objects.filter(user=user).delete()
+
+    @classmethod
+    def user_from_token(cls, token):
+        try:
+            return cls.objects.get(token=token).user
+        except cls.DoesNotExist:
+            return AnonymousUser()
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__} {self.user.username}:{self.token!r}>'
+
+    class Meta:
+        db_table = 'api_tokens'
+        unique_together = (('token', 'user'),)
 
 
 class CurrentlyEnabledQueryset(models.QuerySet):
@@ -93,15 +125,14 @@ class Rotator(models.Model):
 
 
 class StopSetRotator(models.Model):
-    stopset = models.ForeignKey(StopSet, on_delete=models.CASCADE, null=False)
-    rotator = models.ForeignKey(
-        Rotator, on_delete=models.CASCADE, null=False, verbose_name='Rotator')
+    stopset = models.ForeignKey(StopSet, on_delete=models.CASCADE)
+    rotator = models.ForeignKey(Rotator, on_delete=models.CASCADE, verbose_name='Rotator')
 
     def __str__(self):
         return self.rotator.name
 
     class Meta:
-        db_table = 'stopset_entries'
+        db_table = 'stopset_rotators'
         verbose_name = 'Stop Set Rotator Entry'
         verbose_name_plural = 'Stop Set Rotator Entries'
         ordering = ('id',)
@@ -112,10 +143,7 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
     md5sum = models.CharField(max_length=32)
     audio = models.FileField('Audio File', upload_to='assets/')
     rotators = models.ManyToManyField(
-        Rotator,
-        through='RotatorAsset',
-        through_fields=('asset', 'rotator'),
-        related_name='assets')
+        Rotator, through='RotatorAsset', through_fields=('asset', 'rotator'), related_name='assets')
 
     def save(self, *args, **kwargs):
         # Hash in 64kb chunks
@@ -141,9 +169,8 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
 
 
 class RotatorAsset(models.Model):
-    rotator = models.ForeignKey(
-        Rotator, on_delete=models.CASCADE, null=False, verbose_name='Rotator')
-    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, null=False)
+    rotator = models.ForeignKey(Rotator, on_delete=models.CASCADE, verbose_name='Rotator')
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
     # TODO: length?
 
     def save(self, *args, **kwargs):
@@ -156,7 +183,7 @@ class RotatorAsset(models.Model):
         return self.rotator.name
 
     class Meta:
-        db_table = 'rotator_entries'
+        db_table = 'rotator_assets'
         verbose_name = 'Rotator'
         verbose_name_plural = 'Rotators'
         ordering = ('id',)

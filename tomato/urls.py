@@ -15,6 +15,7 @@ admin.site.site_title = admin.site.site_header = format_html(
 admin.site.show_themes = False
 
 urlpatterns = [
+    path('', include('backend.urls')),
     path('', admin.site.urls),
 ]
 
