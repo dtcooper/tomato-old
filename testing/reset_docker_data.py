@@ -2,24 +2,31 @@
 
 import os
 import subprocess
+import sys
 
 import django
 from django.core.files import File
 
 
 def main():
-    os.chdir(os.path.dirname(__file__))
+    app_path = os.path.realpath(os.path.join(
+        os.path.dirname(__file__), '..', 'server'))
+    sounds_path = os.path.realpath(os.path.join(
+        os.path.dirname(__file__), 'sample_sounds'))
+
+    os.chdir(app_path)
+    sys.path.insert(0, app_path)
 
     subprocess.call(['rm', '-rf', 'uploads'])
     subprocess.call(['dropdb', '--if-exists', 'postgres'])
     subprocess.call(['createdb', 'postgres'])
     subprocess.call(['./manage.py', 'migrate'])
 
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tomato.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
     django.setup()
 
     from django.contrib.auth.models import User
-    from backend.models import Asset, RotatorAsset, Rotator, StopSet, StopSetRotator
+    from tomato.models import Asset, RotatorAsset, Rotator, StopSet, StopSetRotator
 
     User.objects.create_superuser(
         username='test',
@@ -36,7 +43,7 @@ def main():
         'station-id': Rotator.objects.create(name='Station IDs', color=colors['Orange']),
     }
 
-    os.chdir('sample_sounds')
+    os.chdir(sounds_path)
     for filename in os.listdir('.'):
         asset = Asset.objects.create(audio=File(open(filename, 'rb')))
         rotator = rotators[filename.rsplit('-', 1)[0]]

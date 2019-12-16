@@ -13,11 +13,15 @@ RUN apt-get update \
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN mkdir /app
-WORKDIR /app
+RUN mkdir -p /app/server
+WORKDIR /app/server
 
-COPY requirements requirements
-RUN pip install -r requirements/base.txt -r requirements/server.txt -r requirements/dev.txt
+COPY requirements.txt .
+RUN pip install -r requirements.txt \
+    django-debug-toolbar \
+    django-extensions \
+    flake8 \
+    ipdb \
+    ipython
 
-COPY . /app
 CMD python manage.py runserver

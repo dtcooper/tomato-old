@@ -1,5 +1,5 @@
 __pycache__/
-uploads/
-tomato/settings/site.py
 .pytest_cache
-/venv/
+/server/local_settings.py
+/server/uploads/
+/server/venv/

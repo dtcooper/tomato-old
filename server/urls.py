@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from django.templatetags.static import static as static_url
 
 
-icon_url = static_url("admin/images/backend/tomato.png")
+icon_url = static_url("admin/images/tomato.png")
 logo_img = '<img src="{url}" style="height: 40px; width: 40px; image-rendering: pixelated;">'
 
 admin.site.site_url = None
@@ -16,7 +16,7 @@ admin.site.show_themes = True
 admin.site.favicon = icon_url
 
 urlpatterns = [
-    path('', include('backend.urls')),
+    path('', include('tomato.urls')),
     path('', admin.site.urls),
 ]
 

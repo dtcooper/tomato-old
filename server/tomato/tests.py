@@ -5,13 +5,13 @@ from django.core.files.base import ContentFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from backend.models import ApiToken, Asset, RotatorAsset, Rotator, StopSet, StopSetRotator
+from .models import ApiToken, Asset, RotatorAsset, Rotator, StopSet, StopSetRotator
 
 
 Dataset = namedtuple('Dataset', ('asset', 'rotator', 'stopset'))
 
 
-class BackendAdminTests(TestCase):
+class TomatoAdminTests(TestCase):
     def setUp(self):
         self.colors = {v: k for k, v in Rotator.COLOR_CHOICES}
         self.super = User.objects.create_superuser(username='super', password='super')
@@ -35,16 +35,16 @@ class BackendAdminTests(TestCase):
 
         for test_url in (
             reverse('admin:index'),
-            reverse('admin:app_list', args=('backend',)),
-            reverse('admin:backend_asset_changelist'),
-            reverse('admin:backend_asset_add'),
-            reverse('admin:backend_asset_change', args=(data.asset.id,)),
-            reverse('admin:backend_rotator_changelist'),
-            reverse('admin:backend_rotator_add'),
-            reverse('admin:backend_rotator_change', args=(data.rotator.id,)),
-            reverse('admin:backend_stopset_changelist'),
-            reverse('admin:backend_stopset_add'),
-            reverse('admin:backend_stopset_change', args=(data.stopset.id,)),
+            reverse('admin:app_list', args=('tomato',)),
+            reverse('admin:tomato_asset_changelist'),
+            reverse('admin:tomato_asset_add'),
+            reverse('admin:tomato_asset_change', args=(data.asset.id,)),
+            reverse('admin:tomato_rotator_changelist'),
+            reverse('admin:tomato_rotator_add'),
+            reverse('admin:tomato_rotator_change', args=(data.rotator.id,)),
+            reverse('admin:tomato_stopset_changelist'),
+            reverse('admin:tomato_stopset_add'),
+            reverse('admin:tomato_stopset_change', args=(data.stopset.id,)),
         ):
             response = self.client.get(test_url)
             self.assertEqual(response.status_code, 200)

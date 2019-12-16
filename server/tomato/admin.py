@@ -11,7 +11,7 @@ class ModelAdmin(admin.ModelAdmin):
     save_on_top = True
 
     class Media:
-        js = ('admin/js/backend/rotator_color.js',)
+        js = ('admin/js/rotator_color.js',)
 
 
 class DisplayColorMixin:

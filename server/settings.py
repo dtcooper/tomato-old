@@ -1,7 +1,6 @@
 import os
 
-BASE_DIR = os.path.realpath(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+BASE_DIR = os.path.realpath(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'hackme'
 
 DEBUG = True
@@ -16,7 +15,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'backend',
+    'tomato',
 ]
 
 if DEBUG:
@@ -30,17 +29,17 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'backend.middleware.AuthTokenAuthenticationMiddleware',
+    'tomato.middleware.AuthTokenAuthenticationMiddleware',
 ]
 
-ROOT_URLCONF = 'tomato.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             # Make sure admin override templates load first
-            os.path.join(BASE_DIR, 'backend', 'templates')
+            os.path.join(BASE_DIR, 'tomato', 'templates')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -49,13 +48,13 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'backend.context_processors.rotator_colors',
+                'tomato.context_processors.rotator_colors',
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'tomato.wsgi.application'
+WSGI_APPLICATION = 'wsgi.application'
 
 DATABASES = {
     'default': {
@@ -76,3 +75,14 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+
+MATERIAL_ADMIN_SITE = {
+    'TRAY_REVERSE': True,
+    'NAVBAR_REVERSE': True,
+}
+
+
+try:
+    from local_settings import *  # noqa
+except ImportError:
+    pass
