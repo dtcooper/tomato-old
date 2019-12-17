@@ -15,7 +15,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tomato',
+    'api_auth',
+    'data',
 ]
 
 if DEBUG:
@@ -29,7 +30,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'tomato.middleware.AuthTokenAuthenticationMiddleware',
+    'api_auth.middleware.AuthTokenAuthenticationMiddleware',
 ]
 
 ROOT_URLCONF = 'urls'
@@ -39,7 +40,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             # Make sure admin override templates load first
-            os.path.join(BASE_DIR, 'tomato', 'templates')
+            os.path.join(BASE_DIR, 'data', 'templates')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -48,7 +49,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'tomato.context_processors.rotator_colors',
+                'data.context_processors.rotator_colors',
             ],
         },
     },

@@ -1,9 +1,8 @@
 from django.urls import path
 
-from .views import authenticate, export
+from .views import authenticate
 
 
 urlpatterns = [
     path('auth', authenticate, name='auth'),
-    path('export', export, name='export')
 ]

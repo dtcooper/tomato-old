@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class TomatoConfig(AppConfig):
-    name = 'tomato'
+class DataConfig(AppConfig):
+    name = 'data'
     verbose_name = 'Radio Automation'
     icon_name = 'radio'

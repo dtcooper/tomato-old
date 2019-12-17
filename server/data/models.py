@@ -1,42 +1,9 @@
 from functools import partial
 import hashlib
 import os
-import secrets
 
-from django.conf import settings
-from django.contrib.auth.models import AnonymousUser, User
 from django.db import models
 from django.utils import timezone
-
-
-class ApiToken(models.Model):
-    TOKEN_LENGTH = 36
-    token = models.CharField(max_length=TOKEN_LENGTH, db_index=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    @classmethod
-    def generate(cls, user):
-        token = secrets.token_hex(cls.TOKEN_LENGTH // 2)
-        cls.objects.update_or_create(user=user, defaults={'token': token})
-        return token
-
-    @classmethod
-    def clear(cls, user):
-        cls.objects.filter(user=user).delete()
-
-    @classmethod
-    def user_from_token(cls, token):
-        try:
-            return cls.objects.get(token=token).user
-        except cls.DoesNotExist:
-            return AnonymousUser()
-
-    def __repr__(self):
-        return f'<{self.__class__.__name__} {self.user.username}:{self.token!r}>'
-
-    class Meta:
-        db_table = 'api_tokens'
-        unique_together = (('token', 'user'),)
 
 
 class CurrentlyEnabledQueryset(models.QuerySet):
@@ -58,12 +25,12 @@ class EnabledBeginEndWeightMixin(models.Model):
                    'random selection is disabled, regardless of begin and end air date below.'))
     begin = models.DateTimeField(
         'Begin Air Date', null=True, blank=True,
-        help_text=('Optional date when eligibility for random selection *begins*. If specified, '
-                   f'random selection is enabled after this date. (Timezone: {settings.TIME_ZONE})'))
+        help_text=('Optional date when eligibility for random selection *begins*. '
+                   'If specified, random selection is enabled after this date.'))
     end = models.DateTimeField(
         'End Air Date', null=True, blank=True,
-        help_text=('Optional date when eligibility for random selection *ends*. If specified, '
-                   f'random selection is enabled before this date. (Timezone: {settings.TIME_ZONE})'))
+        help_text=('Optional date when eligibility for random selection *ends*. '
+                   'If specified, random selection is enabled before this date.'))
     weight = models.PositiveSmallIntegerField(
         'Random Weight', default=1,
         help_text=('The weight (ie selection bias) for how likely random '

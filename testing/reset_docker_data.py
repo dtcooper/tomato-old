@@ -1,11 +1,32 @@
 #!/usr/bin/env python
 
+import datetime
 import os
+import random
 import subprocess
 import sys
 
 import django
 from django.core.files import File
+
+
+def enabled_kwargs():
+    from django.utils import timezone
+
+    begin = end = None
+    enabled = True
+
+    if random.randint(0, 5) == 0:
+        enabled = False
+    else:
+        now = timezone.now()
+
+        if random.randint(0, 3) == 0:
+            begin = now - datetime.timedelta(seconds=random.randint(0, 60 * 60 * 24))
+        if random.randint(0, 3) == 0:
+            end = now + datetime.timedelta(seconds=random.randint(1, 60 * 60 * 24))
+
+    return {'enabled': enabled, 'begin': begin, 'end': end}
 
 
 def main():
@@ -26,7 +47,7 @@ def main():
     django.setup()
 
     from django.contrib.auth.models import User
-    from tomato.models import Asset, RotatorAsset, Rotator, StopSet, StopSetRotator
+    from data.models import Asset, RotatorAsset, Rotator, StopSet, StopSetRotator
 
     User.objects.create_superuser(
         username='test',
@@ -45,17 +66,18 @@ def main():
 
     os.chdir(sounds_path)
     for filename in os.listdir('.'):
-        asset = Asset.objects.create(audio=File(open(filename, 'rb')))
+
+        asset = Asset.objects.create(audio=File(open(filename, 'rb')), **enabled_kwargs())
         rotator = rotators[filename.rsplit('-', 1)[0]]
         RotatorAsset.objects.create(asset=asset, rotator=rotator)
 
-    pre = StopSet.objects.create(name='Pre-event 1')
+    pre = StopSet.objects.create(name='Pre-event 1', **enabled_kwargs())
     StopSetRotator.objects.create(stopset=pre, rotator=rotators['station-id'])
     StopSetRotator.objects.create(stopset=pre, rotator=rotators['ad'])
     StopSetRotator.objects.create(stopset=pre, rotator=rotators['ad'])
     StopSetRotator.objects.create(stopset=pre, rotator=rotators['spotlight'])
     StopSetRotator.objects.create(stopset=pre, rotator=rotators['station-id'])
-    during = StopSet.objects.create(name='During Event', enabled=False)
+    during = StopSet.objects.create(name='During Event', **enabled_kwargs())
     StopSetRotator.objects.create(stopset=during, rotator=rotators['station-id'])
     StopSetRotator.objects.create(stopset=during, rotator=rotators['spotlight'])
     StopSetRotator.objects.create(stopset=during, rotator=rotators['ad'])

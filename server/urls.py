@@ -16,7 +16,8 @@ admin.site.show_themes = True
 admin.site.favicon = icon_url
 
 urlpatterns = [
-    path('', include('tomato.urls')),
+    path('', include('api_auth.urls')),
+    path('', include('data.urls')),
     path('', admin.site.urls),
 ]
 
