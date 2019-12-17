@@ -1,4 +1,4 @@
-# Tomato Radio Automation
+# <img src="tomato.png" width="32" height="32"> Tomato Radio Automation <img src="tomato.png" width="32" height="32">
 
 Client and server code for Tomato Radio Automation software, written specifically
 for [BMIR](https://bmir.org/).
