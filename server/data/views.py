@@ -1,19 +1,16 @@
+from django.apps import apps
 from django.conf import settings
-from django.http import HttpResponseForbidden, JsonResponse
-
-from .models import Asset, Rotator, StopSet
+from django.core.serializers import serialize
+from django.http import HttpResponse, HttpResponseForbidden
 
 
 def export(request):
     response = HttpResponseForbidden()
 
     if request.user.is_authenticated or settings.DEBUG:
-        data = {'timezone': settings.TIME_ZONE}
+        objs = []
+        for model_cls in apps.get_app_config('data').get_models():
+            objs.extend(model_cls.objects.all())
 
-        for model_cls in (Asset, Rotator, StopSet):
-            data[model_cls._meta.db_table] = [
-                obj.to_dict(request) for obj in model_cls.objects.all()]
-
-        response = JsonResponse(data)
-
+        response = HttpResponse(serialize('xml', objs), content_type='text/xml')
     return response
