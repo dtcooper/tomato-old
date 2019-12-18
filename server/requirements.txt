@@ -1,3 +1,4 @@
 Django
-django-material-admin
+django-picklefield
+git+https://github.com/jazzband/django-constance.git@590fa02eb30e377da0eda5cc3a84254b839176a7
 psycopg2

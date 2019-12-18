@@ -1,4 +1,8 @@
+from collections import OrderedDict
+from decimal import Decimal
 import os
+
+from django.utils.html import format_html
 
 BASE_DIR = os.path.realpath(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'hackme'
@@ -8,19 +12,29 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
-    'material.admin',
-    'material.admin.default',
+    # Django
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api_auth',
+
+    # 3rd Paty
+    'constance',
+    'constance.backends.database',
+
+    # Local
     'data',
+    'server',
 ]
 
 if DEBUG:
     INSTALLED_APPS.append('django_extensions')
+
+    SHELL_PLUS_PRE_IMPORTS = [
+        ('constance', 'config'),
+    ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -30,7 +44,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'api_auth.middleware.AuthTokenAuthenticationMiddleware',
+    'server.middleware.ServerMiddleware',
 ]
 
 ROOT_URLCONF = 'urls'
@@ -77,10 +91,22 @@ STATIC_URL = '/static/'
 MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
-MATERIAL_ADMIN_SITE = {
-    'TRAY_REVERSE': True,
-    'NAVBAR_REVERSE': True,
-}
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+CONSTANCE_CONFIG = OrderedDict({
+    'TIMEZONE': (TIME_ZONE, format_html(
+        '{}<a href="{}" target="_blank">{}</a>{}',
+        'Timezone for server/client to operate in. Choose from ',
+        'https://en.wikipedia.org/wiki/List_of_tz_database_time_zones',
+        'this list (TZ database name)', f'. (Defaults to {TIME_ZONE} if invalid.)')),
+    'WAIT_INTERVAL_MINUTES': (20, 'Time to wait between stop sets (in minutes).'),
+    'WAIT_INTERVAL_SUBTRACTS_STOPSET_PLAYTIME': (
+        False, 'Wait time subtracts the playtime of a stop set. This will provide more '
+               'even results, ie the number of stop sets played per hour will be more '
+               'consistent at the expense of a DJs air time.'),
+    'ALLOW_ANONYMOUS_SUPERUSER': (
+        False, 'Whether or not to allow anyone to log in. (WARNING: This is a '
+               'potential security issue!)'),
+})
 
 
 try:

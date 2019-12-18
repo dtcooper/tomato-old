@@ -46,16 +46,10 @@ def main():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
     django.setup()
 
-    from django.contrib.auth.models import User
+    from constance import config
     from data.models import Asset, RotatorAsset, Rotator, StopSet, StopSetRotator
 
-    User.objects.create_superuser(
-        username='test',
-        password='test',
-        email='test@example.com',
-        first_name='Test',
-        last_name='User',
-    )
+    config.ALLOW_ANONYMOUS_SUPERUSER = True
 
     colors = {v: k for k, v in Rotator.COLOR_CHOICES}
     rotators = {

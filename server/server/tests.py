@@ -7,6 +7,7 @@ from .models import ApiToken
 
 class DataAdminTests(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username='user', password='user')
         self.super = User.objects.create_superuser(username='super', password='super')
         self.client = Client()
 
@@ -31,3 +32,13 @@ class DataAdminTests(TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('admin:index'), HTTP_X_AUTH_TOKEN=token)
         self.assertEqual(response.status_code, 200)
+
+    def test_export_view(self):
+        response = self.client.get(reverse('export'))
+        self.assertEqual(response.status_code, 403)
+
+        self.client.login(username='user', password='user')
+        response = self.client.get(reverse('export'))
+        self.assertEqual(response.status_code, 200)
+
+        # TODO: test response value

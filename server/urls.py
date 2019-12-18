@@ -16,8 +16,7 @@ admin.site.show_themes = True
 admin.site.favicon = icon_url
 
 urlpatterns = [
-    path('', include('api_auth.urls')),
-    path('', include('data.urls')),
+    path('', include('server.urls')),
     path('', admin.site.urls),
 ]
 

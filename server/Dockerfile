@@ -16,12 +16,15 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir -p /app/server
 WORKDIR /app/server
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt \
+# For debugging
+RUN pip install \
     django-debug-toolbar \
     django-extensions \
     flake8 \
     ipdb \
     ipython
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
 CMD python manage.py runserver

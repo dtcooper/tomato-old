@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import json
+
 import django
 from django.db import transaction
 from django.conf import settings
@@ -28,13 +30,10 @@ def main():
     call_command('migrate', verbosity=0)
 
     models = (Asset, Rotator, StopSet)
-    data = requests.get('http://localhost:5000/export')
-    objects = deserialize('xml', data.text)
+    data = requests.get('http://localhost:8000/export').json()
+    objects = deserialize('json', json.dumps(data['objects']))
 
     with transaction.atomic():
-        for model_cls in models:
-            model_cls.objects.all().delete()
-
         for obj in objects:
             obj.save()
 

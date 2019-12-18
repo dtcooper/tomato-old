@@ -15,7 +15,6 @@ class DataAdminTests(TestCase):
     def setUp(self):
         self.colors = {v: k for k, v in Rotator.COLOR_CHOICES}
         self.super = User.objects.create_superuser(username='super', password='super')
-        self.user = User.objects.create_user(username='user', password='user')
         self.client = Client()
 
     def create_basic_data(self):
@@ -48,13 +47,3 @@ class DataAdminTests(TestCase):
         ):
             response = self.client.get(test_url)
             self.assertEqual(response.status_code, 200)
-
-    def test_export_view(self):
-        response = self.client.get(reverse('export'))
-        self.assertEqual(response.status_code, 403)
-
-        self.client.login(username='user', password='user')
-        response = self.client.get(reverse('export'))
-        self.assertEqual(response.status_code, 200)
-
-        # TODO: test response value

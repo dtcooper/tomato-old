@@ -106,7 +106,6 @@ class StopSetRotatorInline(RotatorInlineBase, admin.TabularInline):
 
 class StopSetModelAdmin(EnabledBeginEndMixin, NumAssetsMixin, ModelAdmin):
     inlines = (StopSetRotatorInline,)
-    icon_name = 'queue_music'
     readonly_fields = ('is_currently_enabled_reason',)
     list_display = ('name', 'rotator_entry_list', 'is_currently_enabled',
                     'enabled_dates', 'weight', 'num_assets')
@@ -137,7 +136,6 @@ class StopSetModelAdmin(EnabledBeginEndMixin, NumAssetsMixin, ModelAdmin):
 
 
 class RotatorModelAdmin(DisplayColorMixin, NumAssetsMixin, ModelAdmin):
-    icon_name = 'library_music'
     readonly_fields = ('display_color',)
     list_display = ('name', 'stopset_list', 'display_color', 'num_assets')
 
@@ -159,7 +157,6 @@ class RotatorAssetInline(RotatorInlineBase, admin.StackedInline):
 
 
 class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
-    icon_name = 'music_note'
     inlines = (RotatorAssetInline,)
     list_display = ('view_name', 'rotator_list', 'is_currently_enabled',
                     'enabled_dates', 'weight', 'list_audio_player')
