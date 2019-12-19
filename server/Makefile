@@ -1,12 +1,10 @@
-.PHONY: run buildserver runserver shell
+.PHONY: run build shell
 
-run: runserver
-
-buildserver:
-	docker-compose build
-
-runserver:
+run:
 	docker-compose run --rm --service-ports app
+
+build:
+	docker-compose build
 
 shell:
 	docker-compose run --rm --service-ports app bash
