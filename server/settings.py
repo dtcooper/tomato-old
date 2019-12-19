@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from decimal import Decimal
 import os
 
 from django.utils.html import format_html
@@ -32,6 +31,7 @@ INSTALLED_APPS = [
 if DEBUG:
     INSTALLED_APPS.append('django_extensions')
 
+    SHELL_PLUS_PRINT_SQL = True
     SHELL_PLUS_PRE_IMPORTS = [
         ('constance', 'config'),
     ]
@@ -63,7 +63,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'data.context_processors.rotator_colors',
+                'constance.context_processors.config',
+                'data.context_processors.extra_admin_context',
             ],
         },
     },

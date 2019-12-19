@@ -106,7 +106,8 @@ class StopSetRotator(models.Model):
 
 
 class Asset(EnabledBeginEndWeightMixin, models.Model):
-    name = models.CharField('Optional Name', max_length=50, blank=True, db_index=True)
+    name = models.CharField('Optional Name', max_length=50, blank=True, db_index=True,
+                            help_text="If left unspecified, we'll base off the filename")
     md5sum = models.CharField(max_length=32)
     audio = models.FileField('Audio File', upload_to='assets/')
     rotators = models.ManyToManyField(

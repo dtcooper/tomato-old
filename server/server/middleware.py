@@ -1,5 +1,7 @@
+import pytz
+
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import is_password_usable
+from django.utils import timezone
 
 from constance import config
 
@@ -34,7 +36,12 @@ class ServerMiddleware:
             request.user = user
 
     def set_timezone(self, request):
-        pass
+        try:
+            tz = pytz.timezone(config.TIMEZONE)
+        except pytz.UnknownTimeZoneError:
+            pass
+        else:
+            timezone.activate(tz)
 
     def __call__(self, request):
         self.set_user(request)
