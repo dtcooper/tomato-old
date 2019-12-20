@@ -22,19 +22,12 @@ INSTALLED_APPS = [
     # 3rd Paty
     'constance',
     'constance.backends.database',
+    'django_extensions',
 
     # Local
     'data',
     'server',
 ]
-
-if DEBUG:
-    INSTALLED_APPS.append('django_extensions')
-
-    SHELL_PLUS_PRINT_SQL = True
-    SHELL_PLUS_PRE_IMPORTS = [
-        ('constance', 'config'),
-    ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -91,6 +84,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+
+SHELL_PLUS_PRINT_SQL = True
+SHELL_PLUS_PRE_IMPORTS = [
+    ('constance', 'config'),
+]
 
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_CONFIG = OrderedDict({

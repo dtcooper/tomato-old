@@ -19,7 +19,6 @@ WORKDIR /app/server
 # For debugging
 RUN pip install \
     django-debug-toolbar \
-    django-extensions \
     flake8 \
     ipdb \
     ipython
