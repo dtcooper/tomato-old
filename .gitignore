@@ -3,4 +3,5 @@ __pycache__/
 .pytest_cache
 /server/local_settings.py
 /server/uploads/
+/server/static/
 /server/venv/
