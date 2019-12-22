@@ -92,6 +92,7 @@ SHELL_PLUS_PRE_IMPORTS = [
 ]
 
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+CONSTANCE_SUPERUSER_ONLY = False
 CONSTANCE_CONFIG = OrderedDict({
     'TIMEZONE': (TIME_ZONE, format_html(
         '{}<a href="{}" target="_blank">{}</a>{}',
