@@ -6,10 +6,40 @@
     <h1 id="site-name">
         <a href="{% url 'admin:index' %}">
             <img src="{% static 'admin/images/tomato.png' %}" style="height: 40px; width: 40px; image-rendering: pixelated;">
-            Tomato Radio Automation - Administration
+            Tomato Radio Automation
             <img src="{% static 'admin/images/tomato.png' %}" style="height: 40px; width: 40px; image-rendering: pixelated;">
         </a>
     </h1>
+{% endblock %}
+
+{% block usertools %}
+    {% if config.ALLOW_ANONYMOUS_SUPERUSER %}
+        <div id="user-tools">
+            <strong>No sign in required.</strong>
+            Server Time: {% now 'DATETIME_FORMAT' %}
+        </div>
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock %}
+
+{% block welcome-msg %}
+    {{ block.super }}
+    Server Time: {% now 'DATETIME_FORMAT' %}<br>
+{% endblock %}
+
+{% block footer %}
+    <div id="footer">
+        <hr/>
+        <div class="container pull-left">
+            <h5 style="text-align: center;">
+                {% now 'Y' as year %}
+                &copy; Copyright 2019{% if year > '2019' %}-{{ year }}{% endif %}
+                <a href="mailto:david.cooper@burningman.org" target="_blank">David Cooper</a>
+                &amp; <a href="https://bmir.org/" target="_blank">BMIR</a>.
+                All rights reserved.
+        </div>
+    </div>
 {% endblock %}
 
 {% block extrahead %}
@@ -58,20 +88,4 @@
           color: #999;
       }
     </style>
-{% endblock %}
-
-{% block usertools %}
-    {% if config.ALLOW_ANONYMOUS_SUPERUSER %}
-        <div id="user-tools">
-            <strong>No sign in required.</strong>
-            Server Time: {% now 'DATETIME_FORMAT' %}
-        </div>
-    {% else %}
-        {{ block.super }}
-    {% endif %}
-{% endblock %}
-
-{% block welcome-msg %}
-    {{ block.super }}
-    Server Time: {% now 'DATETIME_FORMAT' %}<br>
 {% endblock %}
