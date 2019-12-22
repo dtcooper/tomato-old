@@ -1,4 +1,4 @@
-from .models import Rotator
+from data.models import Rotator
 
 
 def extra_admin_context(request):

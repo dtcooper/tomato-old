@@ -20,8 +20,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # 3rd Paty
-    'constance',
     'constance.backends.database',
+    'constance',
     'django_extensions',
 
     # Local
@@ -47,7 +47,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             # Make sure admin override templates load first
-            os.path.join(BASE_DIR, 'data', 'templates')
+            os.path.join(BASE_DIR, 'server', 'templates')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -57,7 +57,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'constance.context_processors.config',
-                'data.context_processors.extra_admin_context',
+                'server.context_processors.extra_admin_context',
             ],
         },
     },
@@ -104,9 +104,9 @@ CONSTANCE_CONFIG = OrderedDict({
         False, 'Wait time subtracts the playtime of a stop set. This will provide more '
                'even results, ie the number of stop sets played per hour will be more '
                'consistent at the expense of a DJs air time.'),
-    'ALLOW_ANONYMOUS_SUPERUSER': (
-        False, 'Whether or not to allow anyone to log in. (WARNING: This is a '
-               'potential security issue!)'),
+    'NO_LOGIN_REQUIRED': (
+        False, 'Allows anyone to access without authenticating. (WARNING: This '
+               'is a potential security issue!)'),
 })
 
 

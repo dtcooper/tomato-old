@@ -1,0 +1,33 @@
+{% extends 'admin/base_site.html' %}
+
+{% load static %}
+
+{# Adapted from http://www.dmertl.com/blog/?p=116 #}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}"/>
+{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url 'admin:data_asset_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; Bulk Upload {{ opts.verbose_name_plural|capfirst }}
+    </div>
+{% endblock %}
+
+{% block content %}
+    <form action="{% url 'admin:data_asset_upload' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div>
+            {% for fieldset in adminform %}
+                {% include "admin/includes/fieldset.html" %}
+            {% endfor %}
+        </div>
+        <div class="submit-row">
+            <input type="submit" value="Bulk Upload" class="default">
+        </div>
+    </form>
+{% endblock %}

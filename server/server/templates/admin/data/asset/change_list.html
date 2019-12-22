@@ -1,0 +1,12 @@
+{% extends 'admin/change_list.html' %}
+
+{% block object-tools-items %}
+    {% if has_add_permission %}
+        <li>
+            <a href="{% url 'admin:data_asset_upload' %}" class="addlink">
+                Bulk Upload {{ opts.verbose_name_plural|capfirst }}
+            </a>
+        </li>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}

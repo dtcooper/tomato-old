@@ -49,7 +49,7 @@ def main():
     from constance import config
     from data.models import Asset, RotatorAsset, Rotator, StopSet, StopSetRotator
 
-    config.ALLOW_ANONYMOUS_SUPERUSER = True
+    config.NO_LOGIN_REQUIRED = True
 
     colors = {v: k for k, v in Rotator.COLOR_CHOICES}
     rotators = {

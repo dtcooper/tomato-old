@@ -6,6 +6,9 @@ from django.db import models
 from django.utils import timezone
 
 
+MAX_NAME_LEN = 75
+
+
 class CurrentlyEnabledQueryset(models.QuerySet):
     def currently_enabled(self):
         now = timezone.now()
@@ -31,11 +34,12 @@ class EnabledBeginEndWeightMixin(models.Model):
         'End Air Date', null=True, blank=True,
         help_text=('Optional date when eligibility for random selection *ends*. '
                    'If specified, random selection is enabled before this date.'))
-    weight = models.PositiveSmallIntegerField(
-        'Random Weight', default=1,
+    weight = models.DecimalField(
+        'Random Weight', max_digits=5, decimal_places=2, default=1,
         help_text=('The weight (ie selection bias) for how likely random '
                    "selection occurs, eg '1' is just as likely as all others, "
-                   " '2' is 2x as likely, '3' is 3x as likely and so on."))
+                   "'2' is 2x as likely, '3' is 3x as likely, '0.5' half as likely, "
+                   'and so on.'))
 
     def save(self, *args, **kwargs):
         if self.weight <= 0:
@@ -47,7 +51,7 @@ class EnabledBeginEndWeightMixin(models.Model):
 
 
 class StopSet(EnabledBeginEndWeightMixin, models.Model):
-    name = models.CharField('Name', max_length=50)
+    name = models.CharField('Name', max_length=MAX_NAME_LEN)
 
     def __str__(self):
         return self.name
@@ -68,7 +72,7 @@ class Rotator(models.Model):
     )
 
     name = models.CharField(
-        'Rotator Name', max_length=50, db_index=True,
+        'Rotator Name', max_length=MAX_NAME_LEN, db_index=True,
         help_text=("Category name of this asset rotator, eg 'ADs', 'Station IDs, "
                    "'Short Interviews', etc."))
     color = models.CharField(
@@ -96,20 +100,22 @@ class StopSetRotator(models.Model):
     rotator = models.ForeignKey(Rotator, on_delete=models.CASCADE, verbose_name='Rotator')
 
     def __str__(self):
-        return self.rotator.name
+        return f'{self.rotator.name} in {self.stopset.name}'
 
     class Meta:
         db_table = 'stopset_rotators'
-        verbose_name = 'Stop Set Rotator Entry'
-        verbose_name_plural = 'Stop Set Rotator Entries'
+        verbose_name = 'Rotator Entry in Stop Set'
+        verbose_name_plural = 'Rotator Entries in Stop Set'
         ordering = ('id',)
 
 
 class Asset(EnabledBeginEndWeightMixin, models.Model):
-    name = models.CharField('Optional Name', max_length=50, blank=True, db_index=True,
-                            help_text="If left unspecified, we'll base off the filename")
+    name = models.CharField('Optional Name', max_length=MAX_NAME_LEN, blank=True, db_index=True,
+                            help_text="If left unspecified, we'll base it off the filename. "
+                                      'If uploading multiple files, leave this empty.')
     md5sum = models.CharField(max_length=32)
     audio = models.FileField('Audio File', upload_to='assets/')
+    # TODO: length?
     rotators = models.ManyToManyField(
         Rotator, through='RotatorAsset', through_fields=('asset', 'rotator'), related_name='assets')
 
@@ -122,7 +128,7 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
 
         # Give asset a name based on filename
         if not self.name.strip():
-            self.name = os.path.splitext(os.path.basename(self.audio.name))[0]
+            self.name = os.path.splitext(os.path.basename(self.audio.name))[0][:MAX_NAME_LEN]
 
         return super().save(*args, **kwargs)
 
@@ -139,19 +145,21 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
 class RotatorAsset(models.Model):
     rotator = models.ForeignKey(Rotator, on_delete=models.CASCADE, verbose_name='Rotator')
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
-    # TODO: length?
 
     def save(self, *args, **kwargs):
         # Enforce uniqueness
         if not RotatorAsset.objects.filter(rotator=self.rotator,
                                            asset=self.asset).exists():
             super().save(*args, **kwargs)
+            return True
+        else:
+            return False
 
     def __str__(self):
-        return self.rotator.name
+        return f'{self.asset.name} in {self.rotator.name}'
 
     class Meta:
         db_table = 'rotator_assets'
-        verbose_name = 'Rotator'
-        verbose_name_plural = 'Rotators'
+        verbose_name = 'Asset in Rotator'
+        verbose_name_plural = 'Asset in Rotators'
         ordering = ('id',)

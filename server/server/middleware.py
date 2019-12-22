@@ -13,11 +13,7 @@ class ServerMiddleware:
         self.get_response = get_response
 
     def set_user(self, request):
-        token = request.headers.get('X-Auth-Token') or request.GET.get('auth_token')
-        if token:
-            request.user = ApiToken.user_from_token(token)
-
-        if request.user.is_anonymous and config.ALLOW_ANONYMOUS_SUPERUSER:
+        if config.NO_LOGIN_REQUIRED:
             user, _ = User.objects.update_or_create(
                 username='anonymous_superuser',
                 defaults={
@@ -34,6 +30,11 @@ class ServerMiddleware:
                 user.save()
 
             request.user = user
+
+        else:
+            token = request.headers.get('X-Auth-Token') or request.GET.get('auth_token')
+            if token:
+                request.user = ApiToken.user_from_token(token)
 
     def set_timezone(self, request):
         try:

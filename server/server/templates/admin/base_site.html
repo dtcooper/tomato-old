@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block usertools %}
-    {% if config.ALLOW_ANONYMOUS_SUPERUSER %}
+    {% if config.NO_LOGIN_REQUIRED %}
         <div id="user-tools">
             <strong>No sign in required.</strong>
             Server Time: {% now 'DATETIME_FORMAT' %}
