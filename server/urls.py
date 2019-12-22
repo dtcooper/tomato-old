@@ -2,16 +2,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django.utils.html import format_html
-from django.templatetags.static import static as static_url
 
-
-icon_url = static_url('admin/images/tomato.png')
-logo_img = '<img src="{url}" style="height: 40px; width: 40px; image-rendering: pixelated;">'
 
 admin.site.site_url = None
-admin.site.site_title = admin.site.site_header = format_html(
-    logo_img + ' Tomato Radio Automation ' + logo_img, url=icon_url)
+admin.site.site_title = 'Tomato Radio Automation'
 
 urlpatterns = [
     path('', include('server.urls')),
