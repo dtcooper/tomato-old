@@ -46,7 +46,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            # Make sure admin override templates load first
+            # Make sure server/admin/base_site.html overrides
             os.path.join(BASE_DIR, 'server', 'templates')
         ],
         'APP_DIRS': True,
@@ -57,7 +57,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'constance.context_processors.config',
-                'server.context_processors.extra_admin_context',
             ],
         },
     },

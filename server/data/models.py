@@ -10,13 +10,18 @@ MAX_NAME_LEN = 75
 
 
 class CurrentlyEnabledQueryset(models.QuerySet):
-    def currently_enabled(self):
+    def currently_airing(self):
         now = timezone.now()
-        return self.filter(
-            models.Q(enabled=True)
-            & (models.Q(begin__isnull=True) | models.Q(begin__lt=now))
-            & (models.Q(end__isnull=True) | models.Q(end__gt=now))
-        )
+        return self.filter((models.Q(begin__isnull=True) | models.Q(begin__lte=now))
+                           & (models.Q(end__isnull=True) | models.Q(end__gte=now)))
+
+    def not_currently_airing(self):
+        now = timezone.now()
+        return self.exclude((models.Q(begin__isnull=True) | models.Q(begin__lte=now))
+                            & (models.Q(end__isnull=True) | models.Q(end__gte=now)))
+
+    def currently_enabled(self):
+        return self.filter(enabled=True).currently_airing()
 
 
 class EnabledBeginEndWeightMixin(models.Model):
@@ -29,17 +34,28 @@ class EnabledBeginEndWeightMixin(models.Model):
     begin = models.DateTimeField(
         'Begin Air Date', null=True, blank=True,
         help_text=('Optional date when eligibility for random selection *begins*. '
-                   'If specified, random selection is enabled after this date.'))
+                   'If specified, random selection is eligible after this date.'))
     end = models.DateTimeField(
         'End Air Date', null=True, blank=True,
         help_text=('Optional date when eligibility for random selection *ends*. '
-                   'If specified, random selection is enabled before this date.'))
+                   'If specified, random selection is eligible before this date.'))
     weight = models.DecimalField(
         'Random Weight', max_digits=5, decimal_places=2, default=1,
         help_text=('The weight (ie selection bias) for how likely random '
                    "selection occurs, eg '1' is just as likely as all others, "
                    "'2' is 2x as likely, '3' is 3x as likely, '0.5' half as likely, "
                    'and so on.'))
+
+    def currently_airing(self):
+        now = timezone.now()
+        if self.begin and self.end:
+            return self.begin <= now <= self.end
+        elif self.begin:
+            return self.begin <= now
+        elif self.end:
+            return self.end >= now
+        else:
+            return True
 
     def save(self, *args, **kwargs):
         if self.weight <= 0:
@@ -73,17 +89,13 @@ class Rotator(models.Model):
 
     name = models.CharField(
         'Rotator Name', max_length=MAX_NAME_LEN, db_index=True,
-        help_text=("Category name of this asset rotator, eg 'ADs', 'Station IDs, "
-                   "'Short Interviews', etc."))
+        help_text="Category name of this asset rotator, eg 'ADs', 'Station IDs, "
+                  "'Short Interviews', etc.")
     color = models.CharField(
-        'Color', default=COLOR_CHOICES[0][0], max_length=6,
-        choices=COLOR_CHOICES,
+        'Color', default=COLOR_CHOICES[0][0], max_length=6, choices=COLOR_CHOICES,
         help_text='Color that appears in the playout software for assets in this rotator.')
-    stopsets = models.ManyToManyField(
-        StopSet,
-        through='StopSetRotator',
-        through_fields=('rotator', 'stopset'),
-        related_name='rotators')
+    stopsets = models.ManyToManyField(StopSet, through='StopSetRotator', related_name='rotators',
+                                      through_fields=('rotator', 'stopset'), verbose_name='Stop Set')
 
     def __str__(self):
         return self.name
@@ -100,24 +112,27 @@ class StopSetRotator(models.Model):
     rotator = models.ForeignKey(Rotator, on_delete=models.CASCADE, verbose_name='Rotator')
 
     def __str__(self):
-        return f'{self.rotator.name} in {self.stopset.name}'
+        s = f'{self.rotator.name} in {self.stopset.name}'
+        if self.id:
+            num = StopSetRotator.objects.filter(stopset=self.stopset, id__lte=self.id).count()
+            s = f'{num}. {s}'
+        return s
 
     class Meta:
         db_table = 'stopset_rotators'
-        verbose_name = 'Rotator Entry in Stop Set'
-        verbose_name_plural = 'Rotator Entries in Stop Set'
+        verbose_name = 'Rotator in Stop Set relationship'
+        verbose_name_plural = 'Rotator in Stop Set relationships'
         ordering = ('id',)
 
 
 class Asset(EnabledBeginEndWeightMixin, models.Model):
-    name = models.CharField('Optional Name', max_length=MAX_NAME_LEN, blank=True, db_index=True,
-                            help_text="If left unspecified, we'll base it off the filename. "
-                                      'If uploading multiple files, leave this empty.')
+    name = models.CharField('Name', max_length=MAX_NAME_LEN, blank=True, db_index=True,
+                            help_text="Optional name, if left unspecified, we'll base it off the "
+                                      'filename. If uploading multiple files, leave this empty.')
     md5sum = models.CharField(max_length=32)
     audio = models.FileField('Audio File', upload_to='assets/')
-    # TODO: length?
-    rotators = models.ManyToManyField(
-        Rotator, through='RotatorAsset', through_fields=('asset', 'rotator'), related_name='assets')
+    rotators = models.ManyToManyField(Rotator, related_name='assets', blank=True, verbose_name='Rotator',
+                                      help_text='Rotators that this asset will be included in.')
 
     def save(self, *args, **kwargs):
         # Hash in 64kb chunks
@@ -142,24 +157,7 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
         ordering = ('name', 'id')
 
 
-class RotatorAsset(models.Model):
-    rotator = models.ForeignKey(Rotator, on_delete=models.CASCADE, verbose_name='Rotator')
-    asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
-
-    def save(self, *args, **kwargs):
-        # Enforce uniqueness
-        if not RotatorAsset.objects.filter(rotator=self.rotator,
-                                           asset=self.asset).exists():
-            super().save(*args, **kwargs)
-            return True
-        else:
-            return False
-
-    def __str__(self):
-        return f'{self.asset.name} in {self.rotator.name}'
-
-    class Meta:
-        db_table = 'rotator_assets'
-        verbose_name = 'Asset in Rotator'
-        verbose_name_plural = 'Asset in Rotators'
-        ordering = ('id',)
+# For prettier admin display
+Asset.rotators.through.__str__ = lambda self: f'{self.asset.name} in {self.rotator.name}'
+Asset.rotators.through._meta.verbose_name = 'Asset in Rotator relationship'
+Asset.rotators.through._meta.verbose_name_plural = 'Asset in Rotator relationships'

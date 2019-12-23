@@ -46,9 +46,12 @@ def main():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
     django.setup()
 
-    from constance import config
-    from data.models import Asset, RotatorAsset, Rotator, StopSet, StopSetRotator
+    from django.contrib.auth.models import User
 
+    from constance import config
+    from data.models import Asset, Rotator, StopSet, StopSetRotator
+
+    User.objects.create_superuser(username='test', password='test')
     config.NO_LOGIN_REQUIRED = True
 
     colors = {v: k for k, v in Rotator.COLOR_CHOICES}
@@ -63,7 +66,7 @@ def main():
 
         asset = Asset.objects.create(audio=File(open(filename, 'rb')), **enabled_kwargs())
         rotator = rotators[filename.rsplit('-', 1)[0]]
-        RotatorAsset.objects.create(asset=asset, rotator=rotator)
+        asset.rotators.add(rotator)
 
     pre = StopSet.objects.create(name='Pre-event 1', **enabled_kwargs())
     StopSetRotator.objects.create(stopset=pre, rotator=rotators['station-id'])

@@ -11,10 +11,11 @@ from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import escape, format_html, mark_safe
 
-from data.models import Asset, Rotator, RotatorAsset, StopSet, StopSetRotator
+from data.models import Asset, Rotator, StopSet, StopSetRotator
 
 
 class TomatoUserAdmin(UserAdmin):
+    save_on_top = True
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
@@ -37,54 +38,59 @@ class TomatoUserAdmin(UserAdmin):
         return has_perm and request.user.username != 'anonymous_superuser'
 
 
-class ModelAdmin(admin.ModelAdmin):
+class TomatoModelAdmin(admin.ModelAdmin):
     save_on_top = True
     list_per_page = 250
     search_fields = ('name',)
+    empty_value_display = 'None'
 
 
-class EnabledBeginEndMixin:
-    def is_currently_enabled(self, obj):
-        now = timezone.now()
-        return (obj.enabled and (obj.begin is None or obj.begin < now)
-                and (obj.end is None or obj.end > now))
-    is_currently_enabled.boolean = True
-    is_currently_enabled.short_description = 'Currently Enabled?'
-    # TODO: figure out a way to express this in SQL and then sort by it
+class CurrentlyAiringListFilter(admin.SimpleListFilter):
+    title = 'Airing Eligibility'
+    parameter_name = 'airing'
 
-    def is_currently_enabled_reason(self, obj):
-        reasons = []
-        if not obj.enabled:
-            reasons.append('via checkbox')
+    def lookups(self, request, model_admin):
+        return (('yes', 'Currently Eligible'), ('no', 'Not Currently Eligible'))
 
-        now = timezone.now()
-        if obj.begin is not None and now < obj.begin:
-            reasons.append('Begin Date in the future')
-        if obj.end is not None and now > obj.end:
-            reasons.append('End Date in the past')
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.currently_airing()
+        elif self.value() == 'no':
+            return queryset.not_currently_airing()
 
-        return f'Disabled: {", ".join(reasons)}' if reasons else 'Enabled'
-    is_currently_enabled_reason.short_description = 'Currently Enabled?'
+
+class EnabledDatesRotatorMixin:
+    list_filter = ('rotators', CurrentlyAiringListFilter, 'enabled')
 
     def enabled_dates(self, obj):
         tz = timezone.get_default_timezone()
         fmt = '%a %b %-d %Y %-I:%M %p'
 
+        enabled_html = '' if obj.currently_airing() else '<br><em>Not currently eligible to air.</em>'
+
         if obj.begin and obj.end:
             return format_html(
-                '<b>Begins:</b> {}<br><b>Ends:</b> {}',
-                tz.normalize(obj.begin).strftime(fmt),
-                tz.normalize(obj.end).strftime(fmt))
+                '<b>Begins:</b> {}<br><b>Ends:</b> {}' + enabled_html,
+                tz.normalize(obj.begin).strftime(fmt), tz.normalize(obj.end).strftime(fmt))
         elif obj.begin:
-            return format_html(
-                '<b>Begins:</b> {}', tz.normalize(obj.begin).strftime(fmt))
+            return format_html('<b>Begins:</b> {}' + enabled_html,
+                               tz.normalize(obj.begin).strftime(fmt))
         elif obj.end:
-            return format_html(
-                '<b>Ends:</b> {}', tz.normalize(obj.end).strftime(fmt))
+            return format_html('<b>Ends:</b> {}' + enabled_html,
+                               tz.normalize(obj.end).strftime(fmt))
         else:
             return 'Always Airs'
     enabled_dates.short_description = 'Air Dates'
     enabled_dates.admin_order_field = Coalesce('begin', 'end')
+
+    def enable(self, request, queryset):
+        queryset.update(enabled=True)
+    enable.short_description = 'Enable selected %(verbose_name_plural)s'
+
+    def disable(self, request, queryset):
+        queryset.update(enabled=False)
+    disable.short_description = 'Disable selected %(verbose_name_plural)s'
+    disable.allowed_permissions = enable.allowed_permissions = ('add', 'change', 'delete')
 
 
 class NumAssetsMixin:
@@ -98,16 +104,23 @@ class NumAssetsMixin:
         num_disabled = Asset.objects.filter(**filter_kwargs).count() - num_enabled
 
         if num_enabled == num_disabled == 0:
-            s = mark_safe('<em>None</em>')
+            html = '<em>None</em>'
         else:
-            s = f'{num_enabled} Enabled'
+            html = f'{num_enabled} Airing'
             if num_disabled > 0:
-                s += f' / {num_disabled} Disabled'
-        return s
+                html = (f'{num_enabled + num_disabled} Total<br><em>'
+                        f'({html} / {num_disabled} Not Currently Airing)</em>')
+        return mark_safe(html)
     num_assets.short_description = 'Total Audio Assets'
 
 
-class RotatorInlineBase(admin.TabularInline):
+class StopSetRotatorInline(admin.TabularInline):
+    min_num = 1
+    extra = 0
+    model = StopSetRotator
+    verbose_name = 'Rotator Entry'
+    verbose_name_plural = 'Rotator Entries'
+
     def get_formset(self, request, obj, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
         widget = formset.form.base_fields['rotator'].widget
@@ -116,19 +129,11 @@ class RotatorInlineBase(admin.TabularInline):
         return formset
 
 
-class StopSetRotatorInline(RotatorInlineBase):
-    min_num = 1
-    extra = 0
-    model = StopSetRotator
-    verbose_name = 'Rotator Entry'
-    verbose_name_plural = 'Rotator Entries'
-
-
-class StopSetModelAdmin(EnabledBeginEndMixin, NumAssetsMixin, ModelAdmin):
+class StopSetModelAdmin(EnabledDatesRotatorMixin, NumAssetsMixin, TomatoModelAdmin):
     inlines = (StopSetRotatorInline,)
-    readonly_fields = ('is_currently_enabled_reason',)
-    list_display = ('name', 'rotator_entry_list', 'is_currently_enabled',
-                    'enabled_dates', 'weight', 'num_assets')
+    list_display = ('name', 'rotator_entry_list', 'enabled', 'enabled_dates', 'weight', 'num_assets')
+    fieldsets = ((None, {'fields': ('name',)}),
+                 ('Eligibility', {'fields': ('weight', 'enabled', 'begin', 'end')}))
 
     def rotator_entry_list(self, obj):
         rotator_entries = list(StopSetRotator.objects.filter(stopset=obj).order_by(
@@ -144,20 +149,11 @@ class StopSetModelAdmin(EnabledBeginEndMixin, NumAssetsMixin, ModelAdmin):
         return mark_safe(html)
     rotator_entry_list.short_description = 'Rotator Entries'
 
-    def get_fieldsets(self, request, obj):
-        return (
-            (None, {'fields': ('name',)}),
-            ('Eligibility', {
-                'fields': (
-                    ('is_currently_enabled_reason',) if obj else ()) + (
-                        'weight', 'enabled', 'begin', 'end'),
-            }),
-        )
 
-
-class RotatorModelAdmin(NumAssetsMixin, ModelAdmin):
+class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
     readonly_fields = ('display_color',)
     list_display = ('name', 'stopset_list', 'display_color', 'num_assets')
+    list_filter = ('stopsets',)
 
     def display_color(self, obj):
         return format_html('<div class="color-preview" style="width: 8em; height: 3em; '
@@ -180,17 +176,9 @@ class RotatorModelAdmin(NumAssetsMixin, ModelAdmin):
         js = ('admin/js/rotator_color.js',)
 
 
-class RotatorAssetInline(RotatorInlineBase):
-    model = RotatorAsset
-    extra = 1
-    ordering = ('rotator__name',)
-    verbose_name = 'Rotator'
-    verbose_name_plural = 'Rotator'
-
-
 class AssetActionForm(ActionForm):
     rotator = forms.ModelChoiceField(Rotator.objects.all(), required=False,
-                                     label=' ', empty_label='----- Rotator -----')
+                                     label=' ', empty_label='--- Rotator ---')
 
 
 class AssetUploadForm(forms.Form):
@@ -199,23 +187,20 @@ class AssetUploadForm(forms.Form):
         help_text='Select multiple audio files to upload using Shift, CMD, and/or Alt in the dialog.')
     rotators = forms.ModelMultipleChoiceField(
         Rotator.objects.all(), required=False, widget=forms.CheckboxSelectMultiple(),
-        label='Rotators', help_text='Select Rotators to add Audio Assets to.')
+        label='Rotators', help_text='Optionally select Rotator(s) to add Audio Assets to.')
 
 
-class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
+class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
     action_form = AssetActionForm
-    inlines = (RotatorAssetInline,)
-    list_display = ('view_name', 'rotator_list', 'is_currently_enabled',
-                    'enabled_dates', 'weight', 'list_audio_player')
-    readonly_fields = ('audio_player', 'is_currently_enabled_reason', 'rotator_list')
+    list_display = ('name', 'list_rotators', 'enabled', 'enabled_dates', 'weight', 'list_audio_player')
+    readonly_fields = ('audio_player', 'list_rotators')
     ordering = ('name',)
-    actions = ('add_rotator', 'remove_rotator')
-    list_filter = ('rotators__name',)  # TODO: allow for rotator = None here
+    actions = ('enable', 'disable', 'add_rotator', 'remove_rotator')
+    filter_horizontal = ('rotators',)
 
     def get_urls(self):
-        return [
-            path('upload/', self.admin_site.admin_view(self.upload), name='data_asset_upload')
-        ] + super().get_urls()
+        return [path('upload/', self.admin_site.admin_view(self.upload),
+                name='data_asset_upload')] + super().get_urls()
 
     def upload(self, request):
         if not self.has_add_permission(request):
@@ -225,7 +210,7 @@ class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
             form = AssetUploadForm(request.POST, request.FILES)
             if form.is_valid():
                 audio_files = request.FILES.getlist('audio_files')
-                rotators = list(form.cleaned_data.get('rotators', []))
+                rotators = form.cleaned_data['rotators']
 
                 for audio in audio_files:
                     asset = Asset(audio=audio)
@@ -235,7 +220,7 @@ class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
                         asset.rotators.add(*rotators)
 
                 self.message_user(
-                    request, f'Uploaded {len(audio_files)} assets.', messages.SUCCESS)
+                    request, f'Uploaded {len(audio_files)} Audio Assets.', messages.SUCCESS)
 
                 return HttpResponseRedirect(reverse('admin:data_asset_changelist'))
         else:
@@ -246,9 +231,9 @@ class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
         context.update({
             'opts': opts,
             'app_label': opts.app_label,
-            'title': f'Bulk Upload {opts.verbose_name_plural.title()}',
+            'title': f'Bulk Upload Audio Assets',
             'form': form,
-
+            'save_on_top': self.save_on_top,
             'adminform': AdminForm(form, [(None, {'fields': form.base_fields})],
                                    self.get_prepopulated_fields(request))
         })
@@ -257,51 +242,46 @@ class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
     def add_rotator(self, request, queryset):
         rotator_id = request.POST.get('rotator')
         if rotator_id:
-            rotator = Rotator.objects.get(id=rotator_id)
+            rotator, num_added = Rotator.objects.get(id=rotator_id), 0
             num_added = 0
             for asset in queryset:
-                rotator_asset = RotatorAsset(asset=asset, rotator=rotator)
-                if rotator_asset.save():
-                    num_added += 1
-
+                num_before = asset.rotators.count()
+                asset.rotators.add(rotator)
+                num_added += asset.rotators.count() - num_before
             self.message_user(
                 request, f'Added {num_added} asset(s) to {rotator.name}.', messages.SUCCESS)
         else:
             self.message_user(
-                request, 'You must select a Rotator to add asset(s) to.', messages.WARNING)
-    add_rotator.short_description = 'Add selected to Rotator'
+                request, 'You must select a Rotator to add Audio Asset(s) to.', messages.WARNING)
+    add_rotator.short_description = 'Add selected Audio Assets to Rotator'
 
     def remove_rotator(self, request, queryset):
         rotator_id = request.POST.get('rotator')
         if rotator_id:
-            rotator = Rotator.objects.get(id=rotator_id)
-            num_deleted, _ = RotatorAsset.objects.filter(asset__in=queryset, rotator=rotator).delete()
+            rotator, num_deleted = Rotator.objects.get(id=rotator_id), 0
+            for asset in queryset:
+                num_before = asset.rotators.count()
+                asset.rotators.remove(rotator)
+                num_deleted += num_before - asset.rotators.count()
             self.message_user(
                 request, f'Removed {num_deleted} asset(s) from {rotator.name}.', messages.SUCCESS)
         else:
             self.message_user(
-                request, 'You must select a Rotator to remove asset(s) from.', messages.WARNING)
-    remove_rotator.short_description = 'Remove selected from Rotator'
-    add_rotator.allowed_permissions = remove_rotator.allowed_permissions = ('add', 'change', 'delete')
+                request, 'You must select a Rotator to remove Audio Asset(s) from.', messages.WARNING)
+    remove_rotator.short_description = 'Remove selected Audio Assets from Rotator'
+    remove_rotator.allowed_permissions = add_rotator.allowed_permissions = ('add', 'change', 'delete')
+
+    def get_form(self, request, obj, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['rotators'].widget.can_add_related = False
+        return form
 
     def get_fieldsets(self, request, obj):
-        return (
-            (None, {
-                'fields': ('name', 'audio') + (('audio_player',) if obj else ()),
-            }),
-            ('Eligibility', {
-                'fields': (
-                    ('is_currently_enabled_reason',) if obj else ()) + (
-                        'weight', 'enabled', 'begin', 'end'),
-            }),
-        )
+        return ((None, {'fields': ('name',) + (('audio_player',) if obj else ()) + ('audio',)}),
+                ('Eligibility', {'fields': ('weight', 'enabled', 'begin', 'end')}),
+                ('Rotators', {'fields': ('rotators',)}))
 
-    def view_name(self, obj):  # Get rid of "Optional Name"
-        return obj.name
-    view_name.short_description = 'Name'
-    view_name.admin_order_field = 'name'
-
-    def rotator_list(self, obj):
+    def list_rotators(self, obj):
         rotators = list(obj.rotators.order_by('name').values_list('name', 'color'))
         if rotators:
             html = '<br>'.join(
@@ -310,16 +290,16 @@ class AssetModelAdmin(EnabledBeginEndMixin, ModelAdmin):
         else:
             html = '<em>None</em>'
         return mark_safe(html)
-    rotator_list.short_description = 'Rotators'
+    list_rotators.short_description = 'Rotators'
 
-    def audio_player(self, obj):
-        return format_html('<audio src="{}" style="width: 100%" preload="auto" controls />',
-                           obj.audio.url)
-
-    def list_audio_player(self, obj):
-        return format_html('<audio src="{}" style="width: 250px" preload="auto" controls />',
-                           obj.audio.url)
-    list_audio_player.short_description = audio_player.short_description = 'Audio Player'
+    def __audio_player(size):
+        def player(self, obj):
+            html = '<audio src="{}" style="width: {};" preload="auto" controls />'
+            return format_html(html, obj.audio.url, size)
+        player.short_description = 'Audio Player'
+        return player
+    audio_player = __audio_player('100%')
+    list_audio_player = __audio_player('250px')
 
 
 admin.site.unregister(User)
