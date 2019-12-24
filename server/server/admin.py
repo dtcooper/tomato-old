@@ -149,9 +149,6 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
     ordering = ('name',)
     readonly_fields = ('duration_pretty', 'audio_player', 'rotator_list')
 
-    class Media:
-        js = ('admin/js/asset_list_player.js',)
-
     def get_urls(self):
         return [path('upload/', self.admin_site.admin_view(self.upload),
                 name='data_asset_upload')] + super().get_urls()
@@ -275,7 +272,7 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
 
     def audio_player_list(self, obj):
         return format_html(
-            '<div><a class="show-asset-player" href="{}">Click to load inline player</a>', obj.audio.url)
+            '<audio src="{}" style="min-width: 275px; width: 100%;" preload="auto" controls />', obj.audio.url)
     audio_player.short_description = audio_player_list.short_description = 'Audio Player'
 
 
