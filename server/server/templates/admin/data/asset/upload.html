@@ -21,16 +21,26 @@
 {% block content %}
     <form action="{% url 'admin:data_asset_upload' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
+
         {% if save_on_top %}
             <div class="submit-row">
                 <input type="submit" value="Bulk Upload" class="default">
             </div>
         {% endif %}
+
+        {% if errors %}
+            <p class="errornote">
+                Please correct the error{% if errors|length > 1 %}s{% endif %} below.
+            </p>
+            {{ adminform.form.non_field_errors }}
+        {% endif %}
+
         <div>
             {% for fieldset in adminform %}
                 {% include "admin/includes/fieldset.html" %}
             {% endfor %}
         </div>
+
         <div class="submit-row">
             <input type="submit" value="Bulk Upload" class="default">
         </div>

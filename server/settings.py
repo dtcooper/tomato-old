@@ -74,6 +74,9 @@ DATABASES = {
     }
 }
 
+# Make sure  MemoryFileUploadHandler isn't set, because of data/models.py:Asset.clean()
+FILE_UPLOAD_HANDLERS = ('django.core.files.uploadhandler.TemporaryFileUploadHandler',)
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'US/Pacific'
 USE_I18N = True
@@ -106,7 +109,19 @@ CONSTANCE_CONFIG = OrderedDict({
     'NO_LOGIN_REQUIRED': (
         False, 'Allows anyone to access without authenticating. (WARNING: This '
                'is a potential security issue!)'),
+    'STRIP_UPLOADED_AUDIO': (True, 'TODO'),
+    'NORMALIZE_AUDIO_TO_MP3': (False, 'TODO'),
+    'NORMALIZE_AUDIO_TO_MP3_BITRATE': (320, 'TODO'),
+    # sox in.wav out.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
 })
+
+# Valid file types as recognized by `soxi -t` => file extensions
+VALID_FILE_TYPES_SOXI_TO_EXTENSIONS = {
+    'mp3': 'mp3',
+    'wav': 'wav',
+    'vorbis': 'ogg',
+    'flac': 'flac',
+}
 
 
 try:

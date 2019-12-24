@@ -1,12 +1,22 @@
+import datetime
 from functools import partial
 import hashlib
 import os
 
+try:
+    import sox
+    HAVE_SOX = True
+except ImportError:
+    HAVE_SOX = False
+
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.db import models
 from django.utils import timezone
 
 
-MAX_NAME_LEN = 75
+MAX_NAME_LEN = 100
 
 
 class CurrentlyEnabledQueryset(models.QuerySet):
@@ -89,8 +99,7 @@ class Rotator(models.Model):
 
     name = models.CharField(
         'Rotator Name', max_length=MAX_NAME_LEN, db_index=True,
-        help_text="Category name of this asset rotator, eg 'ADs', 'Station IDs, "
-                  "'Short Interviews', etc.")
+        help_text="Category name of this asset rotator, eg 'ADs', 'Station IDs, 'Short Interviews', etc.")
     color = models.CharField(
         'Color', default=COLOR_CHOICES[0][0], max_length=6, choices=COLOR_CHOICES,
         help_text='Color that appears in the playout software for assets in this rotator.')
@@ -127,11 +136,12 @@ class StopSetRotator(models.Model):
 
 class Asset(EnabledBeginEndWeightMixin, models.Model):
     name = models.CharField('Name', max_length=MAX_NAME_LEN, blank=True, db_index=True,
-                            help_text="Optional name, if left unspecified, we'll base it off the "
-                                      'filename. If uploading multiple files, leave this empty.')
+                            help_text="Optional name, if left unspecified, we'll base it off the audio file's "
+                                      'metadata, failing that its filename.')
     md5sum = models.CharField(max_length=32)
+    duration = models.DurationField()
     audio = models.FileField('Audio File', upload_to='assets/')
-    rotators = models.ManyToManyField(Rotator, related_name='assets', blank=True, verbose_name='Rotator',
+    rotators = models.ManyToManyField(Rotator, related_name='assets', blank=True, verbose_name='Rotators',
                                       help_text='Rotators that this asset will be included in.')
 
     def save(self, *args, **kwargs):
@@ -141,11 +151,63 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
             md5_hasher.update(data_chunk)
         self.md5sum = md5_hasher.hexdigest()
 
-        # Give asset a name based on filename
-        if not self.name.strip():
-            self.name = os.path.splitext(os.path.basename(self.audio.name))[0][:MAX_NAME_LEN]
+        # If first save, ie pk is None, action on:
+        # - STRIP_UPLOADED_AUDIO
+        # - NORMALIZE_AUDIO_TO_MP3
+        # - NORMALIZE_AUDIO_TO_MP3_BITRATE
 
+        if not self.name.strip():
+            self.name = self.get_default_name()
+        self.name = self.name[:MAX_NAME_LEN]
+        self.duration = self.get_duration()
         return super().save(*args, **kwargs)
+
+    @property
+    def audio_path(self):
+        if self.audio:
+            if isinstance(self.audio.file, TemporaryUploadedFile):
+                return self.audio.file.temporary_file_path()
+            else:
+                return self.audio.path
+
+    def get_duration(self):
+        duration = sox.file_info.duration(self.audio_path) if HAVE_SOX else 0
+        return datetime.timedelta(seconds=duration or 0)
+
+    def get_default_name(self, default=None):
+        name = os.path.splitext(os.path.basename(self.audio.name))[0]
+
+        if HAVE_SOX:
+            tags = {}
+            comments = sox.file_info.comments(self.audio_path)
+
+            for comment in comments.strip().splitlines():
+                comment_parts = comment.split('=', 1)
+                if len(comment_parts) == 2:
+                    tags[comment_parts[0].lower()] = comment_parts[1]
+            artist, title = tags.get('artist'), tags.get('title')
+
+            if artist and title:
+                name = f'{artist} - {title}'
+            elif title:
+                name = title
+
+        return name
+
+    if HAVE_SOX:
+        def clean(self):
+            if self.audio:
+                acceptable_file_types = ', '.join(settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS.values())
+                error_msg = f"Invalid file: '{self.audio.name}'. Acceptable file types: {acceptable_file_types}"
+
+                # check if file valid based on sox
+                try:
+                    file_type = sox.file_info.file_type(self.audio_path)
+                except sox.SoxiError:
+                    raise ValidationError({'audio': error_msg})
+                else:
+                    if file_type not in settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS:
+                        raise ValidationError({'audio': error_msg})
 
     def __str__(self):
         return self.name

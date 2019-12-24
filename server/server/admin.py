@@ -1,3 +1,5 @@
+import datetime
+
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin.helpers import ActionForm, AdminForm
@@ -15,7 +17,6 @@ from data.models import Asset, Rotator, StopSet, StopSetRotator
 
 
 class TomatoUserAdmin(UserAdmin):
-    save_on_top = True
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
@@ -24,6 +25,7 @@ class TomatoUserAdmin(UserAdmin):
     )
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_superuser')
     list_filter = ('is_superuser', 'is_active', 'groups')
+    save_on_top = True
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -39,15 +41,24 @@ class TomatoUserAdmin(UserAdmin):
 
 
 class TomatoModelAdmin(admin.ModelAdmin):
-    save_on_top = True
-    list_per_page = 250
-    search_fields = ('name',)
     empty_value_display = 'None'
+    list_max_show_all = 2500
+    list_per_page = 100
+    list_prefetch_related = None
+    save_on_top = True
+    search_fields = ('name',)
+
+    def get_queryset(self, request):
+        # For performance https://code.djangoproject.com/ticket/29985#comment:3
+        queryset = super().get_queryset(request)
+        if self.list_prefetch_related and request.resolver_match.view_name.endswith('changelist'):
+            queryset = queryset.prefetch_related(self.list_prefetch_related)
+        return queryset
 
 
 class CurrentlyAiringListFilter(admin.SimpleListFilter):
-    title = 'Airing Eligibility'
     parameter_name = 'airing'
+    title = 'Airing Eligibility'
 
     def lookups(self, request, model_admin):
         return (('yes', 'Currently Eligible'), ('no', 'Not Currently Eligible'))
@@ -114,75 +125,13 @@ class NumAssetsMixin:
     num_assets.short_description = 'Total Audio Assets'
 
 
-class StopSetRotatorInline(admin.TabularInline):
-    min_num = 1
-    extra = 0
-    model = StopSetRotator
-    verbose_name = 'Rotator Entry'
-    verbose_name_plural = 'Rotator Entries'
-
-    def get_formset(self, request, obj, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        widget = formset.form.base_fields['rotator'].widget
-        widget.can_add_related = False
-        widget.can_change_related = False
-        return formset
-
-
-class StopSetModelAdmin(EnabledDatesRotatorMixin, NumAssetsMixin, TomatoModelAdmin):
-    inlines = (StopSetRotatorInline,)
-    list_display = ('name', 'rotator_entry_list', 'enabled', 'enabled_dates', 'weight', 'num_assets')
-    fieldsets = ((None, {'fields': ('name',)}),
-                 ('Eligibility', {'fields': ('weight', 'enabled', 'begin', 'end')}))
-
-    def rotator_entry_list(self, obj):
-        rotator_entries = list(StopSetRotator.objects.filter(stopset=obj).order_by(
-            'id').values_list('rotator__name', 'rotator__color'))
-
-        if rotator_entries:
-            html = '<br>'.join(
-                f'<span style="background-color: #{color}">{num}. {escape(name)}</span>'
-                for num, (name, color) in enumerate(rotator_entries, 1))
-        else:
-            html = '<em>None</em>'
-
-        return mark_safe(html)
-    rotator_entry_list.short_description = 'Rotator Entries'
-
-
-class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
-    readonly_fields = ('display_color',)
-    list_display = ('name', 'stopset_list', 'display_color', 'num_assets')
-    list_filter = ('stopsets',)
-
-    def display_color(self, obj):
-        return format_html('<div class="color-preview" style="width: 8em; height: 3em; '
-                           'border: 1px solid #333; display: inline-block;{}"></div>',
-                           f' background-color: #{obj.color}' if isinstance(obj, Rotator) else '')
-    display_color.short_description = 'Display Color'
-
-    def stopset_list(self, obj):
-        stopsets = list(obj.stopsets.distinct().order_by('name').values_list(
-            'name', flat=True))
-        if stopsets:
-            html = '<br>'.join(
-                f'&bull; {escape(name)}' for num, name in enumerate(stopsets, 1))
-        else:
-            html = '<em>None</em>'
-        return mark_safe(html)
-    stopset_list.short_description = 'Stop Sets'
-
-    class Media:
-        js = ('admin/js/rotator_color.js',)
-
-
 class AssetActionForm(ActionForm):
     rotator = forms.ModelChoiceField(Rotator.objects.all(), required=False,
                                      label=' ', empty_label='--- Rotator ---')
 
 
 class AssetUploadForm(forms.Form):
-    audio_files = forms.FileField(
+    audios = forms.FileField(
         widget=forms.FileInput(attrs={'multiple': True}), required=True, label='Audio Files',
         help_text='Select multiple audio files to upload using Shift, CMD, and/or Alt in the dialog.')
     rotators = forms.ModelMultipleChoiceField(
@@ -192,11 +141,16 @@ class AssetUploadForm(forms.Form):
 
 class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
     action_form = AssetActionForm
-    list_display = ('name', 'list_rotators', 'enabled', 'enabled_dates', 'weight', 'list_audio_player')
-    readonly_fields = ('audio_player', 'list_rotators')
-    ordering = ('name',)
     actions = ('enable', 'disable', 'add_rotator', 'remove_rotator')
     filter_horizontal = ('rotators',)
+    list_display = ('name', 'rotator_list', 'enabled_dates', 'enabled', 'weight',
+                    'duration_pretty', 'audio_player_list')
+    list_prefetch_related = 'rotators'
+    ordering = ('name',)
+    readonly_fields = ('duration_pretty', 'audio_player', 'rotator_list')
+
+    class Media:
+        js = ('admin/js/asset_list_player.js',)
 
     def get_urls(self):
         return [path('upload/', self.admin_site.admin_view(self.upload),
@@ -209,35 +163,47 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
         if request.method == 'POST':
             form = AssetUploadForm(request.POST, request.FILES)
             if form.is_valid():
-                audio_files = request.FILES.getlist('audio_files')
+                audio_files = request.FILES.getlist('audios')
                 rotators = form.cleaned_data['rotators']
+                assets = []
 
                 for audio in audio_files:
                     asset = Asset(audio=audio)
+
+                    try:
+                        asset.clean()
+                    except forms.ValidationError as validation_error:
+                        for field, error_list in validation_error:
+                            for error in error_list:
+                                form.add_error('audios' if field == 'audio' else '__all__', error)
+                    assets.append(asset)
+
+            if form.is_valid():
+                for asset in assets:
                     asset.save()
 
                     if rotators:
                         asset.rotators.add(*rotators)
 
                 self.message_user(
-                    request, f'Uploaded {len(audio_files)} Audio Assets.', messages.SUCCESS)
+                    request, f'Uploaded {len(assets)} Audio Assets.', messages.SUCCESS)
 
                 return HttpResponseRedirect(reverse('admin:data_asset_changelist'))
         else:
             form = AssetUploadForm()
 
         opts = self.model._meta
-        context = self.admin_site.each_context(request)
-        context.update({
-            'opts': opts,
-            'app_label': opts.app_label,
-            'title': f'Bulk Upload Audio Assets',
-            'form': form,
-            'save_on_top': self.save_on_top,
+        return TemplateResponse(request, 'admin/data/asset/upload.html', {
             'adminform': AdminForm(form, [(None, {'fields': form.base_fields})],
-                                   self.get_prepopulated_fields(request))
+                                   self.get_prepopulated_fields(request)),
+            'app_label': opts.app_label,
+            'errors': form.errors.values(),
+            'form': form,
+            'opts': opts,
+            'save_on_top': self.save_on_top,
+            'title': f'Bulk Upload Audio Assets',
+            **self.admin_site.each_context(request),
         })
-        return TemplateResponse(request, 'admin/data/asset/upload.html', context)
 
     def add_rotator(self, request, queryset):
         rotator_id = request.POST.get('rotator')
@@ -281,25 +247,98 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
                 ('Eligibility', {'fields': ('weight', 'enabled', 'begin', 'end')}),
                 ('Rotators', {'fields': ('rotators',)}))
 
-    def list_rotators(self, obj):
-        rotators = list(obj.rotators.order_by('name').values_list('name', 'color'))
-        if rotators:
+    def rotator_list(self, obj):
+        if obj.rotators:
             html = '<br>'.join(
-                f'&bull; <span style="background-color: #{color}">{escape(name)}</span>'
-                for name, color in rotators)
+                f'&bull; <span style="background-color: #{rotator.color}">{escape(rotator.name)}</span>'
+                for rotator in obj.rotators.all())
         else:
             html = '<em>None</em>'
         return mark_safe(html)
-    list_rotators.short_description = 'Rotators'
+    rotator_list.short_description = 'Rotators'
 
-    def __audio_player(size):
-        def player(self, obj):
-            html = '<audio src="{}" style="width: {};" preload="auto" controls />'
-            return format_html(html, obj.audio.url, size)
-        player.short_description = 'Audio Player'
-        return player
-    audio_player = __audio_player('100%')
-    list_audio_player = __audio_player('250px')
+    def duration_pretty(self, obj):
+        if obj.duration == datetime.timedelta(seconds=0):
+            return 'Unknown'
+        seconds = round(obj.duration.total_seconds())
+        hours = seconds // 3600
+        minutes = (seconds // 60) % 60
+        seconds = seconds % 60
+        if hours > 0:
+            return '{}:{:02d}:{:02d}'.format(hours, minutes, seconds)
+        else:
+            return '{}:{:02d}'.format(minutes, seconds)
+    duration_pretty.short_description = 'Duration'
+
+    def audio_player(self, obj):
+        return format_html('<audio src="{}" style="width: 100%" preload="auto" controls />', obj.audio.url)
+
+    def audio_player_list(self, obj):
+        return format_html(
+            '<div><a class="show-asset-player" href="{}">Click to load inline player</a>', obj.audio.url)
+    audio_player.short_description = audio_player_list.short_description = 'Audio Player'
+
+
+class StopSetRotatorInline(admin.TabularInline):
+    min_num = 1
+    extra = 0
+    model = StopSetRotator
+    verbose_name = 'Rotator Entry'
+    verbose_name_plural = 'Rotator Entries'
+
+    def get_formset(self, request, obj, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        widget = formset.form.base_fields['rotator'].widget
+        widget.can_add_related = False
+        widget.can_change_related = False
+        return formset
+
+
+class StopSetModelAdmin(EnabledDatesRotatorMixin, NumAssetsMixin, TomatoModelAdmin):
+    inlines = (StopSetRotatorInline,)
+    list_display = ('name', 'rotator_entry_list', 'enabled_dates', 'enabled', 'weight', 'num_assets')
+    fieldsets = ((None, {'fields': ('name',)}),
+                 ('Eligibility', {'fields': ('weight', 'enabled', 'begin', 'end')}))
+
+    def rotator_entry_list(self, obj):
+        rotator_entries = list(StopSetRotator.objects.filter(stopset=obj).order_by(
+            'id').values_list('rotator__name', 'rotator__color'))
+        if rotator_entries:
+            html = '<br>'.join(
+                f'<span style="background-color: #{color}">{num}. {escape(name)}</span>'
+                for num, (name, color) in enumerate(rotator_entries, 1))
+        else:
+            html = '<em>None</em>'
+        return mark_safe(html)
+    rotator_entry_list.short_description = 'Rotator Entries'
+
+
+class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
+    readonly_fields = ('display_color', 'stopset_list')
+    list_display = ('name', 'stopset_list', 'display_color', 'num_assets')
+    list_filter = ('stopsets',)
+    list_prefetch_related = 'stopsets'
+
+    class Media:
+        js = ('admin/js/rotator_color.js',)
+
+    def get_fields(self, request, obj):
+        return ('name', 'color', 'display_color') + (('stopset_list',) if obj else ())
+
+    def display_color(self, obj):
+        return format_html('<div class="color-preview" style="width: 8em; height: 3em; '
+                           'border: 1px solid #333; display: inline-block;{}"></div>',
+                           f' background-color: #{obj.color}' if isinstance(obj, Rotator) else '')
+    display_color.short_description = 'Display Color'
+
+    def stopset_list(self, obj):
+        stopsets = list(obj.stopsets.all())
+        if stopsets:
+            html = '<br>'.join(f'&bull; {escape(stopset.name)}' for stopset in stopsets)
+        else:
+            html = '<em>None</em>'
+        return mark_safe(html)
+    stopset_list.short_description = 'Stop Sets'
 
 
 admin.site.unregister(User)

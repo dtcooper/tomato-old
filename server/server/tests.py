@@ -1,4 +1,6 @@
 from collections import namedtuple
+from base64 import b64decode
+
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.test import Client, TestCase
@@ -21,7 +23,9 @@ class ServerTests(TestCase):
     def create_basic_data(self):
         rotator = Rotator.objects.create(name='rotator')
         asset = Asset()
-        asset.audio.save('test.mp3', ContentFile('dummy data'))
+        asset.audio.save(
+            # Smallest possible wav file :)
+            'test.wav', ContentFile(b64decode(b'UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=')))
         asset.save()
         asset.rotators.add(rotator)
         stopset = StopSet.objects.create(name='stopset')

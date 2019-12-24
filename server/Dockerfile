@@ -7,7 +7,9 @@ ENV PGHOST db
 ENV PGUSER postgres
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        libsox-fmt-all \
         postgresql-client \
+        sox \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONDONTWRITEBYTECODE 1
