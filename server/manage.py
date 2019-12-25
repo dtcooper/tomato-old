@@ -23,7 +23,7 @@ def main():
             "forget to activate a virtual environment?"
         ) from exc
 
-    if settings.DEBUG and len(sys.argv) >= 2 and sys.argv[1] == 'runserver':
+    if settings.DEBUG and len(sys.argv) >= 2 and sys.argv[1] in ('runserver', 'runserver_plus'):
         settings.INSTALLED_APPS.append('debug_toolbar')
         settings.MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
         settings.DEBUG_TOOLBAR_CONFIG = {'SHOW_TOOLBAR_CALLBACK': 'manage.show_toolbar'}
