@@ -90,7 +90,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
 SHELL_PLUS_PRINT_SQL = True
 SHELL_PLUS_PRE_IMPORTS = [('constance', 'config')]
-RUNSERVERPLUS_SERVER_ADDRESS_PORT = '0.0.0.0:8000'
 
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_SUPERUSER_ONLY = False

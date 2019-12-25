@@ -27,6 +27,8 @@ def main():
         settings.INSTALLED_APPS.append('debug_toolbar')
         settings.MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
         settings.DEBUG_TOOLBAR_CONFIG = {'SHOW_TOOLBAR_CALLBACK': 'manage.show_toolbar'}
+        settings.RUNSERVERPLUS_SERVER_ADDRESS_PORT = '0.0.0.0:8000'
+        os.environ['WERKZEUG_DEBUG_PIN'] = 'off'
 
     runserver.default_addr = '0.0.0.0'
 

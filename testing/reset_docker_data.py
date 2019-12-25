@@ -3,6 +3,7 @@
 import datetime
 import os
 import random
+import shutil
 import subprocess
 import sys
 
@@ -42,6 +43,7 @@ def main():
     subprocess.call(['dropdb', '--if-exists', 'postgres'])
     subprocess.call(['createdb', 'postgres'])
     subprocess.call(['./manage.py', 'migrate'])
+    subprocess.call(['./manage.py', 'create_tomato_groups'])
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
     django.setup()
@@ -50,6 +52,11 @@ def main():
 
     from constance import config
     from data.models import Asset, Rotator, StopSet, StopSetRotator
+
+    assets_upload_to = Asset._meta.get_field('audio').upload_to
+    assets_upload_to_full_path = os.path.realpath(os.path.join(
+        os.path.dirname(__file__), '..', 'server', 'uploads', assets_upload_to))
+    subprocess.call(['mkdir', '-p', assets_upload_to_full_path])
 
     User.objects.create_superuser(username='test', password='test')
     config.NO_LOGIN_REQUIRED = True
@@ -63,8 +70,8 @@ def main():
 
     os.chdir(sounds_path)
     for filename in os.listdir('.'):
-
-        asset = Asset.objects.create(audio=File(open(filename, 'rb')), **enabled_kwargs())
+        shutil.copy(filename, assets_upload_to_full_path)
+        asset = Asset.objects.create(audio=f'{assets_upload_to}{filename}', **enabled_kwargs())
         rotator = rotators[filename.rsplit('-', 1)[0]]
         asset.rotators.add(rotator)
 

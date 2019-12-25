@@ -236,7 +236,8 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
 
     def get_form(self, request, obj, **kwargs):
         form = super().get_form(request, obj, **kwargs)
-        form.base_fields['rotators'].widget.can_add_related = False
+        if 'rotators' in form.base_fields:
+            form.base_fields['rotators'].widget.can_add_related = False
         return form
 
     def get_fieldsets(self, request, obj):
@@ -257,10 +258,8 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
     def duration_pretty(self, obj):
         if obj.duration == datetime.timedelta(seconds=0):
             return 'Unknown'
-        seconds = round(obj.duration.total_seconds())
-        hours = seconds // 3600
-        minutes = (seconds // 60) % 60
-        seconds = seconds % 60
+        seconds = int(obj.duration.total_seconds())
+        hours, minutes, seconds = seconds // 3600, (seconds // 60) % 60, seconds % 60
         if hours > 0:
             return '{}:{:02d}:{:02d}'.format(hours, minutes, seconds)
         else:
@@ -330,6 +329,7 @@ class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
 
     def stopset_list(self, obj):
         stopsets = list(obj.stopsets.all())
+        # TODO: de-dupe!
         if stopsets:
             html = '<br>'.join(f'&bull; {escape(stopset.name)}' for stopset in stopsets)
         else:
