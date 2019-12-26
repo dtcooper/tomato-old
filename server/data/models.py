@@ -198,7 +198,7 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
         def clean(self):
             if self.audio:
                 acceptable_file_types = ', '.join(settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS.values())
-                error_msg = f"Invalid file: '{self.audio.name}'. Acceptable file types: {acceptable_file_types}"
+                error_msg = f"Invalid file: '{self.audio.name}'. Valid file types: {acceptable_file_types}"
 
                 # check if file valid based on sox
                 try:

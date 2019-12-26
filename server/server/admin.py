@@ -17,6 +17,7 @@ from data.models import Asset, Rotator, StopSet, StopSetRotator
 
 
 class TomatoUserAdmin(UserAdmin):
+    empty_value_display = 'None'
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
@@ -72,6 +73,7 @@ class CurrentlyAiringListFilter(admin.SimpleListFilter):
 
 class EnabledDatesRotatorMixin:
     list_filter = ('rotators', CurrentlyAiringListFilter, 'enabled')
+    actions = ('enable', 'disable')
 
     def enabled_dates(self, obj):
         tz = timezone.get_default_timezone()
@@ -95,11 +97,15 @@ class EnabledDatesRotatorMixin:
     enabled_dates.admin_order_field = Coalesce('begin', 'end')
 
     def enable(self, request, queryset):
-        queryset.update(enabled=True)
+        num = queryset.update(enabled=True)
+        if num:
+            self.message_user(request, f'Enabled {num} {self.model._meta.verbose_name}(s).', messages.SUCCESS)
     enable.short_description = 'Enable selected %(verbose_name_plural)s'
 
     def disable(self, request, queryset):
-        queryset.update(enabled=False)
+        num = queryset.update(enabled=False)
+        if num:
+            self.message_user(request, f'Disabled {num} {self.model._meta.verbose_name}(s).', messages.SUCCESS)
     disable.short_description = 'Disable selected %(verbose_name_plural)s'
     disable.allowed_permissions = enable.allowed_permissions = ('add', 'change', 'delete')
 
@@ -205,14 +211,11 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
     def add_rotator(self, request, queryset):
         rotator_id = request.POST.get('rotator')
         if rotator_id:
-            rotator, num_added = Rotator.objects.get(id=rotator_id), 0
-            num_added = 0
+            rotator = Rotator.objects.get(id=rotator_id)
             for asset in queryset:
-                num_before = asset.rotators.count()
                 asset.rotators.add(rotator)
-                num_added += asset.rotators.count() - num_before
             self.message_user(
-                request, f'Added {num_added} asset(s) to {rotator.name}.', messages.SUCCESS)
+                request, f'Added {len(queryset)} Audio Asset(s) to {rotator.name}.', messages.SUCCESS)
         else:
             self.message_user(
                 request, 'You must select a Rotator to add Audio Asset(s) to.', messages.WARNING)
@@ -221,13 +224,11 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
     def remove_rotator(self, request, queryset):
         rotator_id = request.POST.get('rotator')
         if rotator_id:
-            rotator, num_deleted = Rotator.objects.get(id=rotator_id), 0
+            rotator = Rotator.objects.get(id=rotator_id)
             for asset in queryset:
-                num_before = asset.rotators.count()
                 asset.rotators.remove(rotator)
-                num_deleted += num_before - asset.rotators.count()
             self.message_user(
-                request, f'Removed {num_deleted} asset(s) from {rotator.name}.', messages.SUCCESS)
+                request, f'Removed {len(queryset)} Audio Asset(s) from {rotator.name}.', messages.SUCCESS)
         else:
             self.message_user(
                 request, 'You must select a Rotator to remove Audio Asset(s) from.', messages.WARNING)
