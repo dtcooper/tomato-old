@@ -16,7 +16,6 @@ class Command(BaseCommand):
             ContentType.objects.get_for_model(StopSetRotator),
         )
 
-        Group.objects.all().delete()  # XXX
         group, _ = Group.objects.get_or_create(name='Edit Rotators, Stop Sets & Audio Assets')
         group.permissions.add(*Permission.objects.filter(content_type__in=all_models))
 
@@ -29,5 +28,5 @@ class Command(BaseCommand):
         group.permissions.add(*Permission.objects.filter(content_type__in=all_models,
                                                          codename__startswith='view_'))
 
-        group, _ = Group.objects.get_or_create(name='Modify site wide configuration')
+        group, _ = Group.objects.get_or_create(name='Modify site-wide configuration')
         group.permissions.add(Permission.objects.get(codename='change_config'))

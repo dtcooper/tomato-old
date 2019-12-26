@@ -328,8 +328,8 @@ class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
     display_color.short_description = 'Display Color'
 
     def stopset_list(self, obj):
-        stopsets = list(obj.stopsets.all())
-        # TODO: de-dupe!
+        # De-dupe in Python rather than in queryset, to leverage list_prefetch_related
+        stopsets = sorted(set(obj.stopsets.all()), key=lambda ss: ss.name)
         if stopsets:
             html = '<br>'.join(f'&bull; {escape(stopset.name)}' for stopset in stopsets)
         else:
