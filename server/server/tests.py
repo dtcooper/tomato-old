@@ -43,6 +43,7 @@ class ServerTests(TestCase):
             reverse('admin:data_asset_changelist'),
             reverse('admin:data_asset_add'),
             reverse('admin:data_asset_change', args=(data.asset.id,)),
+            reverse('admin:data_asset_upload'),
             reverse('admin:data_rotator_changelist'),
             reverse('admin:data_rotator_add'),
             reverse('admin:data_rotator_change', args=(data.rotator.id,)),
