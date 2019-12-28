@@ -41,7 +41,7 @@ def export(request):
 
         objs = []
         for model_cls in apps.get_app_config('data').get_models():
-            objs.extend(model_cls.objects.all())
+            objs.extend(model_cls.objects.order_by('id'))
 
         return JsonResponse({
             'config': options,

@@ -5,9 +5,9 @@ import os
 
 try:
     import sox
-    HAVE_SOX = True
+    has_sox = True
 except ImportError:
-    HAVE_SOX = False
+    has_sox = False
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -171,13 +171,13 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
                 return self.audio.path
 
     def get_duration(self):
-        duration = sox.file_info.duration(self.audio_path) if HAVE_SOX else 0
+        duration = sox.file_info.duration(self.audio_path) if has_sox else 0
         return datetime.timedelta(seconds=duration or 0)
 
     def get_default_name(self, default=None):
         name = os.path.splitext(os.path.basename(self.audio.name))[0]
 
-        if HAVE_SOX:
+        if has_sox:
             tags = {}
             comments = sox.file_info.comments(self.audio_path)
 
@@ -194,11 +194,11 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
 
         return name
 
-    if HAVE_SOX:
+    if has_sox:
         def clean(self):
             if self.audio:
-                acceptable_file_types = ', '.join(settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS.values())
-                error_msg = f"Invalid file: '{self.audio.name}'. Valid file types: {acceptable_file_types}"
+                allowed_file_types = ', '.join(settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS.values())
+                error_msg = f"Invalid file: '{self.audio.name}'. Valid file types: {allowed_file_types}"
 
                 # check if file valid based on sox
                 try:

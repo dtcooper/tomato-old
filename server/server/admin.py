@@ -247,10 +247,11 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
                 ('Rotators', {'fields': ('rotators',)}))
 
     def rotator_list(self, obj):
-        if obj.rotators:
+        rotators = list(obj.rotators.all())
+        if rotators:
             html = '<br>'.join(
                 f'&bull; <span style="background-color: #{rotator.color}">{escape(rotator.name)}</span>'
-                for rotator in obj.rotators.all())
+                for rotator in rotators)
         else:
             html = '<em>None</em>'
         return mark_safe(html)
@@ -266,13 +267,14 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
         else:
             return '{}:{:02d}'.format(minutes, seconds)
     duration_pretty.short_description = 'Duration'
+    duration_pretty.admin_order_field = 'duration'
 
     def audio_player(self, obj):
         return format_html('<audio src="{}" style="width: 100%" preload="auto" controls />', obj.audio.url)
 
     def audio_player_list(self, obj):
         return format_html(
-            '<audio src="{}" style="min-width: 275px; width: 100%;" preload="auto" controls />', obj.audio.url)
+            '<audio src="{}" style="min-width: 250px; width: 100%;" preload="auto" controls />', obj.audio.url)
     audio_player.short_description = audio_player_list.short_description = 'Audio Player'
 
 
