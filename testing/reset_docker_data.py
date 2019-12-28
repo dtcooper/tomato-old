@@ -8,7 +8,6 @@ import subprocess
 import sys
 
 import django
-from django.core.files import File
 
 
 def enabled_kwargs():
@@ -51,7 +50,7 @@ def main():
     from django.contrib.auth.models import User
 
     from constance import config
-    from data.models import Asset, Rotator, StopSet, StopSetRotator
+    from tomato.models import Asset, Rotator, StopSet, StopSetRotator
 
     assets_upload_to = Asset._meta.get_field('audio').upload_to
     assets_upload_to_full_path = os.path.realpath(os.path.join(

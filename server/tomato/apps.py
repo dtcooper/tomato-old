@@ -1,8 +1,9 @@
 from django.apps import AppConfig
 
 
-class ServerConfig(AppConfig):
-    name = 'server'
+class TomatoConfig(AppConfig):
+    name = 'tomato'
+    verbose_name = 'Radio Automation'
 
     def ready(self):
         from constance.apps import ConstanceConfig

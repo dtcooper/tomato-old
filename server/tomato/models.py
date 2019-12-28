@@ -2,19 +2,46 @@ import datetime
 from functools import partial
 import hashlib
 import os
+import secrets
 
-try:
-    import sox
-    has_sox = True
-except ImportError:
-    has_sox = False
+import sox
 
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser, User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.db import models
 from django.utils import timezone
 
+
+class ApiToken(models.Model):
+    TOKEN_LENGTH = 36
+    token = models.CharField(max_length=TOKEN_LENGTH, db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    @classmethod
+    def generate(cls, user):
+        token = secrets.token_hex(cls.TOKEN_LENGTH // 2)
+        cls.objects.update_or_create(user=user, defaults={'token': token})
+        return token
+
+    @classmethod
+    def clear(cls, user):
+        cls.objects.filter(user=user).delete()
+
+    @classmethod
+    def user_from_token(cls, token):
+        try:
+            return cls.objects.get(token=token).user
+        except cls.DoesNotExist:
+            return AnonymousUser()
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__} {self.user.username}:{self.token!r}>'
+
+    class Meta:
+        db_table = 'api_tokens'
+        unique_together = (('token', 'user'),)
 
 MAX_NAME_LEN = 100
 
@@ -171,43 +198,40 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
                 return self.audio.path
 
     def get_duration(self):
-        duration = sox.file_info.duration(self.audio_path) if has_sox else 0
+        duration = sox.file_info.duration(self.audio_path)
         return datetime.timedelta(seconds=duration or 0)
 
     def get_default_name(self, default=None):
-        name = os.path.splitext(os.path.basename(self.audio.name))[0]
+        tags = {}
+        comments = sox.file_info.comments(self.audio_path)
 
-        if has_sox:
-            tags = {}
-            comments = sox.file_info.comments(self.audio_path)
+        for comment in comments.strip().splitlines():
+            comment_parts = comment.split('=', 1)
+            if len(comment_parts) == 2:
+                tags[comment_parts[0].lower()] = comment_parts[1]
 
-            for comment in comments.strip().splitlines():
-                comment_parts = comment.split('=', 1)
-                if len(comment_parts) == 2:
-                    tags[comment_parts[0].lower()] = comment_parts[1]
-            artist, title = tags.get('artist'), tags.get('title')
+        artist, title = tags.get('artist'), tags.get('title')
 
-            if artist and title:
-                name = f'{artist} - {title}'
-            elif title:
-                name = title
+        if artist and title:
+            return f'{artist} - {title}'
+        elif title:
+            return
+        else:
+            return os.path.splitext(os.path.basename(self.audio.name))[0]
 
-        return name
+    def clean(self):
+        if self.audio:
+            allowed_file_types = ', '.join(settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS.values())
+            error_msg = f"Invalid file: '{self.audio.name}'. Valid file types: {allowed_file_types}"
 
-    if has_sox:
-        def clean(self):
-            if self.audio:
-                allowed_file_types = ', '.join(settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS.values())
-                error_msg = f"Invalid file: '{self.audio.name}'. Valid file types: {allowed_file_types}"
-
-                # check if file valid based on sox
-                try:
-                    file_type = sox.file_info.file_type(self.audio_path)
-                except sox.SoxiError:
+            # check if file valid based on sox
+            try:
+                file_type = sox.file_info.file_type(self.audio_path)
+            except sox.SoxiError:
+                raise ValidationError({'audio': error_msg})
+            else:
+                if file_type not in settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS:
                     raise ValidationError({'audio': error_msg})
-                else:
-                    if file_type not in settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS:
-                        raise ValidationError({'audio': error_msg})
 
     def __str__(self):
         return self.name

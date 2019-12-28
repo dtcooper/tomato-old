@@ -1,11 +1,7 @@
-import json
-
 import pytz
 
-from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.serializers import serialize
 from django.http import HttpResponseForbidden, JsonResponse
 
 from constance import config
@@ -28,6 +24,8 @@ def authenticate(request):
 
 
 def export(request):
+    return JsonResponse({'data': 'todo'})
+
     response = HttpResponseForbidden()
 
     if request.user.is_authenticated or settings.DEBUG:
@@ -39,12 +37,8 @@ def export(request):
         except pytz.UnknownTimeZoneError:
             options['timezone'] = settings.TIME_ZONE
 
-        objs = []
-        for model_cls in apps.get_app_config('data').get_models():
-            objs.extend(model_cls.objects.order_by('id'))
-
         return JsonResponse({
             'config': options,
-            'objects': json.loads(serialize('json', objs)),
+            'objects': [],  # TODO
         })
     return response

@@ -8,7 +8,7 @@ admin.site.site_url = None
 admin.site.site_title = 'Tomato Radio Automation'
 
 urlpatterns = [
-    path('', include('server.urls')),
+    path('', include('tomato.urls')),
     path('', admin.site.urls),
 ]
 

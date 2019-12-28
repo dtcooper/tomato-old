@@ -6,8 +6,7 @@ from django.core.files.base import ContentFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from data.models import Asset, Rotator, StopSet, StopSetRotator
-from .models import ApiToken
+from .models import ApiToken, Asset, Rotator, StopSet, StopSetRotator
 
 
 Dataset = namedtuple('Dataset', ('asset', 'rotator', 'stopset'))

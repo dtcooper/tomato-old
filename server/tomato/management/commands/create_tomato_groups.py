@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 
-from data.models import Asset, Rotator, StopSet, StopSetRotator
+from tomato.models import Asset, Rotator, StopSet, StopSetRotator
 
 
 class Command(BaseCommand):

@@ -13,7 +13,7 @@ from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import escape, format_html, mark_safe
 
-from data.models import Asset, Rotator, StopSet, StopSetRotator
+from .models import Asset, Rotator, StopSet, StopSetRotator
 
 
 class TomatoUserAdmin(UserAdmin):

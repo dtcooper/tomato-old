@@ -25,8 +25,7 @@ INSTALLED_APPS = [
     'django_extensions',
 
     # Local
-    'data',
-    'server',
+    'tomato',
 ]
 
 MIDDLEWARE = [
@@ -37,7 +36,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'server.middleware.ServerMiddleware',
+    'tomato.middleware.ServerMiddleware',
 ]
 
 ROOT_URLCONF = 'urls'
@@ -46,8 +45,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            # Make sure server/admin/base_site.html overrides
-            os.path.join(BASE_DIR, 'server', 'templates')
+            # Make sure tomato/admin/base_site.html overrides
+            os.path.join(BASE_DIR, 'tomato', 'templates')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
