@@ -57,18 +57,19 @@
         font-size: 13px !important;
       }
 
-      {# django-admin-colors -- lite.css theme #}
-      #branding h1, #branding h1 a:link, #branding h1 a:visited {
-        color: #fff;
-      }
+      {# Loosely based on https://github.com/codersforcauses/tedxuwa-server-backend/blob/master/root/common_static/admin_colours.css #}
 
-      #header {
-        background: #79aec8;
-        color: #fff;
+      #branding h1, #branding h1 a:link, #branding h1 a:visited, #header {
+        background: #eee !important;
+        color: #e62b1e !important;
       }
 
       #header a:link, #header a:visited {
-        color: #e0f3ff;
+        color: #e62b1e;
+      }
+
+      #header a:hover {
+        color: #999;
       }
 
       div.breadcrumbs {
@@ -77,7 +78,7 @@
       }
 
       div.breadcrumbs a {
-        color: #79aec8;
+        color: #e62b1e;
       }
 
       div.breadcrumbs a.active {
@@ -87,5 +88,122 @@
       div.breadcrumbs a:focus, div.breadcrumbs a:hover {
         color: #999;
       }
+
+      .select2-container--admin-autocomplete .select2-results__option--highlighted[aria-selected] {
+        background-color: #e62b1e;
+      }
+
+      .paginator a:link, .paginator a:visited {
+        background: #e62b1e;
+      }
+
+      .button, input[type=submit], input[type=button], .submit-row input, a.button {
+        background: #999;
+      }
+
+      .button:hover, input[type=submit]:hover, input[type=button]:hover {
+        background: #878787;
+      }
+
+      .module h2, .module caption, .inline-group h2 {
+        background: #e62b1e;
+      }
+
+      #user-tools a:focus, #user-tools a:hover {
+        border: 0;
+        color: #ddd;
+      }
+
+      .selector-chosen h2 {
+        background: #e62b1e;
+      }
+
+      .calendar td.selected a {
+        background: #e62b1e;
+      }
+
+      .calendar td a:focus, .timelist a:focus,
+      .calendar td a:hover, .timelist a:hover {
+        background: #e62b1e;
+      }
+
+      #changelist-filter li.selected a {
+        color: #444;
+      }
+
+      fieldset.collapsed .collapse-toggle {
+        color: #444;
+      }
+
+      a:link, a:visited {
+        color: #777;
+      }
+
+      a:focus, a:hover {
+        color: #999;
+      }
+
+      table thead th.sorted .sortoptions a.sortremove:focus:after,
+      table thead th.sorted .sortoptions a.sortremove:hover:after {
+        color: #444;
+      }
+
+      a.active.selector-chooseall:focus, a.active.selector-clearall:focus,
+      a.active.selector-chooseall:hover, a.active.selector-clearall:hover {
+        color: #999;
+      }
+
+      .calendar td a:active, .timelist a:active {
+        background: #444;
+      }
+
+      .change-list ul.toplinks .date-back a:focus,
+      .change-list ul.toplinks .date-back a:hover {
+        color: #222;
+      }
+
+      .paginator a.showall:focus, .paginator a.showall:hover {
+        color: #222;
+      }
+
+      .paginator a:focus, .paginator a:hover {
+        background: #222;
+      }
+
+      #changelist-filter a:focus, #changelist-filter a:hover,
+      #changelist-filter li.selected a:focus,
+      #changelist-filter li.selected a:hover {
+        color: #222;
+      }
+
+      .calendar td a:active, .timelist a:active {
+        background: #e62b1e;
+        color: white;
+      }
+
+      .calendar caption, .calendarbox h2 {
+        background: #999;
+      }
+
+      .button.default, input[type=submit].default, .submit-row input.default {
+        background: #e62b1e;
+      }
+
+      .button.default:hover, input[type=submit].default:hover {
+        background: #191D22;
+      }
+
+      .select2-container--admin-autocomplete .select2-results__option--highlighted[aria-selected] {
+        background-color: #e62b1e;
+      }
+
+      .button.default, input[type=submit].default, .submit-row input.default {
+        background: #e62b1e;
+      }
+
+      .object-tools a:focus, .object-tools a:hover {
+        background-color: #e62b1e;
+      }
+
     </style>
 {% endblock %}
