@@ -54,22 +54,25 @@
     {{ block.super}}
     <style>
       .help {
-        font-size: 13px !important;
+        font-size: 14px !important;
       }
 
       {# Loosely based on https://github.com/codersforcauses/tedxuwa-server-backend/blob/master/root/common_static/admin_colours.css #}
+      #branding h1, #branding h1 a:link, #branding h1 a:visited {
+        color: #fff;
+      }
 
-      #branding h1, #branding h1 a:link, #branding h1 a:visited, #header {
-        background: #eee !important;
-        color: #e62b1e !important;
+      #header {
+        background: #17a2b8;
+        color: #fff;
       }
 
       #header a:link, #header a:visited {
-        color: #e62b1e;
+        color: #fff;
       }
 
       #header a:hover {
-        color: #999;
+        color: #fff;
       }
 
       div.breadcrumbs {
@@ -78,7 +81,7 @@
       }
 
       div.breadcrumbs a {
-        color: #e62b1e;
+        color: #17a2b8;
       }
 
       div.breadcrumbs a.active {
@@ -90,120 +93,68 @@
       }
 
       .select2-container--admin-autocomplete .select2-results__option--highlighted[aria-selected] {
-        background-color: #e62b1e;
+        background-color: #17a2b8;
       }
 
       .paginator a:link, .paginator a:visited {
-        background: #e62b1e;
+        background: #fff;
+        color: #17a2b8
       }
 
       .button, input[type=submit], input[type=button], .submit-row input, a.button {
-        background: #999;
-      }
-
-      .button:hover, input[type=submit]:hover, input[type=button]:hover {
-        background: #878787;
+        background: #79aec8;
       }
 
       .module h2, .module caption, .inline-group h2 {
-        background: #e62b1e;
+        background: #17a2b8;
       }
 
       #user-tools a:focus, #user-tools a:hover {
         border: 0;
-        color: #ddd;
+        color: #e0f3ff;
       }
 
       .selector-chosen h2 {
-        background: #e62b1e;
+        background: #17a2b8;
       }
 
       .calendar td.selected a {
-        background: #e62b1e;
+        background: #17a2b8;
       }
 
       .calendar td a:focus, .timelist a:focus,
       .calendar td a:hover, .timelist a:hover {
-        background: #e62b1e;
-      }
-
-      #changelist-filter li.selected a {
-        color: #444;
+        background: #17a2b8;
       }
 
       fieldset.collapsed .collapse-toggle {
-        color: #444;
+        color: #5b80b2;
       }
 
       a:link, a:visited {
-        color: #777;
-      }
-
-      a:focus, a:hover {
-        color: #999;
+        color: #5b80b2;
       }
 
       table thead th.sorted .sortoptions a.sortremove:focus:after,
       table thead th.sorted .sortoptions a.sortremove:hover:after {
-        color: #444;
+        color: #5b80b2;
       }
 
       a.active.selector-chooseall:focus, a.active.selector-clearall:focus,
       a.active.selector-chooseall:hover, a.active.selector-clearall:hover {
-        color: #999;
-      }
-
-      .calendar td a:active, .timelist a:active {
-        background: #444;
-      }
-
-      .change-list ul.toplinks .date-back a:focus,
-      .change-list ul.toplinks .date-back a:hover {
-        color: #222;
-      }
-
-      .paginator a.showall:focus, .paginator a.showall:hover {
-        color: #222;
-      }
-
-      .paginator a:focus, .paginator a:hover {
-        background: #222;
-      }
-
-      #changelist-filter a:focus, #changelist-filter a:hover,
-      #changelist-filter li.selected a:focus,
-      #changelist-filter li.selected a:hover {
-        color: #222;
-      }
-
-      .calendar td a:active, .timelist a:active {
-        background: #e62b1e;
-        color: white;
-      }
-
-      .calendar caption, .calendarbox h2 {
-        background: #999;
+        color: #5b80b2;
       }
 
       .button.default, input[type=submit].default, .submit-row input.default {
-        background: #e62b1e;
+        background: #17a2b8;
       }
 
-      .button.default:hover, input[type=submit].default:hover {
-        background: #191D22;
+      .calendar td a:active, .timelist a:active {
+        background: #5b80b2;
       }
 
       .select2-container--admin-autocomplete .select2-results__option--highlighted[aria-selected] {
-        background-color: #e62b1e;
+        background-color: #17a2b8;
       }
-
-      .button.default, input[type=submit].default, .submit-row input.default {
-        background: #e62b1e;
-      }
-
-      .object-tools a:focus, .object-tools a:hover {
-        background-color: #e62b1e;
-      }
-
     </style>
 {% endblock %}
