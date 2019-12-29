@@ -215,7 +215,7 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
         if artist and title:
             return f'{artist} - {title}'
         elif title:
-            return
+            return title
         else:
             return os.path.splitext(os.path.basename(self.audio.name))[0]
 

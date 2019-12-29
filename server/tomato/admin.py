@@ -172,6 +172,7 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
 
                 for audio in audio_files:
                     asset = Asset(audio=audio)
+                    assets.append(asset)
 
                     try:
                         asset.clean()
@@ -179,8 +180,8 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
                         for field, error_list in validation_error:
                             for error in error_list:
                                 form.add_error('audios' if field == 'audio' else '__all__', error)
-                    assets.append(asset)
 
+            # If no errors where added
             if form.is_valid():
                 for asset in assets:
                     asset.save()
