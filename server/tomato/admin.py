@@ -157,7 +157,7 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
 
     def get_urls(self):
         return [path('upload/', self.admin_site.admin_view(self.upload),
-                name='data_asset_upload')] + super().get_urls()
+                name='tomato_asset_upload')] + super().get_urls()
 
     def upload(self, request):
         if not self.has_add_permission(request):
@@ -191,12 +191,12 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
                 self.message_user(
                     request, f'Uploaded {len(assets)} Audio Assets.', messages.SUCCESS)
 
-                return HttpResponseRedirect(reverse('admin:data_asset_changelist'))
+                return HttpResponseRedirect(reverse('admin:tomato_asset_changelist'))
         else:
             form = AssetUploadForm()
 
         opts = self.model._meta
-        return TemplateResponse(request, 'admin/data/asset/upload.html', {
+        return TemplateResponse(request, 'admin/tomato/asset/upload.html', {
             'adminform': AdminForm(form, [(None, {'fields': form.base_fields})],
                                    self.get_prepopulated_fields(request)),
             'app_label': opts.app_label,

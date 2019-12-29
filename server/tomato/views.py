@@ -24,8 +24,6 @@ def authenticate(request):
 
 
 def export(request):
-    return JsonResponse({'data': 'todo'})
-
     response = HttpResponseForbidden()
 
     if request.user.is_authenticated or settings.DEBUG:

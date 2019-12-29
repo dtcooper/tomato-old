@@ -13,13 +13,13 @@
     <div class="breadcrumbs">
     <a href="{% url 'admin:index' %}">Home</a>
     &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
-    &rsaquo; <a href="{% url 'admin:data_asset_changelist' %}">Audio Assets</a>
+    &rsaquo; <a href="{% url 'admin:tomato_asset_changelist' %}">Audio Assets</a>
     &rsaquo; Bulk Upload Audio Assets
     </div>
 {% endblock %}
 
 {% block content %}
-    <form action="{% url 'admin:data_asset_upload' %}" method="post" enctype="multipart/form-data">
+    <form action="{% url 'admin:tomato_asset_upload' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
         {% if save_on_top %}

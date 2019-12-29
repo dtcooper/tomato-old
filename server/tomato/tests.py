@@ -38,17 +38,17 @@ class ServerTests(TestCase):
 
         for test_url in (
             reverse('admin:index'),
-            reverse('admin:app_list', args=('data',)),
-            reverse('admin:data_asset_changelist'),
-            reverse('admin:data_asset_add'),
-            reverse('admin:data_asset_change', args=(data.asset.id,)),
-            reverse('admin:data_asset_upload'),
-            reverse('admin:data_rotator_changelist'),
-            reverse('admin:data_rotator_add'),
-            reverse('admin:data_rotator_change', args=(data.rotator.id,)),
-            reverse('admin:data_stopset_changelist'),
-            reverse('admin:data_stopset_add'),
-            reverse('admin:data_stopset_change', args=(data.stopset.id,)),
+            reverse('admin:app_list', args=('tomato',)),
+            reverse('admin:tomato_asset_changelist'),
+            reverse('admin:tomato_asset_add'),
+            reverse('admin:tomato_asset_change', args=(data.asset.id,)),
+            reverse('admin:tomato_asset_upload'),
+            reverse('admin:tomato_rotator_changelist'),
+            reverse('admin:tomato_rotator_add'),
+            reverse('admin:tomato_rotator_change', args=(data.rotator.id,)),
+            reverse('admin:tomato_stopset_changelist'),
+            reverse('admin:tomato_stopset_add'),
+            reverse('admin:tomato_stopset_change', args=(data.stopset.id,)),
         ):
             response = self.client.get(test_url)
             self.assertEqual(response.status_code, 200)
