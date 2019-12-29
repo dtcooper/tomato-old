@@ -1,0 +1,39 @@
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <link href="{{ STATIC }}css/nes.min.css" rel="stylesheet">
+
+    <style>
+      html, body, pre, code, kbd, samp {
+          font-family: 'Press Start 2P';
+      }
+      body {
+        margin: 5px;
+      }
+
+      .items > *:not(:last-child) {
+        margin-bottom: 24px;
+      }
+    </style>
+<body>
+    <h1>Tomato Radio Automation</h1>
+    <div class="nes-container with-title">
+        <p class="title">Please Login</p>
+        <form method="post" action="{{ PATH }}">
+            <div class="items">
+                <div class="nes-field is-inline">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" class="nes-input">
+                </div>
+                <div class="nes-field is-inline">
+                    <label for="password">Password:</label>
+                    <input type="text" id="password" name="password" class="nes-input">
+                </div>
+                <input type="submit" class="nes-btn is-primary" value="Login">
+            </div>
+        </form>
+    </div>
+
+    <audio src="file:///Users/dave/tomato/testing/sample_sounds/ad-1.mp3" controls />
+</body>
+</html>
