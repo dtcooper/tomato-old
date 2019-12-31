@@ -8,12 +8,10 @@ import jinja2
 
 
 class __RenderTemplate:
-    STATIC_DIR = os.path.realpath(
-        os.path.join(os.path.dirname(__file__), '..', 'static'))
-    TEMPLATE_DIR = os.path.realpath(
-        os.path.join(os.path.dirname(__file__), '..', 'templates'))
-    RENDERED_TEMPLATE_DIR = os.path.join(
-        os.path.expanduser('~'), '.tomato', 'rendered')
+    STATIC_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'static'))
+    TEMPLATE_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
+    RENDERED_TEMPLATE_DIR = os.path.join(os.path.expanduser('~'), '.tomato', 'rendered')
+    SOUNDS_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..', 'testing', 'sample_sounds'))
 
     def __init__(self):
         loader = jinja2.FileSystemLoader(searchpath=self.TEMPLATE_DIR)
@@ -24,6 +22,8 @@ class __RenderTemplate:
         template = self.env.get_template(filename)
         kwargs = {
             'STATIC': f'file://{self.STATIC_DIR}/',
+            'SOUNDS': f'file://{self.SOUNDS_DIR}/',
+            'PATH': f'file://render/{filename}',
         }
 
         html = template.render(kwargs)

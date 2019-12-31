@@ -1,11 +1,18 @@
 <html>
 <head>
-    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
     <link href="{{ STATIC }}css/nes.min.css" rel="stylesheet">
 
     <style>
+      @font-face {
+        font-family: 'Pinscher';
+        src: url('{{ STATIC }}joystix-monospace.ttf') format('truetype');
+        /*src: url('{{ STATIC }}pinscher.otf') format('opentype');*/
+      }
+
       html, body, pre, code, kbd, samp {
-          font-family: 'Press Start 2P';
+          font-family: 'Pinscher';
+          /*font-size: 24px;*/
+          /*line-height: 28px;*/
       }
       body {
         margin: 5px;
@@ -34,6 +41,6 @@
         </form>
     </div>
 
-    <audio src="file:///Users/dave/tomato/testing/sample_sounds/ad-1.mp3" controls />
+    <audio src="{{ SOUNDS }}ad-1.mp3" controls />
 </body>
 </html>
