@@ -23,7 +23,7 @@ class __RenderTemplate:
         kwargs = {
             'STATIC': f'file://{self.STATIC_DIR}/',
             'SOUNDS': f'file://{self.SOUNDS_DIR}/',
-            'PATH': f'file://render/{filename}',
+            'PATH': f'{Client.RENDER_PREFIX}{filename}',
         }
 
         html = template.render(kwargs)
@@ -44,13 +44,13 @@ class ClientHandler:
 
     def OnBeforeResourceLoad(self, browser, frame, request):
         url = request.GetUrl()
-        if url.startswith('file://render/'):
-            template = url[14:]
+        if url.startswith(Client.RENDER_PREFIX):
+            template = url[len(Client.RENDER_PREFIX):]
             path = render_template(template)
             print(f'{datetime.datetime.now()} Rendered {template} => {path}')
             request.SetUrl(f'file://{path}')
 
-            print(request.GetPostData())
+            print(f'{datetime.datetime.now()} Post Data: {request.GetPostData()}')
         else:
             print(f'{datetime.datetime.now()} Loading {url}')
 
@@ -59,14 +59,12 @@ class ClientHandler:
 
 class Client:
     WINDOW_TITLE = 'Tomato Radio Automation'
+    RENDER_PREFIX = 'file://tomato/render/'
 
     def create_window(self):
         sys.excepthook = cefpython.ExceptHook
 
-        cefpython.Initialize(switches={
-            'autoplay-policy': 'no-user-gesture-required',
-            #'disable-web-security': '',
-        })
+        cefpython.Initialize(switches={'autoplay-policy': 'no-user-gesture-required'})
 
         window_info = cefpython.WindowInfo()
         window_info.SetAsChild(0, [200, 200, 900, 600])  # Testing
@@ -77,7 +75,7 @@ class Client:
         )
 
         browser.SetClientHandler(ClientHandler())
-        browser.LoadUrl('file://render/login.html')
+        browser.LoadUrl(f'{self.RENDER_PREFIX}login.html')
         cefpython.MessageLoop()
         cefpython.Shutdown()
 
