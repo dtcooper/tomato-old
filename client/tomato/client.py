@@ -1,4 +1,5 @@
 import datetime
+import glob
 import os
 import shutil
 import sys
@@ -20,10 +21,23 @@ class __RenderTemplate:
 
     def __call__(self, filename):
         template = self.env.get_template(filename)
+        static_prefix = f'file://{self.STATIC_DIR}/'
+
+        base_font_path = os.path.join(self.STATIC_DIR, 'fonts')
+        files = glob.glob(f'{base_font_path}/**/*.*', recursive=True)
+        fonts = []
+        for file in files:
+            font = file[len(base_font_path) + 1:]
+            url = f'{static_prefix}fonts/{font}'
+            fonts.append((os.path.splitext(os.path.basename(font))[0], url))
+
+        fonts.sort(key=lambda f: f[1])
+
         kwargs = {
-            'STATIC': f'file://{self.STATIC_DIR}/',
+            'STATIC': static_prefix,
             'SOUNDS': f'file://{self.SOUNDS_DIR}/',
             'PATH': f'{Client.RENDER_PREFIX}{filename}',
+            'fonts': fonts,
         }
 
         html = template.render(kwargs)

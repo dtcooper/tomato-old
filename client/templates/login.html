@@ -1,30 +1,16 @@
 <html>
 <head>
     <link href="{{ STATIC }}css/nes.min.css" rel="stylesheet">
-
     <style>
-      @font-face {
-        font-family: 'SH Pinscher';
-        src: url('{{ STATIC }}fonts/pinscher.otf') format('opentype');
-      }
-
-      @font-face {
-        font-family: 'Press Start 2P';
-        src: url('{{ STATIC }}fonts/press-start-2p.woff2') format('woff2');
-      }
-
-      @font-face {
-        font-family: 'Joystix Monospace';
-        src: url('{{ STATIC }}fonts/joystix-monospace.otf') format('opentype');
-      }
-
-      @font-face {
-        font-family: 'Joystix Proportional';
-        src: url('{{ STATIC }}fonts/joystix-proportional.otf') format('opentype');
-      }
+      {% for name, url in fonts %}
+          @font-face {
+            font-family: '{{ name }}';
+            src: url('{{ url }}');
+          }
+      {% endfor %}
 
       html, body, pre, code, kbd, samp {
-        font-family: 'Press Start 2P';
+        font-family: 'press-start-2p';
       }
 
       body {
@@ -34,9 +20,36 @@
       .items > *:not(:last-child) {
         margin-bottom: 24px;
       }
+
+      .nes-container:not(:last-child) {
+        margin-bottom: 12px;
+      }
+
+      .tomato-img {
+        height: 36px;
+        width: 36px;
+        image-rendering: pixelated;
+        vertical-align: middle;
+      }
     </style>
+
+    <script src="{{ STATIC }}js/jquery.min.js"></script>
+    <script>
+        $(function() {
+            $('#font').change(function() {
+                $('html, body, pre, code, kbd, samp').css('font-family', $(this).val());
+            });
+            $('#bold').click(function() {
+                var weight = $(this).prop('checked') ? 'bold' : 'normal';
+                $('html, body, pre, code, kbd, samp').css('font-weight', weight);
+            });
+        });
+    </script>
+
 <body>
-    <h1>Tomato Radio Automation</h1>
+    <h1>
+        <img src="{{ STATIC}}images/tomato.png" class="tomato-img"> Tomato Radio Automation <img src="{{ STATIC}}images/tomato.png" class="tomato-img">
+    </h1>
     <div class="nes-container with-title">
         <p class="title">Please Login</p>
         <form method="post" action="{{ PATH }}">
@@ -49,14 +62,41 @@
                     <label for="password">Password:</label>
                     <input type="text" id="password" name="password" class="nes-input">
                 </div>
+                <div class="nes-field is-inline">
+                    <label for="font">Input select:</label>
+                    <div class="nes-select">
+                        <select id="font" name="font">
+                            <option value="" disabled selected hidden>Select...</option>
+                            {% for name, url in fonts %}
+                                <option value="{{ name }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label>
+                        <input type="checkbox" class="nes-checkbox" name="bold" id="bold">
+                        <span>font-weight: bold</span>
+                    </label>
+                </div>
                 <input type="submit" class="nes-btn is-primary" value="Login">
             </div>
         </form>
     </div>
 
+    <div class="nes-container">
+      <p>
+        Song Demo: Diary of the Dust
+      </p>
+
+      <audio src="{{ SOUNDS }}ad-1.mp3" controls></audio>
+    </div>
+
+    <div class="nes-container with-title">
+      <p class="title">Let's get it lorem ipsum in here!</p>
     <p>
-      Song Demo: Diary of the Dust
-      <audio src="{{ SOUNDS }}ad-1.mp3" controls />
+      {{ lipsum() }}
     </p>
+    </div>
 </body>
 </html>
