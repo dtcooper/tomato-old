@@ -31,7 +31,7 @@ class __RenderTemplate:
             url = f'{static_prefix}fonts/{font}'
             fonts.append((os.path.splitext(os.path.basename(font))[0], url))
 
-        fonts.sort(key=lambda f: f[1])
+        fonts.sort(key=lambda f: f[0].lower())
 
         kwargs = {
             'STATIC': static_prefix,

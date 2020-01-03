@@ -13,6 +13,10 @@
         font-family: 'press-start-2p';
       }
 
+      h1 {
+        font-weight: normal;
+      }
+
       body {
         margin: 5px;
       }
@@ -41,8 +45,17 @@
             });
             $('#bold').click(function() {
                 var weight = $(this).prop('checked') ? 'bold' : 'normal';
-                $('html, body, pre, code, kbd, samp').css('font-weight', weight);
+                $('html, body, pre, code, kbd, samp, h1').css('font-weight', weight);
             });
+            $('#italic').click(function() {
+                var weight = $(this).prop('checked') ? 'italic' : 'normal';
+                $('html, body, pre, code, kbd, samp, h1').css('font-style', weight);
+            });
+
+            setInterval(function() {
+                var amount = (parseInt($('#song').attr('value'), 10) + 1) % 101
+                $('#song').attr('value', amount);
+            }, 50)
         });
     </script>
 
@@ -60,7 +73,7 @@
                 </div>
                 <div class="nes-field is-inline">
                     <label for="password">Password:</label>
-                    <input type="text" id="password" name="password" class="nes-input">
+                    <input type="password" id="password" name="password" class="nes-input">
                 </div>
                 <div class="nes-field is-inline">
                     <label for="font">Input select:</label>
@@ -79,6 +92,12 @@
                         <span>font-weight: bold</span>
                     </label>
                 </div>
+                <div>
+                    <label>
+                        <input type="checkbox" class="nes-checkbox" name="italic" id="italic">
+                        <span>font-style: italic</span>
+                    </label>
+                </div>
                 <input type="submit" class="nes-btn is-primary" value="Login">
             </div>
         </form>
@@ -89,7 +108,8 @@
         Song Demo: Diary of the Dust
       </p>
 
-      <audio src="{{ SOUNDS }}ad-1.mp3" controls></audio>
+      <progress id="song" class="nes-progress is-success" value="0" max="100"></progress>
+
     </div>
 
     <div class="nes-container with-title">
