@@ -1,0 +1,47 @@
+<html>
+<head>
+  <link href="{{ STATIC }}css/nes.min.css" rel="stylesheet">
+  <link href="{{ STATIC }}css/styles.css" rel="stylesheet">
+  {% block extracss %}{% endblock %}
+  <script src="{{ STATIC }}js/jquery.min.js"></script>
+  <script src="{{ STATIC }}js/base.js"></script>
+</head>
+<body>
+  <header>
+    <h1>
+      <img src="{{ STATIC }}images/tomato.png">
+      Tomato Radio Automation
+      <img src="{{ STATIC }}images/tomato.png">
+    </h1>
+  </header>
+
+  {% block content %}
+
+    <main>
+      <div class="nes-container with-title outer-nes-container">
+        <p class="title">Main title</p>
+        <div class="main-scrollable">
+          {% for i in range(5) %}
+          <div class="nes-container with-title">
+            <p class="title">Track Name</p>
+            {{ lipsum(2) }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </main>
+
+  {% endblock %}
+
+  <aside>
+    <button class="nes-btn is-primary" tabindex="-1"><img src="{{ STATIC }}images/cog.png"></button>
+  </aside>
+
+  <footer>
+    <p>
+      Copyright &copy; <a class="link" href="mailto:david.cooper@burningman.org">David Cooper</a>
+      &amp; <a class="link" href="https://bmir.org">BMIR</a> 2019-{{ YEAR }}. All rights reserved.
+    </p>
+  </footer>
+</body>
+</html>

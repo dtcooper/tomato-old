@@ -3,6 +3,7 @@ import glob
 import os
 import shutil
 import sys
+import webbrowser
 
 from cefpython3 import cefpython
 import jinja2
@@ -19,7 +20,7 @@ class __RenderTemplate:
         self.env = jinja2.Environment(loader=loader)
         os.makedirs(self.RENDERED_TEMPLATE_DIR, exist_ok=True)
 
-    def __call__(self, filename):
+    def __call__(self, filename, kwargs=None):
         template = self.env.get_template(filename)
         static_prefix = f'file://{self.STATIC_DIR}/'
 
@@ -28,19 +29,26 @@ class __RenderTemplate:
         fonts = []
         for file in files:
             font = file[len(base_font_path) + 1:]
+            name = os.path.splitext(os.path.basename(font))[0]
+            if font.startswith('candidates'):
+                name = f'[candidate] {name}'
             url = f'{static_prefix}fonts/{font}'
-            fonts.append((os.path.splitext(os.path.basename(font))[0], url))
+            fonts.append((name, url))
 
         fonts.sort(key=lambda f: f[0].lower())
 
-        kwargs = {
+        default_kwargs = {
             'STATIC': static_prefix,
             'SOUNDS': f'file://{self.SOUNDS_DIR}/',
             'PATH': f'{Client.RENDER_PREFIX}{filename}',
+            'YEAR': datetime.date.today().strftime('%Y'),
             'fonts': fonts,
         }
+        if kwargs:
+            default_kwargs.update(kwargs)
 
-        html = template.render(kwargs)
+        html = template.render(default_kwargs)
+        print(html)
         path = os.path.join(self.RENDERED_TEMPLATE_DIR, filename)
 
         with open(path, 'w') as file:
@@ -56,15 +64,23 @@ class ClientHandler:
     def DoClose(self, browser):
         cefpython.QuitMessageLoop()
 
+    def OnBeforeBrowse(self, browser, frame, request, user_gesture, is_redirect):
+        return request.GetUrl().startswith('open://')
+
     def OnBeforeResourceLoad(self, browser, frame, request):
         url = request.GetUrl()
         if url.startswith(Client.RENDER_PREFIX):
             template = url[len(Client.RENDER_PREFIX):]
-            path = render_template(template)
+            kwargs = {}
+
+            post_data = request.GetPostData()
+            if b'font' in post_data:
+                kwargs['font'] = post_data[b'font'].decode()
+
+            path = render_template(template, kwargs)
             print(f'{datetime.datetime.now()} Rendered {template} => {path}')
             request.SetUrl(f'file://{path}')
 
-            print(f'{datetime.datetime.now()} Post Data: {request.GetPostData()}')
         else:
             print(f'{datetime.datetime.now()} Loading {url}')
 
@@ -89,6 +105,11 @@ class Client:
         )
 
         browser.SetClientHandler(ClientHandler())
+
+        bindings = cefpython.JavascriptBindings(bindToFrames=False, bindToPopups=False)
+        bindings.SetFunction('open_link', webbrowser.open)
+        browser.SetJavascriptBindings(bindings)
+
         browser.LoadUrl(f'{self.RENDER_PREFIX}login.html')
         cefpython.MessageLoop()
         cefpython.Shutdown()

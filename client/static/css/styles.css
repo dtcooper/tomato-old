@@ -1,0 +1,118 @@
+@font-face {
+    font-family: 'Retro Gaming';
+    src: url('../fonts/candidates/Retro Gaming.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Vermin Vibes 1989';
+    src: url('../fonts/candidates/vermin-vibes.woff2') format('woff2');
+}
+
+:root {
+    --footer-size: 0.7rem;
+    --header-size: 4rem;
+}
+
+html, body, pre, code, kbd, samp {
+    font-family: 'Retro Gaming';
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    overscroll-behavior: none;
+}
+
+.nes-btn:focus {
+    outline: 0 !important;
+    box-shadow: none !important;
+}
+
+header {
+    position: absolute:
+    top: 0px;
+    height: var(--header-size);
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+}
+
+header h1 {
+    font-family: 'Vermin Vibes 1989';
+    font-size: var(--header-size);
+    line-height: var(--header-size);
+    color: #f30000;
+    text-shadow: #93c22e 1px 1px 0px, #93c22e 2px 2px 0px, #93c22e 3px 3px 0px, #93c22e 4px 4px 0px, #93c22e 5px 5px 0px, #93c22e 6px 6px 0px, #93c22e 7px 7px 0px, #93c22e 8px 8px 0px, #93c22e 9px 9px 0px, #93c22e 10px 10px 0px;
+}
+
+header img {
+    height: 40px;
+    width: 40px;
+    image-rendering: pixelated;
+    vertical-align: text-top;
+}
+
+main {
+    position: absolute;
+    top: var(--header-size);
+    width: calc(100% - 200px);
+    height: calc(100% - var(--header-size) - var(--footer-size));
+    padding: 3px 4px 0 4px;
+}
+
+main .outer-nes-container {
+    padding-right: 0px;
+}
+
+.main-scrollable {
+    overflow-y: auto;
+    position: relative;
+    height: calc(100% - var(--header-size) - var(--footer-size));
+    padding-right: 2rem;
+}
+
+.main-scrollable > .nes-container:not(:last-child) {
+    margin-bottom: 10px;
+}
+
+aside {
+    position: absolute;
+    right: 0px;
+    width: 200px;
+}
+
+aside img {
+    height: 1.5rem;
+}
+
+footer {
+    position: absolute;
+    width: 100%;
+    bottom: 0px;
+    text-align: center;
+}
+
+footer p {
+    margin: 0;
+    font-size: var(--footer-size);
+}
+
+::-webkit-scrollbar {
+    width: 5px;
+    background-color: #eeeeee;
+}
+::-webkit-scrollbar:hover {
+    background-color: #666666;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #000000;
+    width: 5px;
+}
