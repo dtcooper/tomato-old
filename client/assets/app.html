@@ -1,0 +1,75 @@
+<html>
+<head>
+  <link href="css/nes.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+
+  <script src="js/jquery.min.js"></script>
+  <script src="js/login.js"></script>
+</head>
+<body>
+  <div id="loading"></div>
+
+  <header>
+    <h1>
+      <img src="images/tomato.png">
+      Tomato Radio Automation
+      <img src="images/tomato.png">
+    </h1>
+  </header>
+
+  <main>
+    <div>
+      <button class="nes-btn is-primary" id="open-login">Open Login</button>
+    </div>
+  </main>
+
+  <footer>
+    <p>
+      Copyright &copy; 2019-<script>document.write('' + (new Date()).getFullYear());</script>,
+      <a class="link" href="mailto:david.cooper@burningman.org">David Cooper</a> &amp;
+      <a class="link" href="https://bmir.org">BMIR</a>. All rights reserved.
+    </p>
+  </footer>
+
+  <dialog class="nes-dialog is-rounded" id="login-dialog">
+    <form method="dialog">
+      <p class="title">Please Login</p>
+
+      <div id="login-errors"></div>
+
+      <div class="nes-field is-inline">
+        <label for="url">Host:</label>
+        <input type="text" id="url" class="nes-input" placeholder="eg. tomato.host.com or 1.2.3.4">
+      </div>
+      <div class="center">
+        <label>
+          <input type="radio" class="nes-radio" name="http-or-https" value="https" checked>
+          <span>Secure (HTTPS)</span>
+        </label>
+        <label>
+          <input type="radio" class="nes-radio" name="http-or-https" value="http">
+          <span>Insecure (HTTP)</span>
+        </label>
+      </div>
+      <div class="nes-field is-inline auth-field">
+        <label for="username">Username:</label>
+        <input type="text" id="username" class="nes-input" placeholder="Enter username">
+      </div>
+      <div class="nes-field is-inline auth-field">
+        <label for="password">Password:</label>
+        <input type="password" id="password" class="nes-input" placeholder="Enter password">
+      </div>
+      <div class="right">
+        <label>
+          <input type="checkbox" id="noauth" class="nes-checkbox">
+          <span>No username or password required</span>
+        </label>
+      </div>
+      <div class="right">
+        <input type="submit" class="nes-btn is-success" value="Login">
+      </div>
+    </form>
+  </dialog>
+
+</body>
+</html>

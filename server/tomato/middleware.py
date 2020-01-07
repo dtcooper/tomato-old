@@ -1,11 +1,12 @@
+import hashlib
+
 import pytz
 
 from django.contrib.auth.models import User
+from django.core import signing
 from django.utils import timezone
 
 from constance import config
-
-from .models import ApiToken
 
 
 class ServerMiddleware:
@@ -34,7 +35,20 @@ class ServerMiddleware:
         else:
             token = request.headers.get('X-Auth-Token') or request.GET.get('auth_token')
             if token:
-                request.user = ApiToken.user_from_token(token)
+                try:
+                    payload = signing.loads(token)
+                except signing.BadSignature:
+                    pass
+                else:
+                    try:
+                        user = User.objects.get(id=payload['user_id'])
+                    except User.DoesNotExist:
+                        pass
+                    else:
+                        pw_hash = hashlib.md5(user.password.encode('utf8')).hexdigest()
+                        if payload['pw_hash'] == pw_hash:
+                            request.user = user
+
 
     def set_timezone(self, request):
         try:

@@ -1,14 +1,17 @@
+import hashlib
+
 import pytz
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core import signing
 from django.http import HttpResponseForbidden, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 from constance import config
 
-from .models import ApiToken
 
-
+@csrf_exempt
 def authenticate(request):
     response = HttpResponseForbidden()
 
@@ -18,7 +21,11 @@ def authenticate(request):
         pass
     else:
         if user.check_password(request.POST.get('password', '')):
-            response = JsonResponse({'token': ApiToken.generate(user)})
+            token = signing.dumps({
+                'user_id': user.id,
+                'pw_hash': hashlib.md5(user.password.encode('utf8')).hexdigest(),
+            })
+            response = JsonResponse({'token': token})
 
     return response
 
