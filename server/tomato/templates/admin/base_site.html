@@ -12,17 +12,6 @@
     </h1>
 {% endblock %}
 
-{% block usertools %}
-    {% if config.NO_LOGIN_REQUIRED %}
-        <div id="user-tools">
-            <strong>No sign in required.</strong>
-            Server Time: {% now 'DATETIME_FORMAT' %}
-        </div>
-    {% else %}
-        {{ block.super }}
-    {% endif %}
-{% endblock %}
-
 {% block welcome-msg %}
     {{ block.super }}
     Server Time: {% now 'DATETIME_FORMAT' %}<br>

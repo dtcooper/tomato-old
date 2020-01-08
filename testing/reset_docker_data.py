@@ -49,7 +49,6 @@ def main():
 
     from django.contrib.auth.models import User
 
-    from constance import config
     from tomato.models import Asset, Rotator, StopSet, StopSetRotator
 
     assets_upload_to = Asset._meta.get_field('audio').upload_to
@@ -58,7 +57,6 @@ def main():
     subprocess.call(['mkdir', '-p', assets_upload_to_full_path])
 
     User.objects.create_superuser(username='test', password='test')
-    config.NO_LOGIN_REQUIRED = True
 
     colors = {v: k for k, v in Rotator.COLOR_CHOICES}
     rotators = {

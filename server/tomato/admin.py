@@ -28,17 +28,9 @@ class TomatoUserAdmin(UserAdmin):
     list_filter = ('is_superuser', 'is_active', 'groups')
     save_on_top = True
 
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.exclude(username='anonymous_superuser')
-
     def save_model(self, request, obj, form, change):
         obj.is_staff = True
         return super().save_model(request, obj, form, change)
-
-    def has_module_permission(self, request):
-        has_perm = super().has_module_permission(request)
-        return has_perm and request.user.username != 'anonymous_superuser'
 
 
 class TomatoModelAdmin(admin.ModelAdmin):

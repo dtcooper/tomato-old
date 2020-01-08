@@ -103,9 +103,6 @@ CONSTANCE_CONFIG = OrderedDict({
         False, 'Wait time subtracts the playtime of a stop set. This will provide more '
                'even results, ie the number of stop sets played per hour will be more '
                'consistent at the expense of a DJs air time.'),
-    'NO_LOGIN_REQUIRED': (
-        False, 'Allows anyone to access without authenticating. (WARNING: This '
-               'is a potential security issue!)'),
     'STRIP_UPLOADED_AUDIO': (True, 'TODO'),
     'NORMALIZE_AUDIO_TO_MP3': (False, 'TODO'),
     'NORMALIZE_AUDIO_TO_MP3_BITRATE': (320, 'TODO'),

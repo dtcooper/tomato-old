@@ -64,7 +64,7 @@ class ServerTests(TestCase):
 
         response = self.client.post(reverse('auth'), data={'username': 'super', 'password': 'super'})
         self.assertEqual(response.status_code, 200)
-        token = response.json()['token']
+        token = response.json()['auth_token']
 
         response = self.client.get(reverse('admin:index'), data={'auth_token': token})
         self.assertEqual(response.status_code, 200)

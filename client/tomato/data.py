@@ -20,7 +20,7 @@ class Data(UserDict):
         'last_sync': None,
         'client': {
             'auth_token': None,
-            'host': None,
+            'hostname': None,
         },
         'objects': [],
     }

@@ -44,7 +44,7 @@ class Client:
 
         bindings = cefpython.JavascriptBindings(bindToFrames=False, bindToPopups=False)
         bindings.SetFunction('openLink', webbrowser.open)
-        bindings.SetObject('auth', AuthApi(self.data))
+        bindings.SetObject('auth', AuthApi(self.data, browser))
         browser.SetJavascriptBindings(bindings)
 
         browser.LoadUrl(self.APP_HTML_URL)

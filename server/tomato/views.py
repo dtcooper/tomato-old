@@ -10,6 +10,15 @@ from django.views.decorators.csrf import csrf_exempt
 
 from constance import config
 
+from version import __version__
+
+
+def ping(request):
+    return JsonResponse({
+        'valid_token': request.valid_token,
+        'software': f'tomato/{__version__}',
+    })
+
 
 @csrf_exempt
 def authenticate(request):
@@ -25,7 +34,7 @@ def authenticate(request):
                 'user_id': user.id,
                 'pw_hash': hashlib.md5(user.password.encode('utf8')).hexdigest(),
             })
-            response = JsonResponse({'token': token})
+            response = JsonResponse({'auth_token': token})
 
     return response
 

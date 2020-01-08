@@ -1,43 +1,28 @@
-$(function() {
-    $('#noauth').change(function() {
-        var checked = $(this).prop('checked');
-        if (checked) {
-            $('.auth-field').hide();
-        } else {
-            $('.auth-field').show();
-        }
-    });
+var doLogin = function(error) {
+    $('#login-errors').empty();
+    if (error) {
+        var elem = $('<span class="nes-text is-error" />').text(error);
+        $('#login-errors').append(elem);
+    } else {
+        // Reset form back to initial status in case we need it again
+        $('#login-dialog').get(0).close();
+        $('#login-dialog form').get(0).reset();
 
+        $('#login-status').text('Logged in!');
+    }
+};
+
+var showLoginModal = function() {
+    $('#login-dialog').get(0).showModal();
+};
+
+$(function() {
     $('#login-dialog').submit(function(event) {
         event.preventDefault();
-        var user, pass;
-
-        if ($('#noauth').prop('checked')) {
-            user = '';
-            pass = '';
-        } else {
-            user = $('#username').val();
-            pass = $('#password').val();
-        }
-
-        var proto = $('input[name=http-or-https]:checked').val();
-
-        var callback = function(authenticated) {
-            if (authenticated) {
-                $('#login-dialog').get(0).close();
-                $('#login-dialog form').get(0).reset();
-                $('.auth-field').show();
-            } else {
-                // TODO append to $('#login-errors')
-            }
-        }
-
-        auth.login(user, pass, proto, $('#url').val(), callback);
+        auth.login($('#username').val(), $('#password').val(),
+                   $('input[name=protocol]:checked').val(), $('#hostname').val());
     });
 
-    $('#open-login').click(function() {
-        $('#login-dialog').get(0).showModal();
-    });
-
-    setTimeout(function() { $('#loading').hide(); }, 500);
+    auth.check_authorization();
+    $('#loading').hide();
 });
