@@ -104,8 +104,6 @@ CONSTANCE_CONFIG = OrderedDict({
                'even results, ie the number of stop sets played per hour will be more '
                'consistent at the expense of a DJs air time.'),
     'STRIP_UPLOADED_AUDIO': (True, 'TODO'),
-    'NORMALIZE_AUDIO_TO_MP3': (False, 'TODO'),
-    'NORMALIZE_AUDIO_TO_MP3_BITRATE': (320, 'TODO'),
     # sox in.wav out.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
 })
 

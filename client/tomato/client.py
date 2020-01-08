@@ -1,19 +1,14 @@
-import configparser
 import os
+import platform
 import shutil
 import sys
 import webbrowser
 
-from cefpython3 import cefpython
+import webview
 
 from .auth import AuthApi
 from .data import Data
 from .constants import USER_DIR
-
-
-class ClientHandler:
-    def DoClose(self, browser):
-        cefpython.QuitMessageLoop()  # Mac only?
 
 
 class Client:
@@ -26,30 +21,22 @@ class Client:
         self.data = Data()
 
     def create_window(self):
-        sys.excepthook = cefpython.ExceptHook
+        kwargs = {'debug': True}
 
-        cefpython.Initialize(
-            switches={'autoplay-policy': 'no-user-gesture-required'},
-            settings={'background_color': 0xFFB3B3B3, 'cache_path': ''})
+        if platform.system() == 'Windows':
+            kwargs['gui'] = 'cef'
 
-        window_info = cefpython.WindowInfo()
-        window_info.SetAsChild(0, [200, 200, 900, 600])  # Testing
-
-        browser = cefpython.CreateBrowserSync(
-            window_title=self.WINDOW_TITLE,
-            window_info=window_info,
+        webview.create_window(
+            self.WINDOW_TITLE,
+            self.APP_HTML_URL,
+            js_api=AuthApi(data=self.data),
+            width=1024,
+            height=768,
+            min_size=(800, 600),
+            confirm_close=True,
+            #frameless=True,
         )
-
-        browser.SetClientHandler(ClientHandler())
-
-        bindings = cefpython.JavascriptBindings(bindToFrames=False, bindToPopups=False)
-        bindings.SetFunction('openLink', webbrowser.open)
-        bindings.SetObject('auth', AuthApi(self.data, browser))
-        browser.SetJavascriptBindings(bindings)
-
-        browser.LoadUrl(self.APP_HTML_URL)
-        cefpython.MessageLoop()
-        cefpython.Shutdown()
+        webview.start(**kwargs)
 
     def run(self):
         try:

@@ -16,19 +16,35 @@ var showLoginModal = function() {
     $('#login-dialog').get(0).showModal();
 };
 
-$(function() {
-    $('#login-dialog').submit(function(event) {
-        event.preventDefault();
-        auth.login($('#username').val(), $('#password').val(),
-                   $('input[name=protocol]:checked').val(), $('#hostname').val());
+window.addEventListener('pywebviewready', function() {
+    $(function() {
+        $('#login-dialog').submit(function(event) {
+            event.preventDefault();
+            pywebview.api.login({
+                'username': $('#username').val(),
+                'password': $('#password').val(),
+                'protocol': $('input[name=protocol]:checked').val(),
+                'hostname': $('#hostname').val()
+            }).then(doLogin)
+        });
+
+        $('dialog').each(function(i, elem) {
+            dialogPolyfill.registerDialog(elem);
+            elem.addEventListener('cancel', function(event) {
+                event.preventDefault();
+            });
+        });
+
+        $('#login-btn').click(showLoginModal);
+        $('#logout-btn').click(function() {
+            pywebview.api.logout().then(showLoginModal);
+        });
+
+        pywebview.api.check_authorization().then(function(isLoggedIn) {
+            if (!isLoggedIn) {
+                showLoginModal();
+            }
+        });
+        $('#loading').hide();
     });
-
-    $('dialog').each(function(i, elem) {
-        dialogPolyfill.registerDialog(elem);
-    });
-
-    $('#login-btn').click(showLoginModal);
-
-    //auth.check_authorization();
-    $('#loading').hide();
 });

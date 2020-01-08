@@ -1,21 +1,17 @@
-import json
-
 import requests
 
 from .constants import REQUESTS_TIMEOUT
 
 
 class AuthApi:
-    def __init__(self, data, browser):
+    def __init__(self, data):
         self.data = data
-        self.browser = browser
 
     def logout(self):
         self.data['client'].update({'auth_token': None, 'hostname': None})
         self.data.save()
-        self.browser.ExecuteFunction('showLoginModal')
 
-    def check_authorization(self):
+    def check_authorization(self, params):
         logged_in = False
 
         if self.data['client']['hostname'] and self.data['client']['auth_token']:
@@ -32,19 +28,17 @@ class AuthApi:
                 except (requests.JSONDecodeError, KeyError):
                     pass
 
-        if logged_in:
-            self.browser.ExecuteFunction('doLogin', None)
-        else:
-            self.browser.ExecuteFunction('showLoginModal')
+        return logged_in
 
-    def login(self, username, password, protocol, hostname):
+    def login(self, params):
         error = None
 
         try:
-            response = requests.post(f'{protocol}://{hostname}/auth', timeout=REQUESTS_TIMEOUT,
-                                     data={'username': username, 'password': password})
+            response = requests.post(f'{params["protocol"]}://{params["hostname"]}/auth',
+                                     timeout=REQUESTS_TIMEOUT,
+                                     data={'username': params['username'], 'password': params['password']})
         except requests.RequestException:
-            error = f'Timeout, bad hostname, or invalid protocol ({protocol}).'
+            error = f'Timeout, bad hostname, or invalid protocol ({params["protocol"]}).'
         else:
             if response.status_code == 200:
                 try:
@@ -54,7 +48,7 @@ class AuthApi:
                 else:
                     self.data['client'].update({
                         'auth_token': auth_token,
-                        'hostname': f'{protocol}://{hostname}',
+                        'hostname': f'{params["protocol"]}://{params["hostname"]}',
                     })
                     self.data.save()
 
@@ -63,4 +57,4 @@ class AuthApi:
             else:
                 error = 'Bad response from host.'
 
-        self.browser.ExecuteFunction('doLogin', error)
+        return error

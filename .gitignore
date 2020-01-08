@@ -1,12 +1,12 @@
 .DS_Store
 __pycache__/
+venv/
 .pytest_cache
 
 # Server
 /server/local_settings.py
 /server/uploads/
 /server/static/
-/server/venv/
 
 # Client
 /client/webrtc_event_logs
