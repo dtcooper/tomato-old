@@ -9,6 +9,8 @@ webview.create_window(
     'CEF test window',
     'file:///Users/dave/tomato/client/assets/app.html',
     confirm_close=True,
+    frameless=True,
+    min_size=(800, 600),
 )
 
 webview_kwargs = {}

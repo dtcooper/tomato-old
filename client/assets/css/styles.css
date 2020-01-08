@@ -147,6 +147,6 @@ footer p {
     margin-bottom: 10px;
 }
 
-#login-dialog {
+dialog {
     width: 80vw;
 }
