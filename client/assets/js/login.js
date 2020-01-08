@@ -23,6 +23,12 @@ $(function() {
                    $('input[name=protocol]:checked').val(), $('#hostname').val());
     });
 
-    auth.check_authorization();
+    $('dialog').each(function(i, elem) {
+        dialogPolyfill.registerDialog(elem);
+    });
+
+    $('#login-btn').click(showLoginModal);
+
+    //auth.check_authorization();
     $('#loading').hide();
 });

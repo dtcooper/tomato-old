@@ -2,7 +2,13 @@
 <head>
   <link href="css/nes.min.css" rel="stylesheet">
   <link href="css/styles.css" rel="stylesheet">
+  <!-- TODO:
+      1) Use local assets
+      2) Only run polyfill if not CEF (macOS/QT)
+  -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.0/dialog-polyfill.css" rel="stylesheet">
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.0/dialog-polyfill.js"></script>
   <script src="js/jquery.min.js"></script>
   <script src="js/base.js"></script>
   <script src="js/login.js"></script>
@@ -22,7 +28,9 @@
     <section>
       <div class="nes-container with-title">
         <p class="title">Now Playing</p>
-        <progress class="nes-progress is-primary" value="50" max="100" data-text-fill="test content test content test content"></progress>
+        <div class="progress-text" data-text="hi mom">
+          <progress class="nes-progress is-primary" value="50" max="100" data-text-fill="test content test content test content"></progress>
+        </div>
       </div>
     </section>
 
@@ -31,6 +39,7 @@
         <p class="title" style="align-self: flex-start">Main Content</p>
         <div style="display: flex; align-items: stretch; height: 100%;">
           <div style="overflow-y: auto; padding-right: 1.75rem;">
+            <button class="nes-btn is-warning" id="login-btn">Login</button>
             <p>
               <script>
                 // XXX Write out some number of lorems

@@ -75,11 +75,13 @@ progress {
     height: calc(1rem + 16px) !important;
 }
 
-progress[value]:before {
-    content: attr(data-text-fill);
+div.progress-text:before {
+    content: attr(data-text);
     position: absolute;
-    left: 50px;
+    margin-top: 8px;
+    margin-left: 12px;
 }
+
 
 /* Layout */
 
