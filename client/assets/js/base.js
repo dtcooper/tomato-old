@@ -1,6 +1,11 @@
 $(function() {
     $('a.link').click(function(event) {
         event.preventDefault();
-        openLink($(this).attr('href'));
+        $('#link-url').text($(this).attr('href'));
+        $('#link-dialog').get(0).showModal();
+    });
+
+    $('#link-open').click(function() {
+        openLink($('#link-url').text());
     });
 });

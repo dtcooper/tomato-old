@@ -66,6 +66,21 @@ img {
     text-align: center;
 }
 
+.nes-container {
+    margin: 10px;
+}
+
+progress {
+    /* Plus border, padding, etc */
+    height: calc(1rem + 16px) !important;
+}
+
+progress[value]:before {
+    content: attr(data-text-fill);
+    position: absolute;
+    left: 50px;
+}
+
 /* Layout */
 
 #loading {
@@ -86,7 +101,7 @@ img {
     flex-direction: column;
 }
 
-header, main, footer {
+#app > * {
     width: 100vw;
 }
 
