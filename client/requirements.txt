@@ -1,0 +1,4 @@
+cefpython3
+https://github.com/albertosottile/py2exe/releases/download/v0.9.3.2/py2exe-0.9.3.2-cp37-none-win_amd64.whl
+pywebview
+requests

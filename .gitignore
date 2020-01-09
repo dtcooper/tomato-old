@@ -12,3 +12,4 @@ venv/
 /client/webrtc_event_logs
 /client/blob_storage
 /client/error.log
+/client/dist/

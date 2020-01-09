@@ -13,8 +13,6 @@ from .constants import USER_DIR
 
 class Client:
     WINDOW_TITLE = 'Tomato Radio Automation'
-    APP_HTML_URL = 'file://' + os.path.realpath(os.path.join(
-        os.path.dirname(__file__), '..', 'assets', 'app.html')).replace(os.pathsep, '/')
 
     def __init__(self):
         os.makedirs(USER_DIR, exist_ok=True)
@@ -23,12 +21,20 @@ class Client:
     def create_window(self):
         kwargs = {'debug': True}
 
-        if platform.system() == 'Windows':
-            kwargs['gui'] = 'cef'
+        #if platform.system() == 'Windows':
+        os.environ['PYWEBVIEW_GUI'] = 'cef'
+        kwargs['gui'] = 'cef'
+
+        if hasattr(sys, 'frozen'):
+            app_html = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'app.html')
+        else:
+            app_html = os.path.join(os.path.dirname(__file__), '..', 'assets', 'app.html')
+
+        app_html_url = 'file://' + os.path.realpath(app_html).replace(os.pathsep, '/')
 
         webview.create_window(
             self.WINDOW_TITLE,
-            self.APP_HTML_URL,
+            app_html_url,
             js_api=AuthApi(data=self.data),
             width=1024,
             height=768,
@@ -37,6 +43,7 @@ class Client:
             text_select=True,  # Handled by custom CSS
             #frameless=True,
         )
+        print(kwargs)
         webview.start(**kwargs)
 
     def run(self):
