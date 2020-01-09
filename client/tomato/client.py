@@ -34,6 +34,7 @@ class Client:
             height=768,
             min_size=(800, 600),
             confirm_close=True,
+            text_select=True,  # Handled by custom CSS
             #frameless=True,
         )
         webview.start(**kwargs)
