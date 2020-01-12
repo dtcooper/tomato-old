@@ -1,9 +1,13 @@
+from json.decoder import JSONDecodeError
+
 import requests
 
 from .constants import REQUESTS_TIMEOUT
 
 
 class AuthApi:
+    namespace = 'auth'
+
     def __init__(self, data):
         self.data = data
 
@@ -11,8 +15,8 @@ class AuthApi:
         self.data['client'].update({'auth_token': None, 'hostname': None})
         self.data.save()
 
-    def check_authorization(self, params):
-        logged_in = False
+    def check_authorization(self):
+        logged_in = connected = False
 
         if self.data['client']['hostname'] and self.data['client']['auth_token']:
             logged_in = True  # In case of server error / no connectivity, assume login
@@ -25,20 +29,21 @@ class AuthApi:
             else:
                 try:
                     logged_in = response.json()['valid_token']
-                except (requests.JSONDecodeError, KeyError):
+                except (JSONDecodeError, KeyError):
                     pass
+                else:
+                    connected = True
 
-        return logged_in
+        return (logged_in, connected)
 
-    def login(self, params):
+    def login(self, username, password, protocol, hostname):
         error = None
 
         try:
-            response = requests.post(f'{params["protocol"]}://{params["hostname"]}/auth',
-                                     timeout=REQUESTS_TIMEOUT,
-                                     data={'username': params['username'], 'password': params['password']})
+            response = requests.post(f'{protocol}://{hostname}/auth', timeout=REQUESTS_TIMEOUT,
+                                     data={'username': username, 'password': password})
         except requests.RequestException:
-            error = f'Timeout, bad hostname, or invalid protocol ({params["protocol"]}).'
+            error = f'Timeout, bad hostname, or invalid protocol ({protocol}).'
         else:
             if response.status_code == 200:
                 try:
@@ -48,7 +53,7 @@ class AuthApi:
                 else:
                     self.data['client'].update({
                         'auth_token': auth_token,
-                        'hostname': f'{params["protocol"]}://{params["hostname"]}',
+                        'hostname': f'{protocol}://{hostname}',
                     })
                     self.data.save()
 

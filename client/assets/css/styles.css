@@ -70,6 +70,10 @@ img {
     margin: 10px;
 }
 
+.windows-only {
+    display: none;
+}
+
 progress {
     /* Plus border, padding, etc */
     height: calc(1rem + 16px) !important;
@@ -84,6 +88,14 @@ div.progress-text:before {
 
 
 /* Layout */
+
+#connection-status {
+    position: absolute;
+    display: inline-block;
+    right: 10px;
+    top: 3px;
+    font-size: 1.5rem;
+}
 
 #loading {
     position: absolute;
@@ -121,6 +133,10 @@ footer {
     align-self: flex-end;
 }
 
+dialog {
+    width: 80vw;
+}
+
 /* Header / Footer styles */
 
 header h1 {
@@ -145,8 +161,4 @@ footer p {
 /* Login styles */
 #login-dialog form > *:not(:last-child) {
     margin-bottom: 10px;
-}
-
-dialog {
-    width: 80vw;
 }

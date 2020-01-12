@@ -1,6 +1,5 @@
 <html>
 <head>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.0/dialog-polyfill.css" rel="stylesheet">
   <link href="css/nes.min.css" rel="stylesheet">
   <link href="css/styles.css" rel="stylesheet">
   <!-- TODO:
@@ -8,13 +7,12 @@
       2) Only run polyfill if not CEF (macOS/QT)
   -->
 
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.0/dialog-polyfill.js"></script>
   <script src="js/jquery.min.js"></script>
   <script src="js/base.js"></script>
   <script src="js/login.js"></script>
 </head>
 <body>
+  <div id="connection-status" class="nes-text is-warning">*</div>
   <div id="loading"></div>
 
   <div id="app">
@@ -40,8 +38,8 @@
         <p class="title" style="align-self: flex-start">Main Content</p>
         <div style="display: flex; align-items: stretch; height: 100%;">
           <div style="overflow-y: auto; padding-right: 1.75rem;">
-            <button class="nes-btn is-warning" id="login-btn">Login</button>
             <button class="nes-btn is-error" id="logout-btn">Logout</button>
+            <button class="nes-btn is-primary windows-only" onclick="cef.internal.toggle_fullscreen();">Fullscreen</button>
             <p>
               <script>
                 // XXX Write out some number of lorems
@@ -126,6 +124,39 @@
       </div>
     </form>
   </dialog>
+
+  <!-- Logout dialog -->
+  <dialog class="nes-dialog is-rounded" id="logout-dialog">
+    <form method="dialog">
+      <p class="title">Logout</p>
+      <p>
+        <span class="nes-text is-error" id="link-url">
+          Are you sure you want to logout?
+        </span>
+      </p>
+      <div class="right">
+        <input type="submit" class="nes-btn" value="Cancel">
+        <input type="submit" class="nes-btn is-error" value="Logout" id="confirm-logout-btn">
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Quit dialog -->
+  <dialog class="nes-dialog is-rounded" id="close-dialog">
+    <form method="dialog">
+      <p class="title">Quit Tomato</p>
+      <p>
+        <span class="nes-text is-error" id="link-url">
+          Are you sure you want to quit Tomato?
+        </span>
+      </p>
+      <div class="right">
+        <input type="submit" class="nes-btn" value="Cancel">
+        <input type="submit" class="nes-btn is-error" value="Quit Tomato" id="close-btn">
+      </div>
+    </form>
+  </dialog>
+
 
 </body>
 </html>

@@ -8,7 +8,7 @@ SECRET_KEY = 'hackme'
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     # Django
