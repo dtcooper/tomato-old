@@ -1,29 +1,16 @@
 from distutils.core import setup
-import sys
 import os
 
 import py2exe  # noqa
-from py2exe.hooks import windows_excludes
-
 import cefpython3 as cefpython
 
-windows_excludes.remove('clr')
 
-RUNTIME_DLL = 'Python.Runtime.dll'
 CEF_PATH = f'{os.path.dirname(cefpython.__file__)}{os.sep}'
 
 
 def dir_files(dirname):
     return (dirname, sorted(f'{dirname}\\{file}' for file in os.listdir(dirname)))
 
-
-for path in sys.path:
-    runtime_dll_path = os.path.join(path, RUNTIME_DLL)
-    if os.path.exists(runtime_dll_path):
-        break
-else:
-    print(f'{RUNTIME_DLL} not found!')
-    sys.exit(1)
 
 setup(
     data_files=[
@@ -33,7 +20,6 @@ setup(
         dir_files('assets\\fonts\\candidates'),
         dir_files('assets\\images'),
         ('', [
-            runtime_dll_path,
             f'{CEF_PATH}\\cef.pak',
             f'{CEF_PATH}\\cef_100_percent.pak',
             f'{CEF_PATH}\\cef_200_percent.pak',
@@ -62,7 +48,7 @@ setup(
             f'{CEF_PATH}\\swiftshader\\libEGL.dll',
         ])
     ],
-    options={"py2exe": {"includes": ["clr"]}},
+    options={"py2exe": {"excludes": ["tkinter"], "includes": ["queue"]}},
     console=[{
         "script": "run.py",
         "dest_base": "run",

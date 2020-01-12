@@ -12,9 +12,13 @@ import webbrowser
 from cefpython3 import cefpython as cef
 
 
-APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', 'assets', 'app.html')
 IS_WINDOWS = platform.system() == 'Windows'
 IS_MACOS = platform.system() == 'Darwin'
+
+if hasattr(sys, 'frozen') and IS_WINDOWS:
+    APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'app.html')
+else:
+    APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', 'assets', 'app.html')
 
 
 class ClientHandler:
