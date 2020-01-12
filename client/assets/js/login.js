@@ -19,13 +19,7 @@ var showLoginModal = function() {
     showModal('login-dialog');
 };
 
-var setStatusColor = function(cssClass) {
-    $('#connection-status').removeClass(
-        'is-primary is-success is-warning is-error is-disabled').addClass('is-' + cssClass);
-};
-
-
-$(function() {
+afterLoad(function() {
     $('#login-dialog').submit(function(event) {
         $('#loading').show();
         setTimeout(function() {

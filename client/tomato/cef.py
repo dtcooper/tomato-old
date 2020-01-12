@@ -93,6 +93,7 @@ class JSBindings:
                         }}
                     ''')
 
+        self.browser.ExecuteJavascript("window.dispatchEvent(new CustomEvent('cefReady'))")
         self.client_handler._dom_loaded = True
 
     def close_browser(self):

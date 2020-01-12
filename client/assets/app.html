@@ -12,7 +12,10 @@
   <script src="js/login.js"></script>
 </head>
 <body>
-  <div id="connection-status" class="nes-text is-warning">*</div>
+  <div id="connection-status">
+    <span id="connection-status-text" class="nes-text is-warning" data-tooltip="loading">*</span>
+  </div>
+
   <div id="loading"></div>
 
   <div id="app">
@@ -105,9 +108,9 @@
         <label for="password">Password:</label>
         <input type="password" id="password" class="nes-input" placeholder="Enter password">
       </div>
-      <div class="right">
-        <input type="submit" class="nes-btn is-success" value="Login">
-      </div>
+      <menu class="dialog-menu right">
+        <button class="nes-btn is-success">Login</button>
+      </menu>
     </form>
   </dialog>
 
@@ -118,10 +121,10 @@
       <p>Open in external browser?
         <br><span class="nes-text is-primary" id="link-url"></span>
       </p>
-      <div class="right">
-        <input type="submit" class="nes-btn is-error" value="Cancel">
-        <input type="submit" class="nes-btn is-success" value="Yes!" id="link-open">
-      </div>
+      <menu class="dialog-menu right">
+        <button class="nes-btn is-error">Cancel</button>
+        <button class="nes-btn is-success" id="link-open-btn">Yes, open it!</button>
+      </menu>
     </form>
   </dialog>
 
@@ -134,10 +137,10 @@
           Are you sure you want to logout?
         </span>
       </p>
-      <div class="right">
-        <input type="submit" class="nes-btn" value="Cancel">
-        <input type="submit" class="nes-btn is-error" value="Logout" id="confirm-logout-btn">
-      </div>
+      <menu class="dialog-menu right">
+        <button class="nes-btn">Cancel</button>
+        <button class="nes-btn is-error" id="confirm-logout-btn">Logout</button>
+      </menu>
     </form>
   </dialog>
 
@@ -150,10 +153,10 @@
           Are you sure you want to quit Tomato?
         </span>
       </p>
-      <div class="right">
-        <input type="submit" class="nes-btn" value="Cancel">
-        <input type="submit" class="nes-btn is-error" value="Quit Tomato" id="close-btn">
-      </div>
+      <menu class="dialog-menu right">
+        <button class="nes-btn">Cancel</button>
+        <button class="nes-btn is-error" id="close-btn">Quit Tomato</button>
+      </menu>
     </form>
   </dialog>
 
