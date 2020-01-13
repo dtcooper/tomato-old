@@ -3,6 +3,7 @@
 :root {
     --header-font-size: 3rem;
     --footer-font-size: 0.7rem;
+    --max-width: 1400px;
 }
 
 /* Fonts */
@@ -133,13 +134,16 @@ div.progress-text:before {
 
 #app {
     width: 100vw;
+    max-width: var(--max-width);
     height: 100vh;
     display: flex;
     flex-direction: column;
+    margin: 0 auto;
 }
 
 #app > * {
     width: 100vw;
+    max-width: var(--max-width);
 }
 
 header {
