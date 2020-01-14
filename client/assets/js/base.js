@@ -14,7 +14,7 @@ var showModal = function(id) {
 };
 
 cef.client.showCloseModal = function() {
-    showModal('close-dialog')
+    showModal('close-dialog');
 };
 
 var setStatusColor = function(cssClass) {

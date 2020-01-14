@@ -1,5 +1,4 @@
-from collections import UserDict
-import copy
+import datetime
 import json
 import os
 
@@ -14,30 +13,57 @@ def merge_into(src, dest):
             dest[k] = src[k]
 
 
-class Data(UserDict):
+class Data:
     DATA_FILE = os.path.join(USER_DIR, 'data.json')
     DEFAULTS = {
+        'auth_token': None,
+        'debug': False,  # Needs to be set manually
+        'hostname': None,
         'last_sync': None,
-        'client': {
-            'auth_token': None,
-            'hostname': None,
-        },
-        'objects': [],
+        'protocol': 'https',
     }
 
     def __init__(self):
-        self.data = {}
+        self.__dict__['data'] = self.DEFAULTS.copy()
 
         if os.path.exists(self.DATA_FILE):
-            with open(self.DATA_FILE, 'r') as data_file:
-                try:
-                    self.data = json.load(data_file)
-                except Exception:
-                    pass
-
-        merge_into(copy.deepcopy(self.DEFAULTS), self.data)
+            with open(self.DATA_FILE) as file:
+                self.data.update(json.load(file))
+        else:
+            self.save()
 
     def save(self):
-        with open(self.DATA_FILE, 'w') as data_file:
-            json.dump(self.data, data_file, sort_keys=True, indent=2)
-            data_file.write('\n')
+        with open(self.DATA_FILE, 'w') as file:
+            json.dump(self.data, file, indent=2, sort_keys=True)
+            file.write('\n')
+
+    def update(self, **kwargs):
+        # If we have multiple keys to update, we can do that with only one save
+        self.data.update(kwargs)
+        self.save()
+
+    def __getattr__(self, attr):
+        try:
+            return self.data[attr]
+        except KeyError:
+            raise AttributeError(f'Data entry not found: {attr}')
+
+    def __setattr__(self, attr, value):
+        self.data[attr] = value
+        self.save()
+
+
+class DataApi:
+    namespace = 'data'
+
+    def __init__(self, data):
+        self.data = data
+
+    def get(self, attr):
+        return getattr(self.data, attr)
+
+    def get_many(self, *attrs):
+        return [self.get(attr) for attr in attrs]
+
+    def set(self, attr, value):
+        setattr(self.data, attr, value)

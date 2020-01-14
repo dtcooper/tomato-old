@@ -12,18 +12,17 @@ class AuthApi:
         self.data = data
 
     def logout(self):
-        self.data['client'].update({'auth_token': None, 'hostname': None})
-        self.data.save()
+        self.data.auth_token = None
 
     def check_authorization(self):
         logged_in = connected = False
 
-        if self.data['client']['hostname'] and self.data['client']['auth_token']:
+        if all((self.data.auth_token, self.data.protocol, self.data.hostname)):
             logged_in = True  # In case of server error / no connectivity, assume login
 
             try:
-                response = requests.get(f"{self.data['client']['hostname']}/ping", timeout=REQUESTS_TIMEOUT,
-                                        headers={'X-Auth-Token': self.data['client']['auth_token']})
+                response = requests.get(f'{self.data.protocol}://{self.data.hostname}/ping',
+                                        timeout=REQUESTS_TIMEOUT, headers={'X-Auth-Token': self.data.auth_token})
             except requests.RequestException:
                 pass
             else:
@@ -38,6 +37,7 @@ class AuthApi:
 
     def login(self, username, password, protocol, hostname):
         error = None
+        self.data.update(hostname=hostname, protocol=protocol)
 
         try:
             response = requests.post(f'{protocol}://{hostname}/auth', timeout=REQUESTS_TIMEOUT,
@@ -51,11 +51,7 @@ class AuthApi:
                 except (requests.JSONDecodeError, KeyError):
                     error = 'Bad response from host.'
                 else:
-                    self.data['client'].update({
-                        'auth_token': auth_token,
-                        'hostname': f'{protocol}://{hostname}',
-                    })
-                    self.data.save()
+                    self.data.auth_token = auth_token
 
             elif response.status_code == 403:
                 error = 'Invalid username or password.'

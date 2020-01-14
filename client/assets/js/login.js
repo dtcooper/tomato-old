@@ -16,7 +16,13 @@ var doLogin = function(error) {
 
 var showLoginModal = function() {
     setStatusColor('warning');
-    showModal('login-dialog');
+    $('#loading').show();
+    cef.data.get_many('hostname', 'protocol', function(hostname, protocol) {
+        $('#loading').hide();
+        $('#hostname').val(hostname);
+        $('input[name=protocol][value=' + protocol + ']').prop('checked', true);
+        showModal('login-dialog');
+    });
 };
 
 afterLoad(function() {

@@ -11,6 +11,8 @@ import webbrowser
 
 from cefpython3 import cefpython as cef
 
+from .constants import STARTUP_WINDOW_SIZE
+
 
 IS_WINDOWS = platform.system() == 'Windows'
 IS_MACOS = platform.system() == 'Darwin'
@@ -106,7 +108,7 @@ class JSBindings:
             self.browser.ToggleFullscreen()
 
 
-def run_cef_window(*js_api_list):
+def run_cef_window(debug=False, js_api_list=()):
     # TODO:
     # - Windows specific stuff (WindowUtils, etc)
     # - Context menu
@@ -125,7 +127,7 @@ def run_cef_window(*js_api_list):
             'remote_debugging_port': -1,
         }
 
-        if True:  # TODO: check some DEBUG flag
+        if debug:  # TODO: check some DEBUG flag
             settings.update({
                 'context_menu': {'enabled': True, 'external_browser': False,
                                  'print': False, 'view_source': False},
@@ -138,13 +140,21 @@ def run_cef_window(*js_api_list):
         if IS_WINDOWS:
             cef.DpiAware.EnableHighDpiSupport()
 
+        width, height = STARTUP_WINDOW_SIZE
         window_info = cef.WindowInfo()
-        window_info.SetAsChild(0, [0, 0, 1024, 768])
+        window_info.SetAsChild(0, [0, 0, width, height])
 
         browser = cef.CreateBrowserSync(
             window_title='Tomato Radio Automation',
             window_info=window_info,
         )
+
+        if IS_WINDOWS:
+            # Maximize, based on
+            # https://github.com/cztomczak/cefpython/blob/master/examples/snippets/window_size.py
+            import ctypes
+            ctypes.windll.user32.ShowWindow(browser.GetOuterWindowHandle(), 3)
+
         client_handler = ClientHandler()
         browser.SetClientHandler(client_handler)
 
