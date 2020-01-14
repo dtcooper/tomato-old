@@ -119,8 +119,19 @@ def run_cef_window(*js_api_list):
             'autoplay-policy': 'no-user-gesture-required',
         }
         settings = {
-            'background_color': 0xFFEEEEEE,
+            'background_color': 0xFFDDDDDD,
+            'context_menu': {'enabled': False},
+            'debug': False,
+            'remote_debugging_port': -1,
         }
+
+        if True:  # TODO: check some DEBUG flag
+            settings.update({
+                'context_menu': {'enabled': True, 'external_browser': False,
+                                 'print': False, 'view_source': False},
+                'debug': True,
+                'remote_debugging_port': 0,
+            })
 
         cef.Initialize(switches=switches, settings=settings)
 
