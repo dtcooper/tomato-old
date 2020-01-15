@@ -87,22 +87,24 @@ div.progress-text:before {
     margin-left: 12px;
 }
 
-[data-tooltip]:hover {
+.hover-text:hover {
     position: relative;
 }
 
-[data-tooltip]:hover::before {
+.hover-text:hover::before {
     all: initial;
     display: inline-block;
     padding: 8px;
     font-family: 'Retro Gaming';
-    content: attr(data-tooltip);
+    content: attr(data-hover-text);
     color: #f9f9f9;
     border: 3px solid #1a1a1a;
     border-radius: 6px;
     background-color: #1a1a1a;
     position: absolute;
-    white-space: nowrap;
+    width: max-content;
+    white-space: pre-wrap;
+    max-width: 250px;
     top: 50%;
     right: 100%;
     margin-right: 10px;
@@ -112,14 +114,6 @@ div.progress-text:before {
 }
 
 /* Layout */
-
-#connection-status {
-    position: absolute;
-    display: inline-block;
-    right: 10px;
-    top: 3px;
-    font-size: 1.5rem;
-}
 
 #loading {
     position: absolute;
@@ -147,8 +141,17 @@ div.progress-text:before {
 }
 
 header {
+    position: relative;
     text-align: center;
     padding-bottom: 3px;
+}
+
+#connection-status {
+    position: absolute;
+    display: inline;
+    right: 8px;
+    top: 3px;
+    font-size: 1.5rem;
 }
 
 main {

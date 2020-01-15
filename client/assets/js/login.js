@@ -6,7 +6,7 @@ var doLogin = function(error) {
         $('#login-errors').append(elem);
         showLoginModal();
     } else {
-        setStatusColor('success');
+        setStatusColor(STATUS_ONLINE);
         // Reset form back to initial status in case we need it again
         $('#login-dialog').get(0).close();
         $('#login-dialog form').get(0).reset();
@@ -15,7 +15,7 @@ var doLogin = function(error) {
 };
 
 var showLoginModal = function() {
-    setStatusColor('warning');
+    setStatusColor(STATUS_PENDING);
     $('#loading').show();
     cef.data.get_many('hostname', 'protocol', function(hostname, protocol) {
         $('#loading').hide();
@@ -56,7 +56,7 @@ afterLoad(function() {
         if (!isLoggedIn) {
             showLoginModal()
         } else {
-            setStatusColor(isConnected ? 'success' : 'error');
+            setStatusColor(isConnected ? STATUS_ONLINE : STATUS_OFFLINE);
         }
     });
 

@@ -8,6 +8,7 @@ import shutil
 from urllib.parse import urljoin
 from urllib.request import pathname2url
 import webbrowser
+import threading
 
 from cefpython3 import cefpython as cef
 
@@ -63,8 +64,13 @@ class JSBindings:
         self.browser = browser
         self.client_handler = client_handler
         self.js_api_list = {js_api.namespace: js_api for js_api in js_api_list}
+        self.call_lock = threading.Lock()
 
     def call(self, namespace, method, args):
+        threading.Thread(
+            target=self._call_thread, args=(namespace, method, args)).start()
+
+    def _call_thread(self, namespace, method, args):
         method = getattr(self.js_api_list[namespace], method)
         callback = None
 
@@ -73,7 +79,9 @@ class JSBindings:
             if isinstance(args[-1], cef.JavascriptCallback):
                 callback = args.pop()
 
-        response = method(*args)
+        with self.call_lock:
+            response = method(*args)
+
         if callback:
             if not isinstance(response, (list, tuple)):
                 response = [response]

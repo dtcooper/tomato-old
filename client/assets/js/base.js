@@ -17,11 +17,11 @@ cef.client.showCloseModal = function() {
     showModal('close-dialog');
 };
 
-var setStatusColor = function(cssClass) {
-    $('#connection-status-text').removeClass(
-        'is-primary is-success is-warning is-error is-disabled').addClass('is-' + cssClass).attr(
-        'data-tooltip', 'TODO: this is a major ' + cssClass + ' ' + cssClass + ' ' + cssClass + '!');
-
+var STATUS_OFFLINE = 'error', STATUS_PENDING = 'warning', STATUS_ONLINE = 'success';
+var setStatusColor = function(status) {
+    $('#connection-status').removeClass(
+        'is-primary is-success is-warning is-error is-disabled').addClass('is-' + status).attr(
+        'data-hover-text', 'TODO: this is a major ' + status + ' ' + status + ' ' + status + '!');
 };
 
 afterLoad(function() {

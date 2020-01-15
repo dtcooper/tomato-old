@@ -1,21 +1,16 @@
+<!DOCTYPE html>
 <html>
 <head>
+  <title>Tomato Radio Automation</title>
+
   <link href="css/nes.min.css" rel="stylesheet">
   <link href="css/styles.css" rel="stylesheet">
-  <!-- TODO:
-      1) Use local assets
-      2) Only run polyfill if not CEF (macOS/QT)
-  -->
 
   <script src="js/jquery.min.js"></script>
   <script src="js/base.js"></script>
   <script src="js/login.js"></script>
 </head>
 <body>
-  <div id="connection-status">
-    <span id="connection-status-text" class="nes-text is-warning" data-tooltip="loading">*</span>
-  </div>
-
   <div id="loading"></div>
 
   <div id="app">
@@ -25,6 +20,10 @@
         Tomato Radio Automation
         <img src="images/tomato.png">
       </h1>
+
+      <div id="connection-status" class="nes-text is-warning nes-pointer hover-text" data-hover-text="loading">
+        *
+      </div>
     </header>
 
     <section>
@@ -133,7 +132,7 @@
     <form method="dialog">
       <p class="title">Logout</p>
       <p>
-        <span class="nes-text is-error" id="link-url">
+        <span class="nes-text is-error">
           Are you sure you want to logout?
         </span>
       </p>
@@ -149,7 +148,7 @@
     <form method="dialog">
       <p class="title">Quit Tomato</p>
       <p>
-        <span class="nes-text is-error" id="link-url">
+        <span class="nes-text is-error">
           Are you sure you want to quit Tomato?
         </span>
       </p>
