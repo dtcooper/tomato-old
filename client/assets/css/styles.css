@@ -146,6 +146,35 @@ header {
     padding-bottom: 3px;
 }
 
+#dropdown {
+    position: absolute;
+    display: inline;
+    left: 8px;
+    top: 3px;
+    text-align: left;
+    z-index: 1;
+    vertical-align: top;
+}
+
+#dropdown > button {
+    vertical-align: top;
+}
+
+#dropdown:hover > div {
+    display: inline-block;
+}
+
+#dropdown > div {
+    display: none;
+    position: relative;
+    width: max-content;
+}
+
+#dropdown .nes-container {
+    background-color: #ffffff;
+    margin: 5px 0 0 0;
+}
+
 #connection-status {
     position: absolute;
     display: inline;
