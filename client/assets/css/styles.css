@@ -175,6 +175,7 @@ header {
     z-index: 1;
 }
 
+/* TODO: main doesn't stretch when it has minimal content */
 main {
     align-self: stretch;
 }
