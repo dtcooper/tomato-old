@@ -13,7 +13,7 @@ var showModal = function(id) {
     $('#' + id).get(0).showModal();
 };
 
-cef.client.showCloseModal = function() {
+cef.client.close = function() {
     showModal('close-dialog');
 };
 
@@ -29,10 +29,6 @@ afterLoad(function() {
         event.preventDefault();
         $('#link-url').text($(this).attr('href'));
         showModal('link-dialog');
-    });
-
-    $('#link-open-btn').click(function() {
-        window.open($('#link-url').text(), '_blank');
     });
 
     $('#close-btn').click(function(event) {

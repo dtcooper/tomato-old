@@ -57,7 +57,7 @@ class ClientHandler:
 
     def DoClose(self, browser):
         if self._dom_loaded and not self._should_close:
-            browser.ExecuteFunction('cef.client.showCloseModal')
+            browser.ExecuteFunction('cef.client.close')
             return True
         else:
             if IS_MACOS:
@@ -175,6 +175,8 @@ def run_cef_window(debug=False, js_api_list=()):
             ctypes.windll.user32.ShowWindow(browser.GetOuterWindowHandle(), 3)
 
         if IS_MACOS:
+            # Start on top and centered
+            AppKit.NSApp.activateIgnoringOtherApps_(True)
             window = AppKit.NSApp.windows()[0]
             window.center()
 

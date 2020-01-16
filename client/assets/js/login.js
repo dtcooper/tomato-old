@@ -45,9 +45,6 @@ afterLoad(function() {
         });
     });
 
-    $('#logout-btn').click(function() {
-        showModal('logout-dialog')
-    });
     $('#confirm-logout-btn').click(function(event) {
         cef.auth.logout(showLoginModal);
     });

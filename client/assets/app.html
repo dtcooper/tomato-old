@@ -25,11 +25,9 @@
         <div>
           <div class="nes-container is-rounded">
             <p>
-              <button class="nes-btn">One</button>
-              <button class="nes-btn is-primary">Two</button>
-              <button class="nes-btn is-success">Three</button>
-              <button class="nes-btn is-warning">Four</button>
-              <button class="nes-btn is-error">Five</button>
+              <button class="nes-btn is-primary" onclick="cef.internal.toggle_fullscreen();">Toggle Fullscreen</button>
+              <button class="nes-btn is-warning" onclick="showModal('logout-dialog');">Logout</button>
+              <button class="nes-btn is-error" onclick="showModal('close-dialog');">Quit</button>
             </p>
           </div>
         </div>
@@ -41,7 +39,7 @@
         <img src="images/tomato.png">
       </h1>
 
-      <div id="connection-status" class="nes-text is-warning nes-pointer hover-text" data-hover-text="loading">
+      <div id="connection-status" class="nes-text is-warning nes-pointer" data-content="loading">
         *
       </div>
     </header>
@@ -60,8 +58,6 @@
         <p class="title" style="align-self: flex-start">Main Content</p>
         <div style="display: flex; align-items: stretch; height: 100%;">
           <div style="overflow-y: auto; padding-right: 1.75rem;">
-            <button class="nes-btn is-error" id="logout-btn">Logout</button>
-            <button class="nes-btn is-primary" onclick="cef.internal.toggle_fullscreen();">Fullscreen</button>
             <p>
               <script>
                 // XXX Write out some number of lorems
