@@ -71,10 +71,6 @@ img {
     margin: 10px;
 }
 
-.windows-only {
-    display: none;
-}
-
 progress {
     /* Plus border, padding, etc */
     height: calc(1rem + 16px) !important;

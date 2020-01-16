@@ -39,8 +39,4 @@ afterLoad(function() {
         event.preventDefault();
         cef.internal.close_browser();
     });
-
-    if (cef.is_windows) {
-        $('.windows-only').show();
-    }
 });

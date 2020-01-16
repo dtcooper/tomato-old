@@ -18,6 +18,12 @@ from .constants import STARTUP_WINDOW_SIZE
 IS_WINDOWS = platform.system() == 'Windows'
 IS_MACOS = platform.system() == 'Darwin'
 
+if IS_WINDOWS:
+    import ctypes
+if IS_MACOS:
+    import AppKit
+
+
 if hasattr(sys, 'frozen') and IS_WINDOWS:
     APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'app.html')
 else:
@@ -114,6 +120,12 @@ class JSBindings:
     def toggle_fullscreen(self):
         if IS_WINDOWS:
             self.browser.ToggleFullscreen()
+        if IS_MACOS:
+            # Need to figure out 1<<7 ?
+            # https://github.com/r0x0r/pywebview/blob/master/webview/platforms/cocoa.py
+            window = AppKit.NSApp.windows()[0]
+            window.setCollectionBehavior_(1 << 7)
+            window.toggleFullScreen_(None)
 
 
 def run_cef_window(debug=False, js_api_list=()):
@@ -160,8 +172,11 @@ def run_cef_window(debug=False, js_api_list=()):
         if IS_WINDOWS:
             # Maximize, based on
             # https://github.com/cztomczak/cefpython/blob/master/examples/snippets/window_size.py
-            import ctypes
             ctypes.windll.user32.ShowWindow(browser.GetOuterWindowHandle(), 3)
+
+        if IS_MACOS:
+            window = AppKit.NSApp.windows()[0]
+            window.center()
 
         client_handler = ClientHandler()
         browser.SetClientHandler(client_handler)
