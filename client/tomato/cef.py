@@ -11,7 +11,7 @@ import threading
 
 from cefpython3 import cefpython as cef
 
-from .constants import IS_WINDOWS, IS_MACOS
+from .constants import IS_MACOS, IS_WINDOWS, WINDOW_SIZE_DEFAULT
 from .data import Data
 
 
@@ -155,7 +155,7 @@ def run_cef_window(*js_api_list):
 
     max_width = max_height = float('inf')
     if IS_WINDOWS:
-        max_width, max_height = map(ctypes.windll.user32.GetSystemMetrics, (0, 1))
+        max_width, max_height = map(ctypes.windll.user32.GetSystemMetrics, (16, 17))
     elif IS_MACOS:
         frame_size = AppKit.NSScreen.mainScreen().frame().size
         max_width, max_height = map(int, (frame_size.width, frame_size.height))
@@ -180,16 +180,14 @@ def run_cef_window(*js_api_list):
             # https://github.com/cztomczak/cefpython/blob/master/examples/snippets/window_size.py
             window_handle = browser.GetOuterWindowHandle()
 
-            max_width, max_height = (ctypes.windll.user32.GetSystemMetrics(n) for n in (0, 1))
-            width = min(data.width, max_width)
-            height = min(data.height, max_height)
-
-            ctypes.windll.user32.SetWindowPos(window_handle, 0, 0, 0, width, height, 0x0002)
-            print(width, max_width, height, max_height)
-            if width == max_width and height == max_height:
-                # Maximized
-                print('maximize')
+            # 5 pixel buffer for maximize
+            if width >= (max_width - 5) and height >= (max_height - 5):
+                # Maximized with default minimize height
+                ctypes.windll.user32.SetWindowPos(window_handle, 0, 0, 0,
+                                                  WINDOW_SIZE_DEFAULT[0], WINDOW_SIZE_DEFAULT[1], 0x0002)
                 ctypes.windll.user32.ShowWindow(window_handle, 3)
+            else:
+                ctypes.windll.user32.SetWindowPos(window_handle, 0, 0, 0, width, height, 0x0002)
 
         mac_window = None
         if IS_MACOS:
