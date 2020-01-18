@@ -3,13 +3,14 @@ from json.decoder import JSONDecodeError
 import requests
 
 from .constants import REQUESTS_TIMEOUT
+from .data import Data
 
 
 class AuthApi:
     namespace = 'auth'
 
-    def __init__(self, data):
-        self.data = data
+    def __init__(self):
+        self.data = Data()
 
     def logout(self):
         self.data.auth_token = None

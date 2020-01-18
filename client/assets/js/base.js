@@ -5,6 +5,8 @@ var cef = {
     'client': {}
 };
 
+var isClosing = false;
+
 var afterLoad = function(func) {
     window.addEventListener('cefReady', function() { $(func); })
 };
@@ -33,6 +35,18 @@ afterLoad(function() {
 
     $('#close-btn').click(function(event) {
         event.preventDefault();
+        isClosing = true;
         cef.internal.close_browser();
+    });
+
+    var resizeTimer;
+    $(window).resize(function() {
+      if (!isClosing) {  // Avoid a segfault on Mac when closing in fullscreen mode
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(function() {
+            cef.data.update({'width': window.innerWidth,
+                             'height': window.innerHeight});
+          }, 500);
+        }
     });
 });
