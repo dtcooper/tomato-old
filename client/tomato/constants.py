@@ -18,6 +18,6 @@ if IS_WINDOWS:
 
 WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT = (900, 700)
 
-REQUEST_TIMEOUT = 15
+REQUEST_TIMEOUT = 20
 REQUEST_USER_AGENT = (f'tomato-client/{__version__} ({platform.system()} {platform.release()} '
                       f'{platform.machine()}) cefpython/{cefpython.__version__} ')

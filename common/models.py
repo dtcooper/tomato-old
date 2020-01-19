@@ -1,7 +1,11 @@
 import datetime
 import os
 
-import sox
+try:
+    import sox
+    HAVE_SOX = True
+except ImportError:
+    HAVE_SOX = False
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -157,41 +161,42 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
             else:
                 return self.audio.path
 
-    def get_duration(self):
-        duration = sox.file_info.duration(self.audio_path)
-        return datetime.timedelta(seconds=duration or 0)
+    if HAVE_SOX:
+        def get_duration(self):
+            duration = sox.file_info.duration(self.audio_path)
+            return datetime.timedelta(seconds=duration or 0)
 
-    def get_default_name(self, default=None):
-        tags = {}
-        comments = sox.file_info.comments(self.audio_path)
+        def get_default_name(self, default=None):
+            tags = {}
+            comments = sox.file_info.comments(self.audio_path)
 
-        for comment in comments.strip().splitlines():
-            comment_parts = comment.split('=', 1)
-            if len(comment_parts) == 2:
-                tags[comment_parts[0].lower()] = comment_parts[1]
+            for comment in comments.strip().splitlines():
+                comment_parts = comment.split('=', 1)
+                if len(comment_parts) == 2:
+                    tags[comment_parts[0].lower()] = comment_parts[1]
 
-        artist, title = tags.get('artist'), tags.get('title')
+            artist, title = tags.get('artist'), tags.get('title')
 
-        if artist and title:
-            return f'{artist} - {title}'
-        elif title:
-            return title
-        else:
-            return os.path.splitext(os.path.basename(self.audio.name))[0]
-
-    def clean(self):
-        if self.audio:
-            allowed_file_types = ', '.join(settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS.values())
-            error_msg = f"Invalid file: '{self.audio.name}'. Valid file types: {allowed_file_types}"
-
-            # check if file valid based on sox
-            try:
-                file_type = sox.file_info.file_type(self.audio_path)
-            except sox.SoxiError:
-                raise ValidationError({'audio': error_msg})
+            if artist and title:
+                return f'{artist} - {title}'
+            elif title:
+                return title
             else:
-                if file_type not in settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS:
+                return os.path.splitext(os.path.basename(self.audio.name))[0]
+
+        def clean(self):
+            if self.audio:
+                allowed_file_types = ', '.join(settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS.values())
+                error_msg = f"Invalid file: '{self.audio.name}'. Valid file types: {allowed_file_types}"
+
+                # check if file valid based on sox
+                try:
+                    file_type = sox.file_info.file_type(self.audio_path)
+                except sox.SoxiError:
                     raise ValidationError({'audio': error_msg})
+                else:
+                    if file_type not in settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS:
+                        raise ValidationError({'audio': error_msg})
 
     def __str__(self):
         return self.name

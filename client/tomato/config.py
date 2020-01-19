@@ -54,22 +54,3 @@ class Config:
 
     def __iter__(self):
         return iter(self.data.items())
-
-
-class ConfigApi:
-    namespace = 'conf'
-
-    def __init__(self):
-        self.conf = Config()
-
-    def get(self, attr):
-        return getattr(self.conf, attr)
-
-    def get_many(self, *attrs):
-        return [self.get(attr) for attr in attrs]
-
-    def set(self, attr, value):
-        setattr(self.conf, attr, value)
-
-    def update(self, kwargs):
-        self.conf.update(**kwargs)

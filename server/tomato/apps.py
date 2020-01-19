@@ -1,4 +1,10 @@
 from django.apps import AppConfig
+from django.core.exceptions import ImproperlyConfigured
+
+try:
+    import sox  # noqa
+except ImportError:
+    raise ImproperlyConfigured('sox package must be installed')
 
 
 class TomatoConfig(AppConfig):

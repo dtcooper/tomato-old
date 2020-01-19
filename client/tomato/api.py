@@ -80,3 +80,32 @@ class AuthApi:
         response = make_request('post', 'auth', data={'username': username, 'password': password})
         self.conf.auth_token = response.get('auth_token')
         return response['error']
+
+
+class ConfigApi:
+    namespace = 'conf'
+
+    def __init__(self):
+        self.conf = Config()
+
+    def get(self, attr):
+        return getattr(self.conf, attr)
+
+    def get_many(self, *attrs):
+        return [self.get(attr) for attr in attrs]
+
+    def set(self, attr, value):
+        setattr(self.conf, attr, value)
+
+    def update(self, kwargs):
+        self.conf.update(**kwargs)
+
+
+class ModelsApi:
+    namespace = 'models'
+
+    def __init__(self):
+        self.conf = Config()
+
+    def sync(self):
+        return make_request('get', 'export')

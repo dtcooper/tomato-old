@@ -11,6 +11,7 @@ from django.core import signing
 from django.core.serializers import serialize
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.gzip import gzip_page
 
 from constance import config
 
@@ -43,10 +44,11 @@ def authenticate(request):
     return response
 
 
+@gzip_page
 def export(request):
     response = HttpResponseForbidden()
 
-    if not request.user.is_authenticated:
+    if request.user.is_authenticated:
         options = {key.lower(): getattr(config, key) for key in dir(config)}
 
         try:

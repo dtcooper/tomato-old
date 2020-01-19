@@ -1,8 +1,10 @@
 import os
 
-from .api import AuthApi
+import django
+from django.conf import settings
+from django.core.management import call_command
+
 from .cef import run_cef_window
-from .config import ConfigApi
 from .constants import USER_DIR
 
 
@@ -11,4 +13,26 @@ class Client:
         os.makedirs(USER_DIR, exist_ok=True)
 
     def run(self):
-        run_cef_window(AuthApi(), ConfigApi())
+        self.init_django()
+        self.run_cef()
+
+    def init_django(self):
+        settings.configure(
+            DEBUG=False,
+            DATABASES={
+                'default': {
+                    'ENGINE': 'django.db.backends.sqlite3',
+                    'NAME': os.path.join(USER_DIR, 'db.sqlite3'),
+                }
+            },
+            INSTALLED_APPS=('tomato',),
+            USE_TZ=True,
+        )
+        django.setup()
+        call_command('migrate', verbosity=0)
+
+    def run_cef(self):
+        # Make sure Django is configured before importing so model import doesn't blow up
+        from .api import AuthApi, ConfigApi, ModelsApi
+
+        run_cef_window(AuthApi(), ConfigApi(), ModelsApi())

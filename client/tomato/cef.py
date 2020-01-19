@@ -75,6 +75,7 @@ class JSBindings:
         self._call_queue = queue.Queue()
         self._mac_window = _mac_window
 
+        # TODO One thread per API? Speed things up, and also deal with sync/sqlite3 threadsafety
         threading.Thread(target=self._run_call_thread).start()
 
     def call(self, namespace, method, args):
