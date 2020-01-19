@@ -3,6 +3,7 @@
 import inspect
 import sys
 import os
+import queue
 import shutil
 from urllib.parse import urljoin
 from urllib.request import pathname2url
@@ -11,8 +12,9 @@ import threading
 
 from cefpython3 import cefpython as cef
 
-from .constants import IS_MACOS, IS_WINDOWS, WINDOW_SIZE_DEFAULT
-from .data import Data
+from .config import Config
+from .constants import (
+    IS_MACOS, IS_WINDOWS, WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT)
 
 
 if IS_WINDOWS:
@@ -29,6 +31,7 @@ else:
 
 class ClientHandler:
     def __init__(self):
+        self._conf = Config()
         self._dom_loaded = False
         self._should_close = False
 
@@ -53,13 +56,13 @@ class ClientHandler:
         ''')
 
     def DoClose(self, browser):
-        if self._dom_loaded and not self._should_close:
-            browser.ExecuteFunction('cef.client.close')
-            return True
-        else:
+        if self._should_close or not self._dom_loaded or self._conf.debug:
             if IS_MACOS:
                 cef.QuitMessageLoop()
             return False
+        else:
+            browser.ExecuteFunction('cef.client.close')
+            return True
 
 
 class JSBindings:
@@ -67,29 +70,33 @@ class JSBindings:
         self.browser = browser
         self.client_handler = client_handler
         self.js_api_list = {js_api.namespace: js_api for js_api in js_api_list}
-        self.call_lock = threading.Lock()
+        self._call_queue = queue.Queue()
         self._mac_window = _mac_window
 
+        threading.Thread(target=self._run_call_thread).start()
+
     def call(self, namespace, method, args):
-        threading.Thread(
-            target=self._call_thread, args=(namespace, method, args)).start()
-
-    def _call_thread(self, namespace, method, args):
         method = getattr(self.js_api_list[namespace], method)
-        callback = None
+        self._call_queue.put((method, args))
 
-        # Allow for last argument to be a callback for a response
-        if len(args) >= 1:
-            if isinstance(args[-1], cef.JavascriptCallback):
+    def shutdown(self):
+        self._call_queue.put(None)
+
+    def _run_call_thread(self):
+        while True:
+            mesg = self._call_queue.get()
+            if mesg is None:
+                break
+
+            method, args = mesg
+            callback = None  # Optional last argument to be a callback for a response
+            if len(args) >= 1 and isinstance(args[-1], cef.JavascriptCallback):
                 callback = args.pop()
-
-        with self.call_lock:
             response = method(*args)
-
-        if callback:
-            if not isinstance(response, (list, tuple)):
-                response = [response]
-            callback.Call(*response)
+            if callback:
+                if not isinstance(response, (list, tuple)):
+                    response = [response]
+                callback.Call(*response)
 
     def dom_loaded(self):
         if IS_WINDOWS:
@@ -126,7 +133,7 @@ class JSBindings:
 
 
 def run_cef_window(*js_api_list):
-    data = Data()
+    conf = Config()
 
     # TODO:
     # - Windows specific stuff (WindowUtils, etc)
@@ -145,7 +152,7 @@ def run_cef_window(*js_api_list):
         'remote_debugging_port': -1,
     }
 
-    if data.debug:  # TODO: check some DEBUG flag
+    if conf.debug:  # TODO: check some DEBUG flag
         settings.update({
             'context_menu': {'enabled': True, 'external_browser': False,
                              'print': False, 'view_source': False},
@@ -159,7 +166,7 @@ def run_cef_window(*js_api_list):
     elif IS_MACOS:
         frame_size = AppKit.NSScreen.mainScreen().frame().size
         max_width, max_height = map(int, (frame_size.width, frame_size.height))
-    width, height = min(data.width, max_width), min(data.height, max_height)
+    width, height = min(conf.width, max_width), min(conf.height, max_height)
 
     try:
         cef.Initialize(switches=switches, settings=settings)
@@ -184,7 +191,7 @@ def run_cef_window(*js_api_list):
             if width >= (max_width - 5) and height >= (max_height - 5):
                 # Maximized with default minimize height
                 ctypes.windll.user32.SetWindowPos(window_handle, 0, 0, 0,
-                                                  WINDOW_SIZE_DEFAULT[0], WINDOW_SIZE_DEFAULT[1], 0x0002)
+                                                  WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT, 0x0002)
                 ctypes.windll.user32.ShowWindow(window_handle, 3)
             else:
                 ctypes.windll.user32.SetWindowPos(window_handle, 0, 0, 0, width, height, 0x0002)
@@ -199,19 +206,22 @@ def run_cef_window(*js_api_list):
         client_handler = ClientHandler()
         browser.SetClientHandler(client_handler)
 
-        js_bindings = cef.JavascriptBindings()
-        js_bindings.SetObject('_cefInternal', JSBindings(
+        js_bindings_cef = cef.JavascriptBindings()
+        js_bindings = JSBindings(
             browser=browser,
             client_handler=client_handler,
             js_api_list=js_api_list,
             _mac_window=mac_window,
-        ))
-        browser.SetJavascriptBindings(js_bindings)
+        )
+        js_bindings_cef.SetObject('_cefInternal', js_bindings)
+        browser.SetJavascriptBindings(js_bindings_cef)
 
         # TODO: if hasattr(sys, 'frozen') for built
         browser.LoadUrl(urljoin('file:', pathname2url(os.path.realpath(APP_HTML_PATH))))
 
         cef.MessageLoop()
+
+        js_bindings.shutdown()
         cef.Shutdown()
 
     finally:

@@ -2,7 +2,7 @@ import os
 
 from .auth import AuthApi
 from .cef import run_cef_window
-from .data import DataApi
+from .config import ConfigApi
 from .constants import USER_DIR
 
 
@@ -11,4 +11,4 @@ class Client:
         os.makedirs(USER_DIR, exist_ok=True)
 
     def run(self):
-        run_cef_window(AuthApi(), DataApi())
+        run_cef_window(AuthApi(), ConfigApi())

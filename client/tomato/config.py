@@ -1,33 +1,25 @@
 import json
 import os
 
-from .constants import USER_DIR, WINDOW_SIZE_DEFAULT
+from .constants import USER_DIR, WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT
 
 
-def merge_into(src, dest):
-    for k in src:
-        if k in dest and isinstance(src[k], dict) and isinstance(dest[k], dict):
-            merge_into(dest[k], src[k])
-        else:
-            dest[k] = src[k]
-
-
-class Data:
-    _instance = None
-    DATA_FILE = os.path.join(USER_DIR, 'data.json')
+class Config:
+    __instance = None
+    DATA_FILE = os.path.join(USER_DIR, 'config.json')
     DEFAULTS = {
         'auth_token': None,
-        'debug': False,  # Needs to be set manually
-        'height': WINDOW_SIZE_DEFAULT[1],
+        'debug': False,  # Manual override only
+        'height': WINDOW_SIZE_DEFAULT_HEIGHT,
         'hostname': None,
         'last_sync': None,
         'protocol': 'https',
-        'width': WINDOW_SIZE_DEFAULT[0],
+        'width': WINDOW_SIZE_DEFAULT_WIDTH,
     }
 
     def __new__(cls, *args, **kwargs):
         # Singleton
-        if not cls._instance:
+        if not cls.__instance:
             instance = super().__new__(cls)
             instance.__dict__['data'] = cls.DEFAULTS.copy()
 
@@ -37,8 +29,8 @@ class Data:
             else:
                 instance.save()
 
-            cls._instance = instance
-        return cls._instance
+            cls.__instance = instance
+        return cls.__instance
 
     def save(self):
         with open(self.DATA_FILE, 'w') as file:
@@ -61,20 +53,20 @@ class Data:
         self.save()
 
 
-class DataApi:
-    namespace = 'data'
+class ConfigApi:
+    namespace = 'conf'
 
     def __init__(self):
-        self.data = Data()
+        self.conf = Config()
 
     def get(self, attr):
-        return getattr(self.data, attr)
+        return getattr(self.conf, attr)
 
     def get_many(self, *attrs):
         return [self.get(attr) for attr in attrs]
 
     def set(self, attr, value):
-        setattr(self.data, attr, value)
+        setattr(self.conf, attr, value)
 
     def update(self, kwargs):
-        self.data.update(**kwargs)
+        self.conf.update(**kwargs)

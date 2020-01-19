@@ -44,7 +44,7 @@ afterLoad(function() {
       if (!isClosing) {  // Avoid a segfault on Mac when closing in fullscreen mode
           clearTimeout(resizeTimer);
           resizeTimer = setTimeout(function() {
-            cef.data.update({'width': window.outerWidth,
+            cef.conf.update({'width': window.outerWidth,
                              'height': window.outerHeight});
           }, 500);
         }
