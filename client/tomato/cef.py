@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import inspect
+import logging
 import sys
 import os
 import queue
@@ -28,6 +29,8 @@ if hasattr(sys, 'frozen') and IS_WINDOWS:
 else:
     APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', 'assets', 'app.html')
 
+logger = logging.getLogger('tomato')
+
 
 class ClientHandler:
     def __init__(self):
@@ -36,8 +39,7 @@ class ClientHandler:
         self._should_close = False
 
     def OnConsoleMessage(self, browser, level, message, source, line):
-        # TODO: logger
-        print(f'{source}:{line} - {message}')
+        logger.info(f'console.log({source}:{line}) - {message}')
         return False
 
     def OnBeforePopup(self, target_url, **kwargs):
@@ -76,27 +78,34 @@ class JSBindings:
         threading.Thread(target=self._run_call_thread).start()
 
     def call(self, namespace, method, args):
-        method = getattr(self.js_api_list[namespace], method)
-        self._call_queue.put((method, args))
+        self._call_queue.put((namespace, method, args))
 
     def shutdown(self):
         self._call_queue.put(None)
 
     def _run_call_thread(self):
+        logger.info('JS call thread booting')
         while True:
             mesg = self._call_queue.get()
             if mesg is None:
                 break
 
-            method, args = mesg
+            namespace, method, args = mesg
             callback = None  # Optional last argument to be a callback for a response
             if len(args) >= 1 and isinstance(args[-1], cef.JavascriptCallback):
                 callback = args.pop()
-            response = method(*args)
+            response = getattr(self.js_api_list[namespace], method)(*args)
+
+            if method == 'login':
+                args[-1] = '********'  # Censor password
+            logger.info(f'Called cef.{namespace}.{method}'
+                        f'({", ".join(map(repr, args)) if args else ""}) -> {response!r}')
+
             if callback:
                 if not isinstance(response, (list, tuple)):
-                    response = [response]
+                    response = (response,)
                 callback.Call(*response)
+        logger.info('JS call thread exiting')
 
     def dom_loaded(self):
         if IS_WINDOWS:
@@ -152,7 +161,10 @@ def run_cef_window(*js_api_list):
         'remote_debugging_port': -1,
     }
 
-    if conf.debug:  # TODO: check some DEBUG flag
+    if conf.debug:
+        logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+        logger.info(f'Starting Tomato with configuration: {dict(conf)}')
+
         settings.update({
             'context_menu': {'enabled': True, 'external_browser': False,
                              'print': False, 'view_source': False},
@@ -220,6 +232,7 @@ def run_cef_window(*js_api_list):
         browser.LoadUrl(urljoin('file:', pathname2url(os.path.realpath(APP_HTML_PATH))))
 
         cef.MessageLoop()
+        logger.info('Shutting down Tomato')
 
         js_bindings.shutdown()
         cef.Shutdown()

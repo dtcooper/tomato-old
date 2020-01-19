@@ -1,6 +1,6 @@
 import os
 
-from .auth import AuthApi
+from .api import AuthApi
 from .cef import run_cef_window
 from .config import ConfigApi
 from .constants import USER_DIR

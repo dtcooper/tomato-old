@@ -30,10 +30,8 @@ afterLoad(function() {
         $('#loading').show();
         setTimeout(function() {
             cef.auth.login(
-                $('#username').val(),
-                $('#password').val(),
-                $('input[name=protocol]:checked').val(),
-                $('#hostname').val(),
+                $('input[name=protocol]:checked').val(), $('#hostname').val(),
+                $('#username').val(), $('#password').val(),
                 doLogin
             );
         }, 350); // A few ms here looks like something is happening

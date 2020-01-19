@@ -52,6 +52,9 @@ class Config:
         self.data[attr] = value
         self.save()
 
+    def __iter__(self):
+        return iter(self.data.items())
+
 
 class ConfigApi:
     namespace = 'conf'

@@ -20,7 +20,7 @@ from .version import __version__
 def ping(request):
     return JsonResponse({
         'valid_token': request.valid_token,
-        'software': f'tomato/{__version__}',
+        'software': f'tomato-server/{__version__}',
     })
 
 
