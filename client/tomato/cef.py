@@ -99,6 +99,8 @@ class JSBindings:
             callback = None  # Optional last argument to be a callback for a response
             if len(args) >= 1 and isinstance(args[-1], cef.JavascriptCallback):
                 callback = args.pop()
+
+            # TODO: wrap in try/except so an exception in a thread doesn't kill everything
             response = getattr(js_api, method)(*args)
 
             if method == 'login':
@@ -139,6 +141,7 @@ class JSBindings:
     def toggle_fullscreen(self):
         if IS_WINDOWS:
             self.browser.ToggleFullscreen()
+
         if IS_MACOS:
             # Need to figure out 1<<7 ?
             # https://github.com/r0x0r/pywebview/blob/master/webview/platforms/cocoa.py

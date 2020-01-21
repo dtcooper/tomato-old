@@ -2,6 +2,7 @@ from collections import defaultdict
 import datetime
 import logging
 from json.decoder import JSONDecodeError
+import os
 
 from django.core.serializers import deserialize
 import requests
@@ -9,6 +10,7 @@ import requests
 from . import constants
 from .config import Config
 from .models import Asset, Rotator, StopSet, StopSetRotator
+
 
 logger = logging.getLogger('tomato')
 
@@ -123,8 +125,24 @@ class ModelsApi:
         for deserialized_object in deserialized_objects:
             if isinstance(deserialized_object.object, Asset):
                 # TODO: download assets iff they don't already exist, wrap in try/except
-                remote_audio_url = data['media_url'] + deserialized_object.object.audio.name
-                print(remote_audio_url)
+                remote_filename = deserialized_object.object.audio.name
+                local_filename = os.path.join(
+                    constants.MEDIA_DIR, remote_filename.replace('/', os.path.sep))
+
+                if not os.path.exists(local_filename):
+                    logger.info(f'Downloading {remote_filename}')
+                    os.makedirs(os.path.dirname(local_filename), exist_ok=True)
+
+                    # TODO: Download to temp dir first
+                    # NOTE the stream=True parameter below
+                    with requests.get(data['media_url'] + remote_filename, stream=True) as response:
+                        response.raise_for_status()
+                        with open(local_filename, 'wb') as file:
+                            for chunk in response.iter_content(chunk_size=8192):
+                                if chunk:
+                                    file.write(chunk)
+                else:
+                    logger.info(f'{remote_filename} already downloaded')
 
         existing_pks = defaultdict(list)
 

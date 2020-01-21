@@ -12,9 +12,11 @@ IS_MACOS = platform.system() == 'Darwin'
 USER_DIR = os.path.join(os.path.expanduser('~'), '.tomato')
 if IS_WINDOWS:
     try:
-        USER_DIR = os.path.join(os.environ['LOCALAPPDATA'], 'tomato')
+        USER_DIR = os.path.join(os.environ['LOCALAPPDATA'], 'Tomato')
     except KeyError:
         pass
+
+MEDIA_DIR = os.path.join(USER_DIR, 'media')
 
 WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT = (900, 700)
 

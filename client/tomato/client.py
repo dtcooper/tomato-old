@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.management import call_command
 
 from .cef import run_cef_window
-from .constants import USER_DIR
+from .constants import MEDIA_DIR, USER_DIR
 
 
 class Client:
@@ -25,6 +25,7 @@ class Client:
                     'NAME': os.path.join(USER_DIR, 'db.sqlite3'),
                 }
             },
+            MEDIA_ROOT=MEDIA_DIR,
             INSTALLED_APPS=('tomato',),
             USE_TZ=True,
         )

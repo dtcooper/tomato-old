@@ -145,11 +145,12 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
         # If first save, ie pk is None, action on:
         # - STRIP_UPLOADED_AUDIO
 
-        if not self.name.strip():
-            self.name = self.get_default_name()
+        if HAVE_SOX:
+            if not self.name.strip():
+                self.name = self.get_default_name()
+            self.duration = self.get_duration()
 
         self.name = self.name[:MAX_NAME_LEN]
-        self.duration = self.get_duration()
 
         return super().save(*args, **kwargs)
 
