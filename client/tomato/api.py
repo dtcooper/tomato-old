@@ -1,18 +1,16 @@
+from collections import defaultdict
+import datetime
 import logging
 from json.decoder import JSONDecodeError
 
+from django.core.serializers import deserialize
 import requests
 
+from . import constants
 from .config import Config
-from .constants import REQUEST_TIMEOUT, REQUEST_USER_AGENT
-
+from .models import Asset, Rotator, StopSet, StopSetRotator
 
 logger = logging.getLogger('tomato')
-
-API_ERROR_REQUESTS_ERROR = 'Timeout or bad response from host.'
-API_ERROR_JSON_DECODE_ERROR = 'Invalid response format from host.'
-API_ERROR_ACCESS_DENIED = 'Access denied.'
-API_ERROR_INVALID_HTTP_STATUS_CODE = 'Bad response from host.'
 
 
 class make_request:
@@ -20,7 +18,7 @@ class make_request:
         self.conf = Config()
 
     def __call__(self, method, endpoint, **params):
-        headers = {'User-Agent': REQUEST_USER_AGENT}
+        headers = {'User-Agent': constants.REQUEST_USER_AGENT}
         if self.conf.auth_token:
             headers['X-Auth-Token'] = self.conf.auth_token
 
@@ -29,21 +27,26 @@ class make_request:
 
         try:
             response = requests.request(method, f'{self.conf.protocol}://{self.conf.hostname}/{endpoint}',
-                                        headers=headers, timeout=REQUEST_TIMEOUT, **params)
-        except Exception:
-            data['error'] = API_ERROR_REQUESTS_ERROR
-            logger.exception(API_ERROR_REQUESTS_ERROR)
+                                        headers=headers, timeout=constants.REQUEST_TIMEOUT, **params)
+        except Exception as e:
+            if isinstance(e, requests.exceptions.Timeout):
+                data['error'] = constants.API_ERROR_REQUESTS_TIMEOUT
+                logger.exception(f'Request timed out (>{constants.REQUEST_TIMEOUT}s)')
+            else:
+                data['error'] = constants.API_ERROR_REQUESTS_ERROR
+                logger.exception('Requests library threw an exception')
+
         else:
             data['status'] = response.status_code
             if response.status_code == 200:
                 try:
                     data.update(response.json())
                 except JSONDecodeError:
-                    data['error'] = API_ERROR_JSON_DECODE_ERROR
-                    logger.exception(API_ERROR_JSON_DECODE_ERROR)
+                    data['error'] = constants.API_ERROR_JSON_DECODE_ERROR
+                    logger.exception('JSON decoding error')
             else:
-                data['error'] = (API_ERROR_ACCESS_DENIED if response.status_code == 403
-                                 else API_ERROR_INVALID_HTTP_STATUS_CODE)
+                data['error'] = (constants.API_ERROR_ACCESS_DENIED if response.status_code == 403
+                                 else constants.API_ERROR_INVALID_HTTP_STATUS_CODE)
                 logger.error(f'API returned status code {response.status_code}')
 
         data['valid'] = not bool(data['error'])
@@ -108,4 +111,27 @@ class ModelsApi:
         self.conf = Config()
 
     def sync(self):
-        return make_request('get', 'export')
+        data = make_request('get', 'export')
+        if not data['valid']:
+            logger.error('Error synchronizing.')
+            return
+
+        self.conf.last_sync = datetime.datetime.now().strftime('%c')
+
+        deserialized_objects = list(deserialize('python', data['objects']))
+
+        for deserialized_object in deserialized_objects:
+            if isinstance(deserialized_object.object, Asset):
+                # TODO: download assets iff they don't already exist, wrap in try/except
+                remote_audio_url = data['media_url'] + deserialized_object.object.audio.name
+                print(remote_audio_url)
+
+        existing_pks = defaultdict(list)
+
+        # TODO: do in a transaction
+        for obj in deserialize('python', data['objects']):
+            existing_pks[obj.object.__class__].append(obj.object.pk)
+            obj.save()
+
+        for model in (Asset, Rotator, StopSet, StopSetRotator):
+            model.objects.exclude(pk__in=existing_pks[model]).delete()

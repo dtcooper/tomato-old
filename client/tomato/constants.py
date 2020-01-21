@@ -18,6 +18,12 @@ if IS_WINDOWS:
 
 WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT = (900, 700)
 
-REQUEST_TIMEOUT = 20
+API_ERROR_REQUESTS_TIMEOUT = 'Request timed out.'
+API_ERROR_REQUESTS_ERROR = 'Bad response from host.'
+API_ERROR_JSON_DECODE_ERROR = 'Invalid response format from host.'
+API_ERROR_ACCESS_DENIED = 'Access denied.'
+API_ERROR_INVALID_HTTP_STATUS_CODE = 'Bad response from host.'
+
+REQUEST_TIMEOUT = 15
 REQUEST_USER_AGENT = (f'tomato-client/{__version__} ({platform.system()} {platform.release()} '
                       f'{platform.machine()}) cefpython/{cefpython.__version__} ')

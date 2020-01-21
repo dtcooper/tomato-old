@@ -53,11 +53,14 @@
       </div>
     </section>
 
-    <main style="display: flex; align-items: stretch">
+    <main style="display: flex; align-items: stretch; height: 100%;">
       <div class="nes-container with-title" style="display: flex; align-items: stretch; flex-direction: column; padding-right: 0.25rem; width: 100vw;">
-        <p class="title" style="align-self: flex-start">Main Content</p>
-        <div style="display: flex; align-items: stretch; height: 100%;">
+        <p class="title" style="align-self: flex-start;">Main Content</p>
+        <div style="display: flex; align-items: stretch;">
           <div style="overflow-y: auto; padding-right: 1.75rem;">
+            <p>
+              <button class="nes-btn is-warning" onclick="cef.models.sync()">Test Sync</button>
+            </p>
             <p>
               <script>
                 // XXX Write out some number of lorems

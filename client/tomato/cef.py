@@ -71,31 +71,35 @@ class JSBindings:
     def __init__(self, browser, client_handler, js_api_list, _mac_window=None):
         self.browser = browser
         self.client_handler = client_handler
-        self.js_api_list = {js_api.namespace: js_api for js_api in js_api_list}
-        self._call_queue = queue.Queue()
+        self.js_apis = {}  # namespace -> (api, call_queue)
         self._mac_window = _mac_window
 
-        # TODO One thread per API? Speed things up, and also deal with sync/sqlite3 threadsafety
-        threading.Thread(target=self._run_call_thread).start()
+        for js_api in js_api_list:
+            self.js_apis[js_api.namespace] = args = (js_api, queue.Queue())
+            threading.Thread(target=self._run_call_thread, args=args).start()
 
     def call(self, namespace, method, args):
-        self._call_queue.put((namespace, method, args))
+        self.js_apis[namespace][1].put((method, args))
 
-    def shutdown(self):
-        self._call_queue.put(None)
+    def _shutdown(self):
+        for _, call_queue in self.js_apis.values():
+            call_queue.put(None)
 
-    def _run_call_thread(self):
-        logger.info('JS call thread booting')
+    @staticmethod
+    def _run_call_thread(js_api, queue):
+        namespace = js_api.namespace
+        logger.info(f'JS call thread booting ({js_api.namespace})')
+
         while True:
-            mesg = self._call_queue.get()
+            mesg = queue.get()
             if mesg is None:
                 break
 
-            namespace, method, args = mesg
+            method, args = mesg
             callback = None  # Optional last argument to be a callback for a response
             if len(args) >= 1 and isinstance(args[-1], cef.JavascriptCallback):
                 callback = args.pop()
-            response = getattr(self.js_api_list[namespace], method)(*args)
+            response = getattr(js_api, method)(*args)
 
             if method == 'login':
                 args[-1] = '********'  # Censor password
@@ -106,7 +110,7 @@ class JSBindings:
                 if not isinstance(response, (list, tuple)):
                     response = (response,)
                 callback.Call(*response)
-        logger.info('JS call thread exiting')
+        logger.info(f'JS call thread exiting ({namespace})')
 
     def dom_loaded(self):
         if IS_WINDOWS:
@@ -114,7 +118,7 @@ class JSBindings:
         elif IS_MACOS:
             self.browser.ExecuteJavascript('cef.is_macos = true')
 
-        for namespace, js_api in self.js_api_list.items():
+        for namespace, (js_api, _) in self.js_apis.items():
             self.browser.ExecuteJavascript(f'cef.{namespace} = {{}}')
             for method in dir(js_api):
                 if not method.startswith('_') and inspect.ismethod(getattr(js_api, method)):
@@ -209,6 +213,8 @@ def run_cef_window(*js_api_list):
             else:
                 ctypes.windll.user32.SetWindowPos(window_handle, 0, 0, 0, width, height, 0x0002)
 
+            #ctypes.windll.user32.SetWindowLongW(window_handle, GWL_WNDPROC, WndProcType(self.MyWndProc))
+
         mac_window = None
         if IS_MACOS:
             # Start on top and centered
@@ -235,7 +241,7 @@ def run_cef_window(*js_api_list):
         cef.MessageLoop()
         logger.info('Shutting down Tomato')
 
-        js_bindings.shutdown()
+        js_bindings._shutdown()
         cef.Shutdown()
 
     finally:
