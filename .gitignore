@@ -2,6 +2,8 @@
 __pycache__/
 venv/
 .pytest_cache
+*.pyc
+*.sublime-*
 
 # Server
 /server/local_settings.py
