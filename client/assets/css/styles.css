@@ -47,7 +47,7 @@ img {
 }
 
 ::-webkit-scrollbar {
-    width: 5px;
+    width: 10px;
     background-color: #eeeeee;
 }
 
@@ -57,7 +57,7 @@ img {
 
 ::-webkit-scrollbar-thumb {
     background-color: #000000;
-    width: 5px;
+    width: 10px;
 }
 
 .right {

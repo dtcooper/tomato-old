@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import inspect
 import logging
 import sys
@@ -13,18 +14,17 @@ import threading
 
 from cefpython3 import cefpython as cef
 
+from . import constants
+from .constants import APIException
 from .config import Config
-from .constants import (
-    IS_MACOS, IS_WINDOWS, WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT)
 
-
-if IS_WINDOWS:
+if constants.IS_WINDOWS:
     import ctypes
-if IS_MACOS:
+if constants.IS_MACOS:
     import AppKit
 
 
-if hasattr(sys, 'frozen') and IS_WINDOWS:
+if hasattr(sys, 'frozen') and constants.IS_WINDOWS:
     APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'app.html')
 else:
     APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', 'assets', 'app.html')
@@ -39,7 +39,7 @@ class ClientHandler:
         self._should_close = False
 
     def OnConsoleMessage(self, browser, level, message, source, line):
-        logger.info(f'console.log({source}:{line}) - {message}')
+        logger.info(f'{source}:{line}:console.log(...) - {message}')
         return False
 
     def OnBeforePopup(self, target_url, **kwargs):
@@ -59,15 +59,15 @@ class ClientHandler:
 
     def DoClose(self, browser):
         if self._should_close or not self._dom_loaded or self._conf.debug:
-            if IS_MACOS:
+            if constants.IS_MACOS:
                 cef.QuitMessageLoop()
             return False
         else:
-            browser.ExecuteFunction('cef.client.close')
+            browser.ExecuteFunction('cef.close')
             return True
 
 
-class JSBindings:
+class JSBridge:
     def __init__(self, browser, client_handler, js_api_list, _mac_window=None):
         self.browser = browser
         self.client_handler = client_handler
@@ -78,8 +78,9 @@ class JSBindings:
             self.js_apis[js_api.namespace] = args = (js_api, queue.Queue())
             threading.Thread(target=self._run_call_thread, args=args).start()
 
-    def call(self, namespace, method, args):
-        self.js_apis[namespace][1].put((method, args))
+    def call(self, namespace, method, resolve, reject, args):
+        _, call_queue = self.js_apis[namespace]
+        call_queue.put((method, resolve, reject, args))
 
     def _shutdown(self):
         for _, call_queue in self.js_apis.values():
@@ -88,37 +89,36 @@ class JSBindings:
     @staticmethod
     def _run_call_thread(js_api, queue):
         namespace = js_api.namespace
-        logger.info(f'JS call thread booting ({js_api.namespace})')
+        logger.info(f'JSBridge call thread booting ({namespace})')
 
         while True:
-            mesg = queue.get()
-            if mesg is None:
+            queue_message = queue.get()  # Blocks
+            if queue_message is None:
                 break
 
-            method, args = mesg
-            callback = None  # Optional last argument to be a callback for a response
-            if len(args) >= 1 and isinstance(args[-1], cef.JavascriptCallback):
-                callback = args.pop()
+            method, resolve, reject, args = queue_message
+            pretty_args = ", ".join(map(repr, args)) if args else ""
 
-            # TODO: wrap in try/except so an exception in a thread doesn't kill everything
-            response = getattr(js_api, method)(*args)
-
-            if method == 'login':
-                args[-1] = '********'  # Censor password
-            logger.info(f'Called cef.{namespace}.{method}'
-                        f'({", ".join(map(repr, args)) if args else ""}) -> {response!r}')
-
-            if callback:
+            try:
+                response = getattr(js_api, method)(*args)
+            except APIException as e:
+                logger.exception(f'APIException raised by cef.{namespace}.{method}({pretty_args})')
+                reject.Call((str(e),))  # todo: null if unexpected, string if expected
+            except Exception:
+                logger.exception(f'Unexpected exception raised by cef.{namespace}.{method}({pretty_args})')
+                reject.Call(('An unexpected error occurred.',))
+            else:
+                logger.info(f'Called cef.{namespace}.{method}'
+                            f'({", ".join(map(repr, args)) if args else ""}) -> {response!r}')
                 if not isinstance(response, (list, tuple)):
                     response = (response,)
-                callback.Call(*response)
-        logger.info(f'JS call thread exiting ({namespace})')
+                resolve.Call(response)
+
+        logger.info(f'JSBridge call thread exiting ({namespace})')
 
     def dom_loaded(self):
-        if IS_WINDOWS:
-            self.browser.ExecuteJavascript('cef.is_windows = true')
-        elif IS_MACOS:
-            self.browser.ExecuteJavascript('cef.is_macos = true')
+        self.browser.ExecuteJavascript(
+            f'cef.constants = {json.dumps({c: getattr(constants, c) for c in dir(constants) if c.isupper()})}')
 
         for namespace, (js_api, _) in self.js_apis.items():
             self.browser.ExecuteJavascript(f'cef.{namespace} = {{}}')
@@ -126,7 +126,10 @@ class JSBindings:
                 if not method.startswith('_') and inspect.ismethod(getattr(js_api, method)):
                     self.browser.ExecuteJavascript(f'''
                         cef.{namespace}.{method} = function() {{
-                            cef.internal.call('{namespace}', '{method}', Array.from(arguments));
+                            var args = Array.from(arguments);
+                            return new Promise(function(resolve, reject) {{
+                                cef.internal.call('{namespace}', '{method}', resolve, reject, args);
+                            }});
                         }}
                     ''')
 
@@ -139,10 +142,10 @@ class JSBindings:
         self.browser.TryCloseBrowser()
 
     def toggle_fullscreen(self):
-        if IS_WINDOWS:
+        if constants.IS_WINDOWS:
             self.browser.ToggleFullscreen()
 
-        if IS_MACOS:
+        if constants.IS_MACOS:
             # Need to figure out 1<<7 ?
             # https://github.com/r0x0r/pywebview/blob/master/webview/platforms/cocoa.py
             self._mac_window.setCollectionBehavior_(1 << 7)
@@ -150,6 +153,7 @@ class JSBindings:
 
 
 def run_cef_window(*js_api_list):
+    logger.info('Initializing CEF window')
     conf = Config()
 
     # TODO:
@@ -170,9 +174,6 @@ def run_cef_window(*js_api_list):
     }
 
     if conf.debug:
-        logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-        logger.info(f'Starting Tomato with configuration: {dict(conf)}')
-
         settings.update({
             'context_menu': {'enabled': True, 'external_browser': False,
                              'print': False, 'view_source': False},
@@ -181,9 +182,9 @@ def run_cef_window(*js_api_list):
         })
 
     max_width = max_height = float('inf')
-    if IS_WINDOWS:
+    if constants.IS_WINDOWS:
         max_width, max_height = map(ctypes.windll.user32.GetSystemMetrics, (16, 17))
-    elif IS_MACOS:
+    elif constants.IS_MACOS:
         frame_size = AppKit.NSScreen.mainScreen().frame().size
         max_width, max_height = map(int, (frame_size.width, frame_size.height))
     width, height = min(conf.width, max_width), min(conf.height, max_height)
@@ -191,7 +192,7 @@ def run_cef_window(*js_api_list):
     try:
         cef.Initialize(switches=switches, settings=settings)
 
-        if IS_WINDOWS:
+        if constants.IS_WINDOWS:
             cef.DpiAware.EnableHighDpiSupport()
 
         window_info = cef.WindowInfo()
@@ -202,7 +203,7 @@ def run_cef_window(*js_api_list):
             window_info=window_info,
         )
 
-        if IS_WINDOWS:
+        if constants.IS_WINDOWS:
             # Maximize, based on
             # https://github.com/cztomczak/cefpython/blob/master/examples/snippets/window_size.py
             window_handle = browser.GetOuterWindowHandle()
@@ -211,7 +212,8 @@ def run_cef_window(*js_api_list):
             if width >= (max_width - 5) and height >= (max_height - 5):
                 # Maximized with default minimize height
                 ctypes.windll.user32.SetWindowPos(window_handle, 0, 0, 0,
-                                                  WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT, 0x0002)
+                                                  constants.WINDOW_SIZE_DEFAULT_WIDTH,
+                                                  constants.WINDOW_SIZE_DEFAULT_HEIGHT, 0x0002)
                 ctypes.windll.user32.ShowWindow(window_handle, 3)
             else:
                 ctypes.windll.user32.SetWindowPos(window_handle, 0, 0, 0, width, height, 0x0002)
@@ -219,7 +221,7 @@ def run_cef_window(*js_api_list):
             #ctypes.windll.user32.SetWindowLongW(window_handle, GWL_WNDPROC, WndProcType(self.MyWndProc))
 
         mac_window = None
-        if IS_MACOS:
+        if constants.IS_MACOS:
             # Start on top and centered
             AppKit.NSApp.activateIgnoringOtherApps_(True)
             mac_window = AppKit.NSApp.windows()[0]
@@ -228,15 +230,15 @@ def run_cef_window(*js_api_list):
         client_handler = ClientHandler()
         browser.SetClientHandler(client_handler)
 
-        js_bindings_cef = cef.JavascriptBindings()
-        js_bindings = JSBindings(
+        js_bindings = cef.JavascriptBindings()
+        js_bridge = JSBridge(
             browser=browser,
             client_handler=client_handler,
             js_api_list=js_api_list,
             _mac_window=mac_window,
         )
-        js_bindings_cef.SetObject('_cefInternal', js_bindings)
-        browser.SetJavascriptBindings(js_bindings_cef)
+        js_bindings.SetObject('_cefInternal', js_bridge)
+        browser.SetJavascriptBindings(js_bindings)
 
         # TODO: if hasattr(sys, 'frozen') for built
         browser.LoadUrl(urljoin('file:', pathname2url(os.path.realpath(APP_HTML_PATH))))
@@ -244,7 +246,7 @@ def run_cef_window(*js_api_list):
         cef.MessageLoop()
         logger.info('Shutting down Tomato')
 
-        js_bindings._shutdown()
+        js_bridge._shutdown()
         cef.Shutdown()
 
     finally:

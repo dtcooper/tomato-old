@@ -138,6 +138,7 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
                                       'metadata, failing that its filename.')
     duration = models.DurationField()
     audio = models.FileField('Audio File', upload_to='assets/')
+    audio_size = models.IntegerField()
     rotators = models.ManyToManyField(Rotator, related_name='assets', blank=True, verbose_name='Rotators',
                                       help_text='Rotators that this asset will be included in.')
 
@@ -151,6 +152,7 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
             self.duration = self.get_duration()
 
         self.name = self.name[:MAX_NAME_LEN]
+        self.audio_size = self.audio.file.size
 
         return super().save(*args, **kwargs)
 

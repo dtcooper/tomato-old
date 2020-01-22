@@ -59,8 +59,10 @@
         <div style="display: flex; align-items: stretch;">
           <div style="overflow-y: auto; padding-right: 1.75rem;">
             <p>
-              <button class="nes-btn is-warning" onclick="cef.models.sync()">Test Sync</button>
+              <button class="nes-btn is-warning" onclick="sync()">Test Sync</button>
+              <button class="nes-btn is-warning" onclick="assetLoadTest()">Load Assets Test</button>
             </p>
+            <div id="asset-list"></div>
             <p>
               <script>
                 // XXX Write out some number of lorems

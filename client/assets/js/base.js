@@ -1,8 +1,9 @@
 var cef = {
     'internal': _cefInternal,
-    'is_windows': false,
-    'is_macos': false,
-    'client': {}
+    'constants': {},
+    'close': function() {
+        showModal('close-dialog');
+    }
 };
 
 var isClosing = false;
@@ -15,16 +16,42 @@ var showModal = function(id) {
     $('#' + id).get(0).showModal();
 };
 
-cef.client.close = function() {
-    showModal('close-dialog');
-};
-
 var STATUS_OFFLINE = 'error', STATUS_PENDING = 'warning', STATUS_ONLINE = 'success';
 var setStatusColor = function(status) {
     $('#connection-status').removeClass(
         'is-primary is-success is-warning is-error is-disabled').addClass('is-' + status).attr(
         'data-hover-text', 'TODO: this is a major ' + status + ' ' + status + ' ' + status + '!');
 };
+
+var assetLoadTest = function() {
+    cef.models.test_load_assets().then(function(assets) {
+        var html = '<div class="nes-table-responsive">'
+            +'<table class="nes-table is-bordered is-centered">'
+            + '<thead><th>Asset</th><th>Player</th></thead><tbody>';
+
+        if (assets.length == 0) {
+            html += '<tr><td colspan="2">No assets found!</td></tr>'
+        } else {
+            for (var i = 0; i < assets.length; i++) {
+                var asset = assets[i];
+                html += '<tr><td>' + asset.name + '</td><td><audio src="' + cef.constants.MEDIA_URL
+                    + asset.audio + '" controls></audio></td></tr>\n';
+            }
+        }
+        html += '</tbody></table></div>'
+        $('#asset-list').html(html);
+    });
+};
+
+var sync = function() {
+    cef.models.sync().catch(function([error]) {
+        if (error == cef.constants.API_ERROR_ACCESS_DENIED) {
+            $('#login-errors').html('<span class="nes-text is-error">Access denied '
+                    + "when sync'ing with server. Please log in again.</span>");
+            cef.auth.logout().then(showLoginModal);
+        }
+    });c
+}
 
 afterLoad(function() {
     $('a.link').click(function(event) {

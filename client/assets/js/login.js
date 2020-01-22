@@ -1,4 +1,4 @@
-var doLogin = function(error) {
+var doLogin = function([error]) {
     $('#loading').hide();
     $('#login-errors').empty();
     if (error) {
@@ -17,7 +17,7 @@ var doLogin = function(error) {
 var showLoginModal = function() {
     setStatusColor(STATUS_PENDING);
     $('#loading').show();
-    cef.conf.get_many('hostname', 'protocol', function(hostname, protocol) {
+    cef.conf.get_many('hostname', 'protocol').then(function([hostname, protocol]) {
         $('#loading').hide();
         $('#hostname').val(hostname);
         $('input[name=protocol][value=' + protocol + ']').prop('checked', true);
@@ -31,9 +31,8 @@ afterLoad(function() {
         setTimeout(function() {
             cef.auth.login(
                 $('input[name=protocol]:checked').val(), $('#hostname').val(),
-                $('#username').val(), $('#password').val(),
-                doLogin
-            );
+                $('#username').val(), $('#password').val()
+            ).then(doLogin).catch(doLogin);
         }, 350); // A few ms here looks like something is happening
     });
 
@@ -44,16 +43,15 @@ afterLoad(function() {
     });
 
     $('#confirm-logout-btn').click(function(event) {
-        cef.auth.logout(showLoginModal);
+        cef.auth.logout().then(showLoginModal);
     });
 
-    cef.auth.check_authorization(function(isLoggedIn, isConnected) {
-        if (!isLoggedIn) {
-            showLoginModal()
-        } else {
+    cef.auth.check_authorization().then(function([isLoggedIn, isConnected]) {
+        if (isLoggedIn) {
+            $('#loading').hide();
             setStatusColor(isConnected ? STATUS_ONLINE : STATUS_OFFLINE);
+        } else {
+            showLoginModal();
         }
-    });
-
-    $('#loading').hide();
+    }).catch(showLoginModal);
 });

@@ -5,12 +5,13 @@ from json.decoder import JSONDecodeError
 import os
 
 from django.core.serializers import deserialize
+from django.db import transaction
 import requests
 
 from . import constants
+from .constants import APIException
 from .config import Config
 from .models import Asset, Rotator, StopSet, StopSetRotator
-
 
 logger = logging.getLogger('tomato')
 
@@ -24,41 +25,35 @@ class make_request:
         if self.conf.auth_token:
             headers['X-Auth-Token'] = self.conf.auth_token
 
-        # Guaranteed keys: error, status, valid
-        data = {'error': None, 'status': -1}
-
+        url = f'{self.conf.protocol}://{self.conf.hostname}/{endpoint}'
+        logger.info(f'Hitting [{method.upper()}] {url}')
         try:
-            response = requests.request(method, f'{self.conf.protocol}://{self.conf.hostname}/{endpoint}',
-                                        headers=headers, timeout=constants.REQUEST_TIMEOUT, **params)
+            response = requests.request(method, url, headers=headers,
+                                        timeout=constants.REQUEST_TIMEOUT, **params)
         except Exception as e:
             if isinstance(e, requests.exceptions.Timeout):
-                data['error'] = constants.API_ERROR_REQUESTS_TIMEOUT
-                logger.exception(f'Request timed out (>{constants.REQUEST_TIMEOUT}s)')
+                error = constants.API_ERROR_REQUESTS_TIMEOUT
             else:
-                data['error'] = constants.API_ERROR_REQUESTS_ERROR
+                error = constants.API_ERROR_REQUESTS_ERROR
                 logger.exception('Requests library threw an exception')
+            raise APIException(error)
 
         else:
-            data['status'] = response.status_code
             if response.status_code == 200:
                 try:
-                    data.update(response.json())
+                    return response.json()
                 except JSONDecodeError:
-                    data['error'] = constants.API_ERROR_JSON_DECODE_ERROR
-                    logger.exception('JSON decoding error')
+                    raise APIException(constants.API_ERROR_JSON_DECODE_ERROR)
             else:
-                data['error'] = (constants.API_ERROR_ACCESS_DENIED if response.status_code == 403
-                                 else constants.API_ERROR_INVALID_HTTP_STATUS_CODE)
-                logger.error(f'API returned status code {response.status_code}')
-
-        data['valid'] = not bool(data['error'])
-        return data
+                error = (constants.API_ERROR_ACCESS_DENIED if response.status_code == 403
+                         else constants.API_ERROR_INVALID_HTTP_STATUS_CODE)
+                raise APIException(error)
 
 
 make_request = make_request()
 
 
-class AuthApi:
+class AuthAPI:
     namespace = 'auth'
 
     def __init__(self):
@@ -71,12 +66,18 @@ class AuthApi:
         logged_in = connected = False
 
         if self.conf.protocol and self.conf.hostname and self.conf.auth_token:
-            response = make_request('get', 'ping')
-            # If we got an HTTP status back, then we're "connected"
-            connected = response['status'] != -1
-            # If there's no valid token, default to whether we're connected or not
-            # to allow for offline mode.
-            logged_in = response.get('valid_token', not connected)
+            try:
+                response = make_request('get', 'ping')
+            except APIException as e:
+                print(f'check_authorization(): raised {e}')
+                if str(e) in (constants.API_ERROR_REQUESTS_TIMEOUT, constants.API_ERROR_REQUESTS_ERROR):
+                    # If requests failed, we're logged in but not connected
+                    logged_in = False
+                else:
+                    raise
+            else:
+                connected = True
+                logged_in = response['valid_token']
 
         return (logged_in, connected)
 
@@ -84,10 +85,9 @@ class AuthApi:
         self.conf.update(hostname=hostname, protocol=protocol)
         response = make_request('post', 'auth', data={'username': username, 'password': password})
         self.conf.auth_token = response.get('auth_token')
-        return response['error']
 
 
-class ConfigApi:
+class ConfigAPI:
     namespace = 'conf'
 
     def __init__(self):
@@ -106,50 +106,51 @@ class ConfigApi:
         self.conf.update(**kwargs)
 
 
-class ModelsApi:
+class ModelsAPI:
     namespace = 'models'
 
     def __init__(self):
         self.conf = Config()
 
+    @staticmethod
+    def _download_asset_audio(media_url, asset):
+        remote_filename = asset.audio.name
+        local_filename = os.path.join(
+            constants.MEDIA_DIR, remote_filename.replace('/', os.path.sep))
+
+        if not os.path.exists(local_filename) or os.path.getsize(local_filename) != asset.audio_size:
+            remote_url = media_url + remote_filename
+            logger.info(f'Downloading asset: {remote_url}')
+
+            os.makedirs(os.path.dirname(local_filename), exist_ok=True)
+            with requests.get(remote_url, stream=True) as response:
+                response.raise_for_status()
+                with open(local_filename, 'wb') as file:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            file.write(chunk)
+
+    def test_load_assets(self):
+        return list(Asset.objects.values('name', 'audio'))
+
     def sync(self):
         data = make_request('get', 'export')
-        if not data['valid']:
-            logger.error('Error synchronizing.')
-            return
-
         self.conf.last_sync = datetime.datetime.now().strftime('%c')
 
-        deserialized_objects = list(deserialize('python', data['objects']))
+        deserialized_objs = list(deserialize('python', data['objects']))
 
-        for deserialized_object in deserialized_objects:
-            if isinstance(deserialized_object.object, Asset):
-                # TODO: download assets iff they don't already exist, wrap in try/except
-                remote_filename = deserialized_object.object.audio.name
-                local_filename = os.path.join(
-                    constants.MEDIA_DIR, remote_filename.replace('/', os.path.sep))
+        for deserialized_obj in deserialized_objs:
+            if isinstance(deserialized_obj.object, Asset):
+                self._download_asset_audio(data['media_url'], deserialized_obj.object)
 
-                if not os.path.exists(local_filename):
-                    logger.info(f'Downloading {remote_filename}')
-                    os.makedirs(os.path.dirname(local_filename), exist_ok=True)
+        pks = defaultdict(list)
 
-                    # TODO: Download to temp dir first
-                    # NOTE the stream=True parameter below
-                    with requests.get(data['media_url'] + remote_filename, stream=True) as response:
-                        response.raise_for_status()
-                        with open(local_filename, 'wb') as file:
-                            for chunk in response.iter_content(chunk_size=8192):
-                                if chunk:
-                                    file.write(chunk)
-                else:
-                    logger.info(f'{remote_filename} already downloaded')
+        with transaction.atomic():
+            for deserialized_obj in deserialized_objs:
+                pks[deserialized_obj.object.__class__].append(deserialized_obj.object.pk)
+                deserialized_obj.save()
 
-        existing_pks = defaultdict(list)
-
-        # TODO: do in a transaction
-        for obj in deserialize('python', data['objects']):
-            existing_pks[obj.object.__class__].append(obj.object.pk)
-            obj.save()
-
-        for model in (Asset, Rotator, StopSet, StopSetRotator):
-            model.objects.exclude(pk__in=existing_pks[model]).delete()
+            for model in (Asset, Rotator, StopSet, StopSetRotator):
+                pks_for_model = pks[model]
+                logger.info(f'sync: Synchronized {len(pks_for_model)} {model._meta.verbose_name_plural}')
+                model.objects.exclude(pk__in=pks_for_model).delete()
