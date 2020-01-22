@@ -33,16 +33,12 @@ class Client:
 
     def init_django(self):
         settings.configure(
+            DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3',
+                                   'NAME': os.path.join(USER_DIR, 'db.sqlite3')}},
             DEBUG=False,
-            DATABASES={
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': os.path.join(USER_DIR, 'db.sqlite3'),
-                }
-            },
+            INSTALLED_APPS=('tomato',),
             MEDIA_ROOT=MEDIA_DIR,
             MEDIA_URL=MEDIA_URL,
-            INSTALLED_APPS=('tomato',),
             USE_TZ=True,
         )
         django.setup()

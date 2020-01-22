@@ -163,8 +163,9 @@ def run_cef_window(*js_api_list):
     sys.excepthook = cef.ExceptHook
 
     switches = {
-        'autoplay-policy': 'no-user-gesture-required',
-        'enable-font-antialiasing': '',
+        'autoplay-policy': 'no-user-gesture-required',  # Allow audio to play with no gesture
+        'enable-media-stream': '',  # Get device names from `mediaDevices.enumerateDevices();'
+        'enable-font-antialiasing': '',  # Better fonts in some cases on Windows
     }
     settings = {
         'background_color': 0xFFDDDDDD,
