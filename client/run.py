@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
-from tomato import Client
+import os  # XXX
+os.environ['TOMATO_DEBUG'] = '1'
+
+from tomato import Client  # noqa
 
 
 if __name__ == '__main__':

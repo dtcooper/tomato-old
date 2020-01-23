@@ -69,10 +69,9 @@ class AuthAPI:
             try:
                 response = make_request('get', 'ping')
             except APIException as e:
-                print(f'check_authorization(): raised {e}')
                 if str(e) in (constants.API_ERROR_REQUESTS_TIMEOUT, constants.API_ERROR_REQUESTS_ERROR):
                     # If requests failed, we're logged in but not connected
-                    logged_in = False
+                    logged_in = True
                 else:
                     raise
             else:

@@ -107,14 +107,13 @@ CONSTANCE_CONFIG = OrderedDict({
     # sox in.wav out.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
 })
 
-# Valid file types as recognized by `soxi -t` => file extensions
-VALID_FILE_TYPES_SOXI_TO_EXTENSIONS = {
-    'mp3': 'mp3',
-    'wav': 'wav',
-    'vorbis': 'ogg',
-    'flac': 'flac',
+# Valid file types as recognized by `soxi -t` and `file --mime-type` minus the audio/[x-]
+VALID_AUDIO_FILE_TYPES = {
+    '.mp3': {'soxi': 'mp3', 'mime': 'mpeg'},
+    '.wav': {'soxi': 'wav', 'mime': 'wav'},
+    '.ogg': {'soxi': 'vorbis', 'mime': 'ogg'},
+    '.flac': {'soxi': 'flac', 'mime': 'flac'},
 }
-
 
 try:
     from local_settings import *  # noqa

@@ -1,5 +1,6 @@
 import datetime
 import os
+import subprocess
 
 try:
     import sox
@@ -189,17 +190,31 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
 
         def clean(self):
             if self.audio:
-                allowed_file_types = ', '.join(settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS.values())
-                error_msg = f"Invalid file: '{self.audio.name}'. Valid file types: {allowed_file_types}"
+                valid_types = (', '.join(settings.VALID_AUDIO_FILE_TYPES.keys())).upper()
 
-                # check if file valid based on sox
+                audio_path = self.audio_path
+
+                audio_ext = os.path.splitext(audio_path)[1]
+                valid_info = settings.VALID_AUDIO_FILE_TYPES.get(audio_ext.lower())
+                if not valid_info:
+                    raise ValidationError({'audio': f"Invalid file extension: '{self.audio.name}'. "
+                                                    f'Valid extensions: {valid_types}.'})
+
+                mime = subprocess.check_output(['file', '--mime-type', '--brief', audio_path]).decode().strip()
+                if not (mime.startswith('audio/') and mime.endswith(valid_info['mime'])):
+                    expected_mime = f"audio/{valid_info['mime']}"
+                    raise ValidationError({'audio': f"Detected mime type {mime} for '{self.audio.name}'. "
+                                                    f'Expected {expected_mime} from extension {audio_ext}.'})
+
                 try:
-                    file_type = sox.file_info.file_type(self.audio_path)
+                    file_type = sox.file_info.file_type(audio_path).lower()
                 except sox.SoxiError:
-                    raise ValidationError({'audio': error_msg})
+                    raise ValidationError({'audio': f"Error reading: '{self.audio.name}'. "
+                                                    'Likely an invalid/corrupt audio file. Please re-encode.'})
                 else:
-                    if file_type not in settings.VALID_FILE_TYPES_SOXI_TO_EXTENSIONS:
-                        raise ValidationError({'audio': error_msg})
+                    if file_type != valid_info['soxi']:
+                        raise ValidationError({'audio': f"Detected file type {file_type} for '{self.audio.name}'. "
+                                                        f'Expected {valid_info["soxi"]} from extension {audio_ext}.'})
 
     def __str__(self):
         return self.name

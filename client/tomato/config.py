@@ -9,7 +9,7 @@ class Config:
     DATA_FILE = os.path.join(USER_DIR, 'config.json')
     DEFAULTS = {
         'auth_token': None,
-        'debug': False,  # Manual override only
+        'debug': bool(os.environ.get('TOMATO_DEBUG')),  # Manually override
         'height': WINDOW_SIZE_DEFAULT_HEIGHT,
         'hostname': None,
         'last_sync': None,
