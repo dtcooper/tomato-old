@@ -194,14 +194,18 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
 
                 audio_path = self.audio_path
 
-                audio_ext = os.path.splitext(audio_path)[1]
-                valid_info = settings.VALID_AUDIO_FILE_TYPES.get(audio_ext.lower())
+                audio_ext = os.path.splitext(audio_path)[1].lower()
+                valid_info = settings.VALID_AUDIO_FILE_TYPES.get(audio_ext)
                 if not valid_info:
                     raise ValidationError({'audio': f"Invalid file extension: '{self.audio.name}'. "
                                                     f'Valid extensions: {valid_types}.'})
 
                 mime = subprocess.check_output(['file', '--mime-type', '--brief', audio_path]).decode().strip()
-                if not (mime.startswith('audio/') and mime.endswith(valid_info['mime'])):
+                if not (
+                    (mime.startswith('audio/') and mime.endswith(valid_info['mime']))
+                    # Some cases where mp3s are octet-streams because of bizarro weird encoding
+                    or (audio_ext == '.mp3' and mime == 'application/octet-stream')
+                ):
                     expected_mime = f"audio/{valid_info['mime']}"
                     raise ValidationError({'audio': f"Detected mime type {mime} for '{self.audio.name}'. "
                                                     f'Expected {expected_mime} from extension {audio_ext}.'})
@@ -210,7 +214,7 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
                     file_type = sox.file_info.file_type(audio_path).lower()
                 except sox.SoxiError:
                     raise ValidationError({'audio': f"Error reading: '{self.audio.name}'. "
-                                                    'Likely an invalid/corrupt audio file. Please re-encode.'})
+                                                    'Likely an invalid/corrupt audio file. Please re-encode file.'})
                 else:
                     if file_type != valid_info['soxi']:
                         raise ValidationError({'audio': f"Detected file type {file_type} for '{self.audio.name}'. "
