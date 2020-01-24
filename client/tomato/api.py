@@ -3,6 +3,7 @@ import datetime
 import logging
 from json.decoder import JSONDecodeError
 import os
+import time
 
 from django.core.serializers import deserialize
 from django.db import transaction
@@ -112,6 +113,17 @@ class ModelsAPI:
         self.conf = Config()
 
     @staticmethod
+    def _clear_media_folder():
+        db_asset_paths = {asset.audio.path for asset in Asset.objects.all()}
+
+        for dirpath, dirnames, filenames in os.walk(constants.MEDIA_DIR):
+            for filename in filenames:
+                asset_path = os.path.join(dirpath, filename)
+                if asset_path not in db_asset_paths:
+                    logger.info(f'sync: Removing unused asset: {asset_path}')
+                    os.remove(asset_path)
+
+    @staticmethod
     def _download_asset_audio(media_url, asset):
         remote_filename = asset.audio.name
         local_filename = os.path.join(
@@ -119,7 +131,7 @@ class ModelsAPI:
 
         if not os.path.exists(local_filename) or os.path.getsize(local_filename) != asset.audio_size:
             remote_url = media_url + remote_filename
-            logger.info(f'Downloading asset: {remote_url}')
+            logger.info(f'sync: Downloading asset: {remote_url}')
 
             os.makedirs(os.path.dirname(local_filename), exist_ok=True)
             with requests.get(remote_url, stream=True) as response:
@@ -128,19 +140,34 @@ class ModelsAPI:
                     for chunk in response.iter_content(chunk_size=8192):
                         if chunk:
                             file.write(chunk)
+            return os.path.getsize(local_filename)
+        else:
+            return 0
 
     def test_load_assets(self):
         return sorted(Asset.objects.values('name', 'audio'), key=lambda item: item['name'].lower())
 
+    def _sync_log(self, time_period):
+        # No sense wasting time doing DB aggregates if we're not in debug mode.
+        if self.conf.debug:
+            obj_counts = ', '.join(f'[{m._meta.verbose_name_plural} = {m.objects.count()}]' for m in (
+                                   Asset, Rotator, StopSet, StopSetRotator, Asset.rotators.through))
+            logger.info(f'sync: {time_period} sync, objects: {obj_counts}')
+
     def sync(self):
         data = make_request('get', 'export')
-        self.conf.last_sync = datetime.datetime.now().strftime('%c')
+        self._sync_log('Starting')
 
         deserialized_objs = list(deserialize('python', data['objects']))
+        bytes_synced = 0
+        time_before = time.time()
 
         for deserialized_obj in deserialized_objs:
             if isinstance(deserialized_obj.object, Asset):
-                self._download_asset_audio(data['media_url'], deserialized_obj.object)
+                bytes_synced += self._download_asset_audio(data['media_url'], deserialized_obj.object)
+
+        if bytes_synced:
+            logger.info(f'sync: Downloaded {bytes_synced} bytes of asset data in {time.time() - time_before:.3f}s.')
 
         pks = defaultdict(list)
 
@@ -150,8 +177,8 @@ class ModelsAPI:
                 deserialized_obj.save()
 
             for model in (Asset, Rotator, StopSet, StopSetRotator):
-                pks_for_model = pks[model]
-                logger.info(f'sync: Synchronized {len(pks_for_model)} {model._meta.verbose_name_plural}')
-                model.objects.exclude(pk__in=pks_for_model).delete()
+                model.objects.exclude(pk__in=pks[model]).delete()
 
-        # Optional TODO: delete unused asset files, perhaps on boot?
+        self.conf.last_sync = datetime.datetime.now().strftime('%c')
+        self._clear_media_folder()
+        self._sync_log('Completed')
