@@ -34,11 +34,12 @@ var assetLoadTest = function() {
         } else {
             for (var i = 0; i < assets.length; i++) {
                 var asset = assets[i];
-                html += '<tr><td>' + asset.name + '</td><td><audio src="' + cef.constants.MEDIA_URL
-                    + asset.audio + '" controls></audio></td></tr>\n';
+                var url = cef.constants.MEDIA_URL + asset.audio;
+                html += '<tr><td><a class="link" href="' + url + '">' + asset.name + '</a></td>'
+                    + '<td><audio src="' + url + '" controls></audio></td></tr>\n';
             }
         }
-        html += '</tbody></table></div>'
+        html += '</tbody></table></div>';
         $('#asset-list').html(html);
     });
 };
@@ -50,14 +51,18 @@ var sync = function() {
                     + "when sync'ing with server. Please log in again.</span>");
             cef.auth.logout().then(showLoginModal);
         }
-    });c
+    });
 }
 
 afterLoad(function() {
-    $('a.link').click(function(event) {
+    $('body').on('click', 'a.link', function(event) {
         event.preventDefault();
         $('#link-url').text($(this).attr('href'));
         showModal('link-dialog');
+    });
+
+    $('#link-open-btn').click(function() {
+        window.open($('#link-url').text(), '_blank');
     });
 
     $('#close-btn').click(function(event) {

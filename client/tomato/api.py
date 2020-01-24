@@ -130,7 +130,7 @@ class ModelsAPI:
                             file.write(chunk)
 
     def test_load_assets(self):
-        return list(Asset.objects.values('name', 'audio'))
+        return sorted(Asset.objects.values('name', 'audio'), key=lambda item: item['name'].lower())
 
     def sync(self):
         data = make_request('get', 'export')
@@ -153,3 +153,5 @@ class ModelsAPI:
                 pks_for_model = pks[model]
                 logger.info(f'sync: Synchronized {len(pks_for_model)} {model._meta.verbose_name_plural}')
                 model.objects.exclude(pk__in=pks_for_model).delete()
+
+        # Optional TODO: delete unused asset files, perhaps on boot?

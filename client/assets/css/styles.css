@@ -26,6 +26,7 @@ html, body {
     padding: 0;
     user-select: none;
     overscroll-behavior: none;
+    word-wrap: break-word;
 }
 
 html, body, pre, code, kbd, samp {
