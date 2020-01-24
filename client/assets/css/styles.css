@@ -9,12 +9,12 @@
 /* Fonts */
 @font-face {
     font-family: 'Retro Gaming';
-    src: url('../fonts/candidates/Retro Gaming.ttf') format('truetype');
+    src: url('../fonts/retro-gaming.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'Vermin Vibes 1989';
-    src: url('../fonts/candidates/vermin-vibes.woff2') format('woff2');
+    src: url('../fonts/vermin-vibes.woff2') format('woff2');
 }
 
 /* Global Styles / Utility Classes */
