@@ -35,8 +35,8 @@ var assetLoadTest = function() {
             for (var i = 0; i < assets.length; i++) {
                 var asset = assets[i];
                 var url = cef.constants.MEDIA_URL + asset.audio;
-                html += '<tr><td><a class="link" href="' + url + '">' + asset.name + '</a></td>'
-                    + '<td><audio src="' + url + '" controls></audio></td></tr>\n';
+                html += '<tr><td><a href="' + url + '">' + asset.name
+                    + '</a></td><td><audio src="' + url + '" controls></audio></td></tr>\n';
             }
         }
         html += '</tbody></table></div>';
@@ -55,14 +55,22 @@ var sync = function() {
 }
 
 afterLoad(function() {
-    $('body').on('click', 'a.link', function(event) {
+    $('body').on('click', 'a', function(event) {
         event.preventDefault();
-        $('#link-url').text($(this).attr('href'));
+
+        var href = $(this).attr('href');
+        var linkDescription = $(this).data('description');
+        if (!linkDescription) {
+            linkDescription = href;
+        }
+
+        $('#link-open-btn').data('href', href);
+        $('#link-description').text(linkDescription)
         showModal('link-dialog');
     });
 
     $('#link-open-btn').click(function() {
-        window.open($('#link-url').text(), '_blank');
+        window.open($(this).data('href'), '_blank');
     });
 
     $('#close-btn').click(function(event) {
