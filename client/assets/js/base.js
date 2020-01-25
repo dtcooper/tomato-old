@@ -55,6 +55,32 @@ var sync = function() {
 }
 
 afterLoad(function() {
+    var dialogs = [
+        // Open link
+        {'id': 'link', 'title': 'Open Link',
+         'body_html': `Open in external browser?<br>
+                       -> <span class="nes-text is-primary" id="link-description">#</span>`,
+         'buttons': [{'class': 'is-error', 'text': 'Cancel'},
+                     {'class': 'is-success', 'text': 'Yes, open it!', 'id': 'link-open-btn'}]},
+        // Login
+        {'id': 'login', 'title': 'Please Login', 'buttons': [{'class': 'is-success', 'text': 'Login'}],
+         'body_html': $('#login-template').html()},
+        // Logout
+        {'id': 'logout', 'title': 'Logout', 'body': 'Are you sure you want to logout?',
+         'buttons': [{'text': 'Cancel'}, {'text': 'Logout', 'class': 'is-error', 'id': 'confirm-logout-btn'}]},
+        // Quit
+        {'id': 'close', 'title': 'Quit Tomato', 'text': 'Are you sure you want to quit Tomato?',
+         'buttons': [{'text': 'Cancel'}, {'text': 'Quit Tomato', 'class': 'is-error', 'id': 'close-btn'}]}
+    ]
+
+
+    var dialogTemplate = $('#dialog-template').html();
+    $(dialogs).each(function(i, context) {
+        var html = Mustache.render(dialogTemplate, context);
+        console.log(html);
+        $('body').append(html);
+    });
+
     $('body').on('click', 'a', function(event) {
         event.preventDefault();
 

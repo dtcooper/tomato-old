@@ -157,10 +157,6 @@ def run_cef_window(*js_api_list):
     logger.info('Initializing CEF window')
     conf = Config()
 
-    # TODO:
-    # - Windows specific stuff (WindowUtils, etc)
-    # - Context menu
-    # - Devtool disable/enable (not just context menu)
     sys.excepthook = cef.ExceptHook
 
     switches = {
@@ -230,12 +226,11 @@ def run_cef_window(*js_api_list):
                     info = MINMAXINFO.from_address(lparam)
                     info.ptMinTrackSize.x = constants.WINDOW_SIZE_MIN_WIDTH
                     info.ptMinTrackSize.y = constants.WINDOW_SIZE_MIN_HEIGHT
-                else:
-                    if msg == win32con.WM_DESTROY:
-                        # Fix hanging on close
-                        win32api.SetWindowLong(window_handle, win32con.GWL_WNDPROC, old_wnd_proc)
+                elif msg == win32con.WM_DESTROY:
+                    # Fix hanging on close
+                    win32api.SetWindowLong(window_handle, win32con.GWL_WNDPROC, old_wnd_proc)
 
-                    return win32gui.CallWindowProc(old_wnd_proc, hwnd, msg, wparam, lparam)
+                return win32gui.CallWindowProc(old_wnd_proc, hwnd, msg, wparam, lparam)
 
             # Minimum window size
             old_wnd_proc = win32gui.SetWindowLong(window_handle, win32con.GWL_WNDPROC,

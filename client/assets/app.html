@@ -7,6 +7,7 @@
   <link href="css/styles.css" rel="stylesheet">
 
   <script src="js/jquery-3.4.1.min.js"></script>
+  <script src="js/mustache-3.1.0.min.js"></script>
   <script src="js/base.js"></script>
   <script src="js/login.js"></script>
 </head>
@@ -99,86 +100,49 @@
 
   </div>
 
-  <!-- Login dialog -->
-  <dialog class="nes-dialog is-rounded" id="login-dialog">
-    <form method="dialog">
-      <p class="title">Please Login</p>
+  <script id="dialog-template" type="text/x-mustache">
+    <dialog class="nes-dialog is-rounded" id="{{id}}-dialog">
+      <form method="dialog">
+        <p class="title">{{title}}</p>
+        <p>
+          {{#body_html}}{{&body_html}}{{/body_html}}
+          {{#body}}<span class="nes-text is-error">{{body}}</span>{{/body}}
+        </p>
+        <menu class="dialog-menu right">
+          {{#buttons}}
+            <button class="nes-btn{{#class}} {{class}}{{/class}}"{{#id}} id="{{id}}"{{/id}}>{{text}}</button>
+          {{/buttons}}
+        </menu>
+      </form>
+    </dialog>
+  </script>
 
-      <div id="login-errors"></div>
+  <script id="login-template" type="text/x-mustache">
+    <div id="login-errors"></div>
 
-      <div class="nes-field is-inline">
-        <label for="hostname">Host:</label>
-        <input type="text" id="hostname" class="nes-input" placeholder="eg. tomato.host.com or 1.2.3.4">
-      </div>
-      <div class="center">
-        <label>
-          <input type="radio" class="nes-radio" name="protocol" value="https" checked>
-          <span>Secure (https)</span>
-        </label>
-        <label>
-          <input type="radio" class="nes-radio" name="protocol" value="http">
-          <span>Insecure (http)</span>
-        </label>
-      </div>
-      <div class="nes-field is-inline auth-field">
-        <label for="username">Username:</label>
-        <input type="text" id="username" class="nes-input" placeholder="Enter username">
-      </div>
-      <div class="nes-field is-inline auth-field">
-        <label for="password">Password:</label>
-        <input type="password" id="password" class="nes-input" placeholder="Enter password">
-      </div>
-      <menu class="dialog-menu right">
-        <button class="nes-btn is-success">Login</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <!-- External link dialog -->
-  <dialog class="nes-dialog is-rounded" id="link-dialog">
-    <form method="dialog">
-      <p class="title">Open Link</p>
-      <p>Open in external browser?
-        <br><span class="nes-text is-primary" id="link-description">#</span>
-      </p>
-      <menu class="dialog-menu right">
-        <button class="nes-btn is-error">Cancel</button>
-        <button class="nes-btn is-success" id="link-open-btn">Yes, open it!</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <!-- Logout dialog -->
-  <dialog class="nes-dialog is-rounded" id="logout-dialog">
-    <form method="dialog">
-      <p class="title">Logout</p>
-      <p>
-        <span class="nes-text is-error">
-          Are you sure you want to logout?
-        </span>
-      </p>
-      <menu class="dialog-menu right">
-        <button class="nes-btn">Cancel</button>
-        <button class="nes-btn is-error" id="confirm-logout-btn">Logout</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <!-- Quit dialog -->
-  <dialog class="nes-dialog is-rounded" id="close-dialog">
-    <form method="dialog">
-      <p class="title">Quit Tomato</p>
-      <p>
-        <span class="nes-text is-error">
-          Are you sure you want to quit Tomato?
-        </span>
-      </p>
-      <menu class="dialog-menu right">
-        <button class="nes-btn">Cancel</button>
-        <button class="nes-btn is-error" id="close-btn">Quit Tomato</button>
-      </menu>
-    </form>
-  </dialog>
+    <div class="nes-field is-inline">
+      <label for="hostname">Host:</label>
+      <input type="text" id="hostname" class="nes-input" placeholder="eg. tomato.host.com or 1.2.3.4">
+    </div>
+    <div class="center">
+      <label>
+        <input type="radio" class="nes-radio" name="protocol" value="https" checked>
+        <span>Secure (https)</span>
+      </label>
+      <label>
+        <input type="radio" class="nes-radio" name="protocol" value="http">
+        <span>Insecure (http)</span>
+      </label>
+    </div>
+    <div class="nes-field is-inline auth-field">
+      <label for="username">Username:</label>
+      <input type="text" id="username" class="nes-input" placeholder="Enter username">
+    </div>
+    <div class="nes-field is-inline auth-field">
+      <label for="password">Password:</label>
+      <input type="password" id="password" class="nes-input" placeholder="Enter password">
+    </div>
+  </script>
 
 </body>
 </html>

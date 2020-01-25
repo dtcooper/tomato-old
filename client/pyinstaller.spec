@@ -24,8 +24,7 @@ a = Analysis(
     datas=[
       ('assets', 'assets'),
       # Make sure migartions get included
-      (os.path.join('tomato', 'migrations'), os.path.join('tomato', 'migrations')),
-      (os.path.join('tomato', '__init__.py'), 'tomato'),
+      (os.path.join('tomato', 'migrations/*.py'), os.path.join('tomato', 'migrations')),
     ],
     win_private_assemblies=True,
     win_no_prefer_redirects=True,
