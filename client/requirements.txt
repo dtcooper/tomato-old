@@ -2,5 +2,4 @@ cefpython3
 Django
 pyinstaller
 pytz
-pywin32
 requests

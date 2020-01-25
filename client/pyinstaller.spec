@@ -6,6 +6,7 @@ This is a PyInstaller spec file.
 """
 
 import os
+import platform
 from PyInstaller.building.api import PYZ, EXE, COLLECT
 from PyInstaller.building.build_main import Analysis
 
@@ -44,12 +45,18 @@ exe = EXE(pyz,
           debug=DEBUG,
           strip=False,
           upx=False,
-          console=True)
+          console=False,
+          windowed=True)
 
-COLLECT(exe,
-        a.binaries,
-        a.zipfiles,
-        a.datas,
-        strip=False,
-        upx=False,
-        name="run")
+args = (exe, a.binaries, a.zipfiles, a.datas)
+kwargs = {'strip': False, 'upx': False, 'name': 'run'}
+cmd = COLLECT
+
+if platform.system() == 'Darwin':
+    from PyInstaller.building.osx import BUNDLE
+
+    cmd = BUNDLE
+    kwargs['name'] += '.app'
+    kwargs['info_plist'] = {'NSHighResolutionCapable': 'True'}
+
+cmd(*args, **kwargs)
