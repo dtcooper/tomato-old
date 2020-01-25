@@ -26,6 +26,7 @@ MEDIA_DIR = os.path.join(USER_DIR, 'media')
 MEDIA_URL = f'{urljoin("file:", pathname2url(MEDIA_DIR))}/'
 
 WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT = (900, 700)
+WINDOW_SIZE_MIN_WIDTH, WINDOW_SIZE_MIN_HEIGHT = (800, 600)
 
 API_ERROR_REQUESTS_TIMEOUT = 'Request timed out.'
 API_ERROR_REQUESTS_ERROR = 'Bad response from host.'

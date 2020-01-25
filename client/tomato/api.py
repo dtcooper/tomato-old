@@ -145,7 +145,7 @@ class ModelsAPI:
             return 0
 
     def test_load_assets(self):
-        return sorted(Asset.objects.values('name', 'audio'), key=lambda item: item['name'].lower())
+        return list(Asset.objects.values('name', 'audio').order_by('duration'))
 
     def _sync_log(self, time_period):
         # No sense wasting time doing DB aggregates if we're not in debug mode.

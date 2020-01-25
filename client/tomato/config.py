@@ -1,7 +1,7 @@
 import json
 import os
 
-from .constants import USER_DIR, WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT
+from .constants import USER_DIR
 
 
 class Config:
@@ -10,11 +10,9 @@ class Config:
     DEFAULTS = {
         'auth_token': None,
         'debug': bool(os.environ.get('TOMATO_DEBUG')),  # Manually override
-        'height': WINDOW_SIZE_DEFAULT_HEIGHT,
         'hostname': None,
         'last_sync': None,
         'protocol': 'https',
-        'width': WINDOW_SIZE_DEFAULT_WIDTH,
     }
 
     def __new__(cls, *args, **kwargs):

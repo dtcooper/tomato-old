@@ -37,8 +37,10 @@ class Client:
                                    'NAME': os.path.join(USER_DIR, 'db.sqlite3')}},
             DEBUG=False,
             INSTALLED_APPS=('tomato',),
+            LOGGING_CONFIG=None,
             MEDIA_ROOT=MEDIA_DIR,
             MEDIA_URL=MEDIA_URL,
+            USE_I18N=False,
             USE_TZ=True,
         )
         django.setup()

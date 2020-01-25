@@ -20,14 +20,15 @@ from .config import Config
 
 if constants.IS_WINDOWS:
     import ctypes
+    import win32api
+    import win32con
+    import win32gui
+
 if constants.IS_MACOS:
     import AppKit
 
 
-if hasattr(sys, 'frozen') and constants.IS_WINDOWS:
-    APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'app.html')
-else:
-    APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', 'assets', 'app.html')
+APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', 'assets', 'app.html')
 
 logger = logging.getLogger('tomato')
 
@@ -184,11 +185,13 @@ def run_cef_window(*js_api_list):
 
     max_width = max_height = float('inf')
     if constants.IS_WINDOWS:
-        max_width, max_height = map(ctypes.windll.user32.GetSystemMetrics, (16, 17))
+        max_width, max_height = map(win32api.GetSystemMetrics,
+                                    (win32con.SM_CXFULLSCREEN, win32con.SM_CYFULLSCREEN))
     elif constants.IS_MACOS:
         frame_size = AppKit.NSScreen.mainScreen().frame().size
         max_width, max_height = map(int, (frame_size.width, frame_size.height))
-    width, height = min(conf.width, max_width), min(conf.height, max_height)
+    width = min(constants.WINDOW_SIZE_DEFAULT_WIDTH, max_width)
+    height = min(constants.WINDOW_SIZE_DEFAULT_HEIGHT, max_height)
 
     try:
         cef.Initialize(switches=switches, settings=settings)
@@ -205,27 +208,46 @@ def run_cef_window(*js_api_list):
         )
 
         if constants.IS_WINDOWS:
-            # Maximize, based on
-            # https://github.com/cztomczak/cefpython/blob/master/examples/snippets/window_size.py
             window_handle = browser.GetOuterWindowHandle()
+            win32gui.SetWindowPos(window_handle, 0, (max_width - width) // 2,
+                                  (max_height - height) // 2, width, height, 0)
 
             # 5 pixel buffer for maximize
             if width >= (max_width - 5) and height >= (max_height - 5):
-                # Maximized with default minimize height
-                ctypes.windll.user32.SetWindowPos(window_handle, 0, 0, 0,
-                                                  constants.WINDOW_SIZE_DEFAULT_WIDTH,
-                                                  constants.WINDOW_SIZE_DEFAULT_HEIGHT, 0x0002)
-                ctypes.windll.user32.ShowWindow(window_handle, 3)
-            else:
-                ctypes.windll.user32.SetWindowPos(window_handle, 0, 0, 0, width, height, 0x0002)
+                win32gui.ShowWindow(window_handle, win32con.SW_SHOWMAXIMIZED)
 
-            #ctypes.windll.user32.SetWindowLongW(window_handle, GWL_WNDPROC, WndProcType(self.MyWndProc))
+            class MINMAXINFO(ctypes.Structure):
+                _fields_ = [
+                    ('ptReserved', ctypes.wintypes.POINT),
+                    ('ptMaxSize', ctypes.wintypes.POINT),
+                    ('ptMaxPosition', ctypes.wintypes.POINT),
+                    ('ptMinTrackSize', ctypes.wintypes.POINT),
+                    ('ptMaxTrackSize', ctypes.wintypes.POINT),
+                ]
+
+            def wnd_proc(hwnd, msg, wparam, lparam):
+                if msg == win32con.WM_GETMINMAXINFO:
+                    info = MINMAXINFO.from_address(lparam)
+                    info.ptMinTrackSize.x = constants.WINDOW_SIZE_MIN_WIDTH
+                    info.ptMinTrackSize.y = constants.WINDOW_SIZE_MIN_HEIGHT
+                else:
+                    if msg == win32con.WM_DESTROY:
+                        # Fix hanging on close
+                        win32api.SetWindowLong(window_handle, win32con.GWL_WNDPROC, old_wnd_proc)
+
+                    return win32gui.CallWindowProc(old_wnd_proc, hwnd, msg, wparam, lparam)
+
+            # Minimum window size
+            old_wnd_proc = win32gui.SetWindowLong(window_handle, win32con.GWL_WNDPROC,
+                                                  wnd_proc)
 
         mac_window = None
         if constants.IS_MACOS:
             # Start on top and centered
             AppKit.NSApp.activateIgnoringOtherApps_(True)
             mac_window = AppKit.NSApp.windows()[0]
+            mac_window.setMinSize_(AppKit.NSSize(constants.WINDOW_SIZE_MIN_WIDTH,
+                                                 constants.WINDOW_SIZE_MIN_HEIGHT))
             mac_window.center()
 
         client_handler = ClientHandler()
@@ -241,7 +263,6 @@ def run_cef_window(*js_api_list):
         js_bindings.SetObject('_cefInternal', js_bridge)
         browser.SetJavascriptBindings(js_bindings)
 
-        # TODO: if hasattr(sys, 'frozen') for built
         browser.LoadUrl(urljoin('file:', pathname2url(os.path.realpath(APP_HTML_PATH))))
 
         cef.MessageLoop()

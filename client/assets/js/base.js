@@ -78,15 +78,4 @@ afterLoad(function() {
         isClosing = true;
         cef.internal.close_browser();
     });
-
-    var resizeTimer;
-    $(window).resize(function() {
-      if (!isClosing) {  // Avoid a segfault on Mac when closing in fullscreen mode
-          clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(function() {
-            cef.conf.update({'width': window.outerWidth,
-                             'height': window.outerHeight});
-          }, 500);
-        }
-    });
 });
