@@ -10,3 +10,5 @@
       [`PyInstaller:MERGE(...)` being broken](https://pyinstaller.readthedocs.io/en/latest/spec-files.html#multipackage-bundles).)
 - [ ] Build Windows with high res manifest file:
       [link](https://github.com/cztomczak/cefpython/issues/530#issuecomment-505066492)
+- [ ] Make sure server has the same DB migration version as client via the ping
+      and/or auth endpoints.
