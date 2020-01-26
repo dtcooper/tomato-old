@@ -74,10 +74,15 @@ class JSBridge:
         self.client_handler = client_handler
         self.js_apis = {}  # namespace -> (api, call_queue)
         self._mac_window = _mac_window
+        self.threads = []
 
         for js_api in js_api_list:
-            self.js_apis[js_api.namespace] = args = (js_api, queue.Queue())
-            threading.Thread(target=self._run_call_thread, args=args).start()
+            namespace = js_api.namespace
+            self.js_apis[namespace] = args = (js_api, queue.Queue())
+            thread = threading.Thread(name=f'{namespace}', target=self._run_call_thread, args=args)
+            thread.daemon = True  # Thread won't block program from exiting
+            thread.start()
+            self.threads.append(thread)
 
     def call(self, namespace, method, resolve, reject, args):
         _, call_queue = self.js_apis[namespace]
@@ -86,6 +91,11 @@ class JSBridge:
     def _shutdown(self):
         for _, call_queue in self.js_apis.values():
             call_queue.put(None)
+
+        for thread in self.threads:
+            thread.join(1.5)  # Wait a half 1.5 seconds for daemon thread to terminate cleanly
+            if thread.is_alive():
+                logger.info(f"JSBridge call thread didn't exit cleanly ({thread.name})")
 
     @staticmethod
     def _run_call_thread(js_api, queue):
