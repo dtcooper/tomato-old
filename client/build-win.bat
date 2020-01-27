@@ -4,8 +4,7 @@ pyinstaller ^
         --additional-hooks-dir . ^
         --clean ^
         --noconfirm ^
-        --upx-exclude msvcp140.dll ^
-        --upx-exclude vcruntime140.dll ^
+        --noupx ^
         --win-no-prefer-redirects ^
         --win-private-assemblies ^
     run.py

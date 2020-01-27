@@ -40,7 +40,7 @@ class ClientHandler:
         self._should_close = False
 
     def OnConsoleMessage(self, browser, level, message, source, line):
-        logger.info(f'{source}:{line}:console.log(...) - {message}')
+        logger.info(f'{source}:{line}:console.log() - {message}')
         return False
 
     def OnBeforePopup(self, target_url, **kwargs):
