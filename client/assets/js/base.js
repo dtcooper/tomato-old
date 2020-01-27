@@ -1,5 +1,5 @@
 var cef = {
-    'internal': _cefInternal,
+    'bridge': _jsBridge,
     'constants': {},
     'close': function() {
         showModal('close-dialog');
@@ -102,6 +102,6 @@ afterLoad(function() {
     $('#close-btn').click(function(event) {
         event.preventDefault();
         isClosing = true;
-        cef.internal.close_browser();
+        cef.bridge.close_browser();
     });
 });

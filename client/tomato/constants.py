@@ -14,6 +14,7 @@ class APIException(Exception):
 
 IS_WINDOWS = platform.system() == 'Windows'
 IS_MACOS = platform.system() == 'Darwin'
+IS_LINUX = platform.system() == 'Linux'
 
 USER_DIR = os.path.join(os.path.expanduser('~'), '.tomato')
 if IS_WINDOWS:

@@ -27,6 +27,10 @@ if constants.IS_WINDOWS:
 if constants.IS_MACOS:
     import AppKit
 
+if constants.IS_LINUX:
+    import Xlib.display
+    import Xlib.Xutil
+
 
 APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', 'assets', 'app.html')
 
@@ -50,10 +54,10 @@ class ClientHandler:
     def OnLoadStart(self, browser, **kwargs):
         browser.ExecuteJavascript('''
             if (document.readyState === 'complete') {
-                cef.internal.dom_loaded();
+                cef.bridge.dom_loaded();
             } else {
                 document.addEventListener('DOMContentLoaded', function() {
-                    cef.internal.dom_loaded();
+                    cef.bridge.dom_loaded();
                 });
             }
         ''')
@@ -139,7 +143,7 @@ class JSBridge:
                         cef.{namespace}.{method} = function() {{
                             var args = Array.from(arguments);
                             return new Promise(function(resolve, reject) {{
-                                cef.internal.call('{namespace}', '{method}', resolve, reject, args);
+                                cef.bridge.call('{namespace}', '{method}', resolve, reject, args);
                             }});
                         }}
                     ''')
@@ -231,20 +235,21 @@ def run_cef_window(*js_api_list):
                     ('ptMaxTrackSize', ctypes.wintypes.POINT),
                 ]
 
-            def wnd_proc(hwnd, msg, wparam, lparam):
+            def window_procedure(hwnd, msg, wparam, lparam):
                 if msg == win32con.WM_GETMINMAXINFO:
                     info = MINMAXINFO.from_address(lparam)
                     info.ptMinTrackSize.x = constants.WINDOW_SIZE_MIN_WIDTH
                     info.ptMinTrackSize.y = constants.WINDOW_SIZE_MIN_HEIGHT
+
                 elif msg == win32con.WM_DESTROY:
                     # Fix hanging on close
-                    win32api.SetWindowLong(window_handle, win32con.GWL_WNDPROC, old_wnd_proc)
+                    win32api.SetWindowLong(window_handle, win32con.GWL_WNDPROC, old_window_procedure)
 
-                return win32gui.CallWindowProc(old_wnd_proc, hwnd, msg, wparam, lparam)
+                return win32gui.CallWindowProc(old_window_procedure, hwnd, msg, wparam, lparam)
 
             # Minimum window size
-            old_wnd_proc = win32gui.SetWindowLong(window_handle, win32con.GWL_WNDPROC,
-                                                  wnd_proc)
+            old_window_procedure = win32gui.SetWindowLong(window_handle, win32con.GWL_WNDPROC,
+                                                          window_procedure)
 
         mac_window = None
         if constants.IS_MACOS:
@@ -254,6 +259,16 @@ def run_cef_window(*js_api_list):
             mac_window.setMinSize_(AppKit.NSSize(constants.WINDOW_SIZE_MIN_WIDTH,
                                                  constants.WINDOW_SIZE_MIN_HEIGHT))
             mac_window.center()
+
+        if constants.IS_LINUX:
+            display = Xlib.display.Display()
+            window_handle = browser.GetOuterWindowHandle()
+            window = display.create_resource_object('window', window_handle)
+            window.set_wm_normal_hints(flags=Xlib.Xutil.PMinSize,
+                                       min_width=constants.WINDOW_SIZE_MIN_WIDTH,
+                                       min_height=constants.WINDOW_SIZE_MIN_HEIGHT)
+            display.sync()
+            display.close()
 
         client_handler = ClientHandler()
         browser.SetClientHandler(client_handler)
@@ -265,7 +280,7 @@ def run_cef_window(*js_api_list):
             js_api_list=js_api_list,
             _mac_window=mac_window,
         )
-        js_bindings.SetObject('_cefInternal', js_bridge)
+        js_bindings.SetObject('_jsBridge', js_bridge)
         browser.SetJavascriptBindings(js_bindings)
 
         browser.LoadUrl(urljoin('file:', pathname2url(os.path.realpath(APP_HTML_PATH))))
