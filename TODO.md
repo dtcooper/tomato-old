@@ -1,5 +1,6 @@
 # TODO List
 
+- [x] Minimum window dimensions and full screen on all three platforms.
 - [ ] Prevent hibernation, ie using `caffeinate` cmd on macOS and on Windows,
       `SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED)`
 - [ ] Implement `STRIP_UPLOADED_AUDIO`.

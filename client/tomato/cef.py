@@ -30,6 +30,7 @@ if constants.IS_MACOS:
 if constants.IS_LINUX:
     import Xlib.display
     import Xlib.Xutil
+    import ewmh
 
 
 APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', 'assets', 'app.html')
@@ -73,12 +74,17 @@ class ClientHandler:
 
 
 class JSBridge:
-    def __init__(self, browser, client_handler, js_api_list, _mac_window=None):
+    def __init__(self, browser, client_handler, js_api_list, _mac_window=None,
+                 _linux_display=None, _linux_window=None):
         self.browser = browser
         self.client_handler = client_handler
         self.js_apis = {}  # namespace -> (api, call_queue)
         self._mac_window = _mac_window
         self.threads = []
+
+        if _linux_display:
+            self._linux_window = _linux_window
+            self._ewmh = ewmh.EWMH(_display=_linux_display)
 
         for js_api in js_api_list:
             namespace = js_api.namespace
@@ -160,11 +166,15 @@ class JSBridge:
         if constants.IS_WINDOWS:
             self.browser.ToggleFullscreen()
 
-        if constants.IS_MACOS:
+        elif constants.IS_MACOS:
             # Need to figure out 1<<7 ?
             # https://github.com/r0x0r/pywebview/blob/master/webview/platforms/cocoa.py
             self._mac_window.setCollectionBehavior_(1 << 7)
             self._mac_window.toggleFullScreen_(None)
+
+        elif constants.IS_LINUX:
+            self._ewmh.setWmState(self._linux_window, 2, '_NET_WM_STATE_FULLSCREEN')
+            self._ewmh.display.flush()
 
 
 def run_cef_window(*js_api_list):
@@ -217,6 +227,7 @@ def run_cef_window(*js_api_list):
             window_info=window_info,
         )
 
+        linux_display = linux_window = mac_window = None
         if constants.IS_WINDOWS:
             window_handle = browser.GetOuterWindowHandle()
             win32gui.SetWindowPos(window_handle, 0, (max_width - width) // 2,
@@ -251,8 +262,7 @@ def run_cef_window(*js_api_list):
             old_window_procedure = win32gui.SetWindowLong(window_handle, win32con.GWL_WNDPROC,
                                                           window_procedure)
 
-        mac_window = None
-        if constants.IS_MACOS:
+        elif constants.IS_MACOS:
             # Start on top and centered
             AppKit.NSApp.activateIgnoringOtherApps_(True)
             mac_window = AppKit.NSApp.windows()[0]
@@ -260,15 +270,14 @@ def run_cef_window(*js_api_list):
                                                  constants.WINDOW_SIZE_MIN_HEIGHT))
             mac_window.center()
 
-        if constants.IS_LINUX:
-            display = Xlib.display.Display()
+        elif constants.IS_LINUX:
+            linux_display = Xlib.display.Display()
             window_handle = browser.GetOuterWindowHandle()
-            window = display.create_resource_object('window', window_handle)
-            window.set_wm_normal_hints(flags=Xlib.Xutil.PMinSize,
-                                       min_width=constants.WINDOW_SIZE_MIN_WIDTH,
-                                       min_height=constants.WINDOW_SIZE_MIN_HEIGHT)
-            display.sync()
-            display.close()
+            linux_window = linux_display.create_resource_object('window', window_handle)
+            linux_window.set_wm_normal_hints(flags=Xlib.Xutil.PMinSize,
+                                             min_width=constants.WINDOW_SIZE_MIN_WIDTH,
+                                             min_height=constants.WINDOW_SIZE_MIN_HEIGHT)
+            linux_display.sync()
 
         client_handler = ClientHandler()
         browser.SetClientHandler(client_handler)
@@ -279,6 +288,8 @@ def run_cef_window(*js_api_list):
             client_handler=client_handler,
             js_api_list=js_api_list,
             _mac_window=mac_window,
+            _linux_display=linux_display,
+            _linux_window=linux_window,
         )
         js_bindings.SetObject('_jsBridge', js_bridge)
         browser.SetJavascriptBindings(js_bindings)

@@ -77,7 +77,6 @@ afterLoad(function() {
     var dialogTemplate = $('#dialog-template').html();
     $(dialogs).each(function(i, context) {
         var html = Mustache.render(dialogTemplate, context);
-        console.log(html);
         $('body').append(html);
     });
 
