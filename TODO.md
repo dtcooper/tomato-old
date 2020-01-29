@@ -15,3 +15,5 @@
       [example here.](https://pyinstaller.readthedocs.io/en/stable/spec-files.html#spec-file-options-for-a-mac-os-x-bundle)
 - [ ] Make sure server has the same DB migration version as client via the ping
       and/or auth endpoints.
+- [ ] For linux PyInstaller example, need to move files to `dist/cefpython3` folder
+      _or_ configure cefpython.Initialize(...) to use appropriate path settings.
