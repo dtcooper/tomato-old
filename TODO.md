@@ -17,3 +17,4 @@
       and/or auth endpoints.
 - [ ] For linux PyInstaller example, need to move files to `dist/cefpython3` folder
       _or_ configure cefpython.Initialize(...) to use appropriate path settings.
+      Can comment on bug [here](https://github.com/cztomczak/cefpython/issues/135).
