@@ -66,6 +66,8 @@ class ClientHandler:
     def DoClose(self, browser):
         if self._should_close or not self._dom_loaded or self._conf.debug:
             if constants.IS_MACOS:
+                # macOS doesn't quit message loop when the window closes, so app
+                # remains in dock for no good reason. So we quit it manually.
                 cef.QuitMessageLoop()
             return False
         else:
@@ -75,16 +77,16 @@ class ClientHandler:
 
 class JSBridge:
     def __init__(self, browser, client_handler, js_api_list, _mac_window=None,
-                 _linux_display=None, _linux_window=None):
+                 _linux_ewmh=None, _linux_window=None):
         self.browser = browser
         self.client_handler = client_handler
         self.js_apis = {}  # namespace -> (api, call_queue)
         self._mac_window = _mac_window
         self.threads = []
 
-        if _linux_display:
+        if _linux_window and _linux_ewmh:
             self._linux_window = _linux_window
-            self._ewmh = ewmh.EWMH(_display=_linux_display)
+            self._linux_ewmh = _linux_ewmh
 
         for js_api in js_api_list:
             namespace = js_api.namespace
@@ -173,8 +175,8 @@ class JSBridge:
             self._mac_window.toggleFullScreen_(None)
 
         elif constants.IS_LINUX:
-            self._ewmh.setWmState(self._linux_window, 2, '_NET_WM_STATE_FULLSCREEN')
-            self._ewmh.display.flush()
+            self._linux_ewmh.setWmState(self._linux_window, 2, '_NET_WM_STATE_FULLSCREEN')
+            self._linux_ewmh.display.flush()
 
 
 def run_cef_window(*js_api_list):
@@ -204,14 +206,22 @@ def run_cef_window(*js_api_list):
         })
 
     max_width = max_height = float('inf')
+    linux_ewmh = linux_window = mac_window = None
     if constants.IS_WINDOWS:
         max_width, max_height = map(win32api.GetSystemMetrics,
                                     (win32con.SM_CXFULLSCREEN, win32con.SM_CYFULLSCREEN))
     elif constants.IS_MACOS:
         frame_size = AppKit.NSScreen.mainScreen().frame().size
         max_width, max_height = map(int, (frame_size.width, frame_size.height))
+    elif constants.IS_LINUX:
+        linux_ewmh = ewmh.EWMH()
+        desktop = linux_ewmh.getCurrentDesktop()
+        max_width, max_height = linux_ewmh.getWorkArea()[4 * desktop + 2:4 * (desktop + 1)]
+
     width = min(constants.WINDOW_SIZE_DEFAULT_WIDTH, max_width)
     height = min(constants.WINDOW_SIZE_DEFAULT_HEIGHT, max_height)
+    # 10 pixel buffer for maximizing window
+    should_maximize = width >= (max_width - 10) or height >= (max_height - 10)
 
     try:
         cef.Initialize(switches=switches, settings=settings)
@@ -227,14 +237,13 @@ def run_cef_window(*js_api_list):
             window_info=window_info,
         )
 
-        linux_display = linux_window = mac_window = None
         if constants.IS_WINDOWS:
             window_handle = browser.GetOuterWindowHandle()
             win32gui.SetWindowPos(window_handle, 0, (max_width - width) // 2,
                                   (max_height - height) // 2, width, height, 0)
 
             # 5 pixel buffer for maximize
-            if width >= (max_width - 5) and height >= (max_height - 5):
+            if should_maximize:
                 win32gui.ShowWindow(window_handle, win32con.SW_SHOWMAXIMIZED)
 
             class MINMAXINFO(ctypes.Structure):
@@ -271,13 +280,18 @@ def run_cef_window(*js_api_list):
             mac_window.center()
 
         elif constants.IS_LINUX:
-            linux_display = Xlib.display.Display()
             window_handle = browser.GetOuterWindowHandle()
-            linux_window = linux_display.create_resource_object('window', window_handle)
+            linux_window = linux_ewmh.display.create_resource_object('window', window_handle)
             linux_window.set_wm_normal_hints(flags=Xlib.Xutil.PMinSize,
                                              min_width=constants.WINDOW_SIZE_MIN_WIDTH,
                                              min_height=constants.WINDOW_SIZE_MIN_HEIGHT)
-            linux_display.sync()
+            linux_ewmh.display.sync()
+
+            # 5 pixel buffer for maximize
+            if should_maximize:
+                linux_ewmh.setWmState(linux_window, 2, '_NET_WM_STATE_MAXIMIZED_VERT',
+                                      '_NET_WM_STATE_MAXIMIZED_HORZ')
+                linux_ewmh.display.flush()
 
         client_handler = ClientHandler()
         browser.SetClientHandler(client_handler)
@@ -288,7 +302,7 @@ def run_cef_window(*js_api_list):
             client_handler=client_handler,
             js_api_list=js_api_list,
             _mac_window=mac_window,
-            _linux_display=linux_display,
+            _linux_ewmh=linux_ewmh,
             _linux_window=linux_window,
         )
         js_bindings.SetObject('_jsBridge', js_bridge)
