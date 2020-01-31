@@ -30,6 +30,13 @@ CEFPYTHON3_DIR = get_package_paths("cefpython3")[1]
 
 CYTHON_MODULE_EXT = ".pyd" if is_win else ".so"
 
+if is_win or is_darwin:
+    CEFDATADIR = "."
+elif is_linux:
+    CEFDATADIR = "cefpython3"
+else:
+    assert False, "Unsupported system {}".format(platform.system())
+
 # Globals
 logger = logging.getLogger(__name__)
 
@@ -119,13 +126,6 @@ def get_cefpython3_datas():
     """
     ret = list()
 
-    if is_win:
-        cefdatadir = "."
-    elif is_darwin or is_linux:
-        cefdatadir = "."
-    else:
-        assert False, "Unsupported system {}".format(platform.system())
-
     # Binaries, licenses and readmes in the cefpython3/ directory
     for filename in os.listdir(CEFPYTHON3_DIR):
         # Ignore Cython modules which are already handled by
@@ -139,7 +139,7 @@ def get_cefpython3_datas():
             [".exe", ".dll", ".pak", ".dat", ".bin", ".txt", ".so", ".plist"] \
                 or filename.lower().startswith("license"):
             logger.info("Include cefpython3 data: {}".format(filename))
-            ret.append((os.path.join(CEFPYTHON3_DIR, filename), cefdatadir))
+            ret.append((os.path.join(CEFPYTHON3_DIR, filename), CEFDATADIR))
 
     if is_darwin:
         # "Chromium Embedded Framework.framework/Resources" with subdirectories
@@ -165,7 +165,7 @@ def get_cefpython3_datas():
             logger.info("Include cefpython3 data: {}/{}".format(
                 os.path.basename(locales_dir), filename))
             ret.append((os.path.join(locales_dir, filename),
-                        os.path.join(cefdatadir, "locales")))
+                        os.path.join(CEFDATADIR, "locales")))
 
         # Optional .so/.dll files in cefpython3/swiftshader/ directory
         swiftshader_dir = os.path.join(CEFPYTHON3_DIR, "swiftshader")
@@ -174,7 +174,7 @@ def get_cefpython3_datas():
                 logger.info("Include cefpython3 data: {}/{}".format(
                     os.path.basename(swiftshader_dir), filename))
                 ret.append((os.path.join(swiftshader_dir, filename),
-                            os.path.join(cefdatadir, "swiftshader")))
+                            os.path.join(CEFDATADIR, "swiftshader")))
     return ret
 
 
@@ -223,9 +223,9 @@ excludedimports = get_excluded_cefpython_modules()
 
 # Include binaries requiring to collect its dependencies
 if is_darwin or is_linux:
-    binaries = [(os.path.join(CEFPYTHON3_DIR, "subprocess"), ".")]
+    binaries = [(os.path.join(CEFPYTHON3_DIR, "subprocess"), CEFDATADIR)]
 elif is_win:
-    binaries = [(os.path.join(CEFPYTHON3_DIR, "subprocess.exe"), ".")]
+    binaries = [(os.path.join(CEFPYTHON3_DIR, "subprocess.exe"), CEFDATADIR)]
 else:
     binaries = []
 

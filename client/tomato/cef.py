@@ -76,17 +76,14 @@ class ClientHandler:
 
 
 class JSBridge:
-    def __init__(self, browser, client_handler, js_api_list, _mac_window=None,
-                 _linux_ewmh=None, _linux_window=None):
+    def __init__(self, browser, client_handler, js_api_list, _window=None, _linux_ewmh=None):
         self.browser = browser
         self.client_handler = client_handler
         self.js_apis = {}  # namespace -> (api, call_queue)
-        self._mac_window = _mac_window
         self.threads = []
 
-        if _linux_window and _linux_ewmh:
-            self._linux_window = _linux_window
-            self._linux_ewmh = _linux_ewmh
+        self._window = _window
+        self._linux_ewmh = _linux_ewmh
 
         for js_api in js_api_list:
             namespace = js_api.namespace
@@ -171,11 +168,11 @@ class JSBridge:
         elif constants.IS_MACOS:
             # Need to figure out 1<<7 ?
             # https://github.com/r0x0r/pywebview/blob/master/webview/platforms/cocoa.py
-            self._mac_window.setCollectionBehavior_(1 << 7)
-            self._mac_window.toggleFullScreen_(None)
+            self._window.setCollectionBehavior_(1 << 7)
+            self._window.toggleFullScreen_(None)
 
         elif constants.IS_LINUX:
-            self._linux_ewmh.setWmState(self._linux_window, 2, '_NET_WM_STATE_FULLSCREEN')
+            self._linux_ewmh.setWmState(self._window, 2, '_NET_WM_STATE_FULLSCREEN')
             self._linux_ewmh.display.flush()
 
 
@@ -206,7 +203,7 @@ def run_cef_window(*js_api_list):
         })
 
     max_width = max_height = float('inf')
-    linux_ewmh = linux_window = mac_window = None
+    window = linux_ewmh = None
     if constants.IS_WINDOWS:
         max_width, max_height = map(win32api.GetSystemMetrics,
                                     (win32con.SM_CXFULLSCREEN, win32con.SM_CYFULLSCREEN))
@@ -274,22 +271,22 @@ def run_cef_window(*js_api_list):
         elif constants.IS_MACOS:
             # Start on top and centered
             AppKit.NSApp.activateIgnoringOtherApps_(True)
-            mac_window = AppKit.NSApp.windows()[0]
-            mac_window.setMinSize_(AppKit.NSSize(constants.WINDOW_SIZE_MIN_WIDTH,
-                                                 constants.WINDOW_SIZE_MIN_HEIGHT))
-            mac_window.center()
+            window = AppKit.NSApp.windows()[0]
+            window.setMinSize_(AppKit.NSSize(constants.WINDOW_SIZE_MIN_WIDTH,
+                                             constants.WINDOW_SIZE_MIN_HEIGHT))
+            window.center()
 
         elif constants.IS_LINUX:
             window_handle = browser.GetOuterWindowHandle()
-            linux_window = linux_ewmh.display.create_resource_object('window', window_handle)
-            linux_window.set_wm_normal_hints(flags=Xlib.Xutil.PMinSize,
-                                             min_width=constants.WINDOW_SIZE_MIN_WIDTH,
-                                             min_height=constants.WINDOW_SIZE_MIN_HEIGHT)
+            window = linux_ewmh.display.create_resource_object('window', window_handle)
+            window.set_wm_normal_hints(flags=Xlib.Xutil.PMinSize,
+                                       min_width=constants.WINDOW_SIZE_MIN_WIDTH,
+                                       min_height=constants.WINDOW_SIZE_MIN_HEIGHT)
             linux_ewmh.display.sync()
 
             # 5 pixel buffer for maximize
             if should_maximize:
-                linux_ewmh.setWmState(linux_window, 2, '_NET_WM_STATE_MAXIMIZED_VERT',
+                linux_ewmh.setWmState(window, 2, '_NET_WM_STATE_MAXIMIZED_VERT',
                                       '_NET_WM_STATE_MAXIMIZED_HORZ')
                 linux_ewmh.display.flush()
 
@@ -301,9 +298,8 @@ def run_cef_window(*js_api_list):
             browser=browser,
             client_handler=client_handler,
             js_api_list=js_api_list,
-            _mac_window=mac_window,
+            _window=window,
             _linux_ewmh=linux_ewmh,
-            _linux_window=linux_window,
         )
         js_bindings.SetObject('_jsBridge', js_bridge)
         browser.SetJavascriptBindings(js_bindings)

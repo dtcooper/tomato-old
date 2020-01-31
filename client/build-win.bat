@@ -1,3 +1,5 @@
+rd /s /q build dist
+
 pyinstaller ^
         --add-data assets;assets ^
         --add-data tomato\migrations\*.py;tomato\migrations ^
