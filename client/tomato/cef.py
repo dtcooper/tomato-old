@@ -219,6 +219,7 @@ def run_cef_window(*js_api_list):
     height = min(constants.WINDOW_SIZE_DEFAULT_HEIGHT, max_height)
     # 10 pixel buffer for maximizing window
     should_maximize = width >= (max_width - 10) or height >= (max_height - 10)
+    logger.info(f'Max screen dimensions: {max_width}x{max_height}, will maximize: {should_maximize}')
 
     try:
         cef.Initialize(switches=switches, settings=settings)
