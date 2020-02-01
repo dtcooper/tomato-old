@@ -77,6 +77,7 @@ class ClientHandler:
 
 class JSBridge:
     def __init__(self, browser, client_handler, js_api_list, _window=None, _linux_ewmh=None):
+        self.conf = Config()
         self.browser = browser
         self.client_handler = client_handler
         self.js_apis = {}  # namespace -> (api, call_queue)
@@ -161,6 +162,13 @@ class JSBridge:
         self.browser.SendFocusEvent(True)
         self.browser.TryCloseBrowser()
 
+    def windows_resize(self):
+        rect = win32gui.GetWindowRect(self._window)
+        width = rect[2] - rect[0]
+        height = rect[3] - rect[1]
+        logger.info(f'Got Windows resize event: {width}x{height}')
+        self.conf.update(width=width, height=height)
+
     def toggle_fullscreen(self):
         if constants.IS_WINDOWS:
             self.browser.ToggleFullscreen()
@@ -210,16 +218,18 @@ def run_cef_window(*js_api_list):
     elif constants.IS_MACOS:
         frame_size = AppKit.NSScreen.mainScreen().frame().size
         max_width, max_height = map(int, (frame_size.width, frame_size.height))
+
     elif constants.IS_LINUX:
         linux_ewmh = ewmh.EWMH()
         desktop = linux_ewmh.getCurrentDesktop()
         max_width, max_height = linux_ewmh.getWorkArea()[4 * desktop + 2:4 * (desktop + 1)]
 
-    width = min(constants.WINDOW_SIZE_DEFAULT_WIDTH, max_width)
-    height = min(constants.WINDOW_SIZE_DEFAULT_HEIGHT, max_height)
-    # 10 pixel buffer for maximizing window
-    should_maximize = width >= (max_width - 10) or height >= (max_height - 10)
-    logger.info(f'Max screen dimensions: {max_width}x{max_height}, will maximize: {should_maximize}')
+    width = min(conf.width, max_width)
+    height = min(conf.height, max_height)
+    # 15 pixel buffer between max screen dimension, for maximizing window
+    should_maximize = width >= (max_width - 15) or height >= (max_height - 15)
+    logger.info(f'Dimensions: {width}x{height} [{max_width}x{max_height} max], '
+                f'will maximize: {should_maximize}')
 
     try:
         cef.Initialize(switches=switches, settings=settings)
@@ -236,13 +246,13 @@ def run_cef_window(*js_api_list):
         )
 
         if constants.IS_WINDOWS:
-            window_handle = browser.GetOuterWindowHandle()
-            win32gui.SetWindowPos(window_handle, 0, (max_width - width) // 2,
+            window = browser.GetOuterWindowHandle()
+            win32gui.SetWindowPos(window, 0, (max_width - width) // 2,
                                   (max_height - height) // 2, width, height, 0)
 
             # 5 pixel buffer for maximize
             if should_maximize:
-                win32gui.ShowWindow(window_handle, win32con.SW_SHOWMAXIMIZED)
+                win32gui.ShowWindow(window, win32con.SW_SHOWMAXIMIZED)
 
             class MINMAXINFO(ctypes.Structure):
                 _fields_ = [
@@ -261,12 +271,12 @@ def run_cef_window(*js_api_list):
 
                 elif msg == win32con.WM_DESTROY:
                     # Fix hanging on close
-                    win32api.SetWindowLong(window_handle, win32con.GWL_WNDPROC, old_window_procedure)
+                    win32api.SetWindowLong(window, win32con.GWL_WNDPROC, old_window_procedure)
 
                 return win32gui.CallWindowProc(old_window_procedure, hwnd, msg, wparam, lparam)
 
             # Minimum window size
-            old_window_procedure = win32gui.SetWindowLong(window_handle, win32con.GWL_WNDPROC,
+            old_window_procedure = win32gui.SetWindowLong(window, win32con.GWL_WNDPROC,
                                                           window_procedure)
 
         elif constants.IS_MACOS:

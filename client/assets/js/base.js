@@ -103,4 +103,24 @@ afterLoad(function() {
         isClosing = true;
         cef.bridge.close_browser();
     });
+
+    var resizeTimer;
+    $(window).resize(function() {
+        if (!isClosing) {  // Avoid a segfault on Mac when closing in fullscreen mode
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                if (cef.constants.IS_WINDOWS) {
+                    // Windows is funky with resizing and how it computes its window
+                    // sizes, so we use win32gui in the backend rather window.innerWidth
+                    // and window.innerHeight values.
+                    cef.bridge.windows_resize();
+                } else {
+                    cef.conf.update({
+                        'width': window.innerWidth,
+                        'height': window.innerHeight
+                    });
+                }
+            }, 500);
+        }
+    });
 });
