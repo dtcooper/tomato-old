@@ -1,19 +1,19 @@
 /* Variables */
 
 :root {
-    --header-font-size: 3rem;
-    --footer-font-size: 0.7rem;
+    --header-font-size: 2.7rem;
+    --footer-font-size: 0.6rem;
     --max-width: 1400px;
 }
 
 /* Fonts */
 @font-face {
-    font-family: 'Retro Gaming';
+    font-family: 'Tomato Text';
     src: url('../fonts/text.ttf') format('truetype');
 }
 
 @font-face {
-    font-family: 'Vermin Vibes 1989';
+    font-family: 'Tomato Header';
     src: url('../fonts/title.otf') format('opentype');
 }
 
@@ -30,7 +30,7 @@ html, body {
 }
 
 html, body, pre, code, kbd, samp {
-    font-family: 'Retro Gaming';
+    font-family: 'Tomato Text';
 }
 
 * {
@@ -159,7 +159,7 @@ header {
     all: initial;
     display: inline-block;
     padding: 8px;
-    font-family: 'Retro Gaming';
+    font-family: 'Tomato Text';
     content: attr(data-content);
     color: #f9f9f9;
     border: 3px solid #1a1a1a;
@@ -195,7 +195,7 @@ dialog {
 /* Header / Footer styles */
 
 header h1 {
-    font-family: 'Vermin Vibes 1989';
+    font-family: 'Tomato Header';
     font-size: var(--header-font-size);
     line-height: var(--header-font-size);
     color: #f30000;
