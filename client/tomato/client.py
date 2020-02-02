@@ -6,7 +6,7 @@ import django
 from django.conf import settings
 from django.core.management import call_command
 
-from .cef import run_cef_window
+from .cef import CefWindow
 from .config import Config
 from .constants import MEDIA_DIR, MEDIA_URL, USER_DIR
 
@@ -54,4 +54,5 @@ class Client:
         # Make sure Django is configured before importing so model import doesn't blow up
         from .api import AuthAPI, ConfigAPI, ModelsAPI
 
-        run_cef_window(AuthAPI(), ConfigAPI(), ModelsAPI())
+        cef_window = CefWindow(AuthAPI(), ConfigAPI(), ModelsAPI())
+        cef_window.run()
