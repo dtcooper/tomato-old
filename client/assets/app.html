@@ -26,6 +26,8 @@
         <div>
           <div class="nes-container is-rounded">
             <p>
+              <button class="nes-btn is-success" onclick="sync();">Sync</button>
+              <button class="nes-btn" onclick="loadBlock();">Load Block</button>
               <button class="nes-btn is-primary" onclick="cef.bridge.toggle_fullscreen();">Toggle Fullscreen</button>
               <button class="nes-btn is-warning" onclick="showModal('logout-dialog');">Logout</button>
               <button class="nes-btn is-error" onclick="showModal('close-dialog');">Quit</button>
@@ -48,44 +50,46 @@
     <section>
       <div class="nes-container with-title">
         <p class="title">Now Playing</p>
-        <div class="progress-text" data-text="hi mom">
-          <progress class="nes-progress is-primary" value="50" max="100" data-text-fill="test content test content test content"></progress>
-        </div>
+
+        <progress class="nes-progress is-primary" value="50" max="100" data-text-fill="test content test content test content test content test content test content test content test content test content"></progress>
       </div>
     </section>
 
-    <main style="display: flex; align-items: stretch; height: 100%;">
-      <div class="nes-container with-title" style="display: flex; align-items: stretch; flex-direction: column; padding-right: 0.25rem; width: 100vw;">
-        <p class="title" style="align-self: flex-start;">Main Content</p>
-        <div style="display: flex; align-items: stretch;">
-          <div style="overflow-y: auto; padding-right: 1.75rem;">
-            <p>
-              <button class="nes-btn is-warning" onclick="sync()">Test Sync</button>
-              <button class="nes-btn is-warning" onclick="assetLoadTest()">Load Assets Test</button>
-            </p>
-            <div id="asset-list"></div>
-            <p>
-              <script>
-                // XXX Write out some number of lorems
-                var numWords = Math.floor(Math.random() * 1500);
-                var loremWords = [
-                  'Lorem', 'ipsum', 'dolor', 'sit', 'amet,', 'consectetur', 'adipisicing', 'elit,',
-                  'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
-                  'magna', 'aliqua.', 'Ut', 'enim', 'ad', 'minim', 'veniam,', 'quis', 'nostrud',
-                  'exercitation', 'ullamco', 'laboris', 'nisi', 'ut', 'aliquip', 'ex', 'ea', 'commodo',
-                  'consequat.', 'Duis', 'aute', 'irure', 'dolor', 'in', 'reprehenderit', 'in',
-                  'voluptate', 'velit', 'esse', 'cillum', 'dolore', 'eu', 'fugiat', 'nulla',
-                  'pariatur.', 'Excepteur', 'sint', 'occaecat', 'cupidatat', 'non', 'proident,', 'sunt',
-                  'in', 'culpa', 'qui', 'officia', 'deserunt', 'mollit', 'anim', 'id', 'est', 'laborum.'
-                ]
+    <main>
+      <div id="play-queue-container" class="nes-container with-title">
+        <p class="title">Play Queue</p>
+        <div>
+          <script id="play-queue-template" type="text/x-mustache">
+            {{# error }}
+              <div class="nes-container with-title">
+                <p class="title">Error Loading Stop Set</p>
+                <p>{{ error }}</p>
+              </div>
+            {{/ error }}
 
-                for (var i = 0; i < numWords; i++) {
-                  var word = loremWords[i % loremWords.length];
-                  document.write(word + ' ');
-                }
-              </script>
-            </p>
-          </div>
+            {{# stopset }}
+              <div class="nes-container with-title">
+                <p class="title">{{ stopset }}</p>
+                <div class="lists">
+                  <ul class="nes-list is-circle">
+                  {{# assets }}
+                    <li>
+                      <span style="background-color: #{{color}}">[{{ rotator }}]</span>
+                    {{# exists }}
+                      {{ name }}<br>
+                      <audio src="{{ url }}" controls />
+                    {{/ exists }}
+                    {{^ exists }}
+                      <em>No asset exists</em>
+                    {{/ exists }}
+                    </li>
+                  {{/ assets }}
+                  </ul>
+                </div>
+              </div>
+            {{/ stopset }}
+          </script>
+          <div id="play-queue"></div>
         </div>
       </div>
     </main>
@@ -101,16 +105,18 @@
   </div>
 
   <script id="dialog-template" type="text/x-mustache">
-    <dialog class="nes-dialog is-rounded" id="{{id}}-dialog">
+    <dialog class="nes-dialog is-rounded" id="{{ id }}-dialog">
       <form method="dialog">
-        <p class="title">{{title}}</p>
+        <p class="title">{{ title }}</p>
         <p>
-          {{#body_html}}{{&body_html}}{{/body_html}}
-          {{#body}}<span class="nes-text is-error">{{body}}</span>{{/body}}
+          {{# body_html }}{{& body_html }}{{/ body_html }}
+          {{# body }}<span class="nes-text is-error">{{ body }}</span>{{/ body }}
         </p>
         <menu class="dialog-menu right">
-          {{#buttons}}
-            <button class="nes-btn{{#class}} {{class}}{{/class}}"{{#id}} id="{{id}}"{{/id}}>{{text}}</button>
+          {{# buttons }}
+            <button class="nes-btn{{ #class }} {{ class }}{{/ class }}"{{# id }} id="{{ id }}"{{/ id }}>
+              {{ text }}
+            </button>
           {{/buttons}}
         </menu>
       </form>

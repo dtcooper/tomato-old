@@ -23,36 +23,25 @@ var setStatusColor = function(status) {
         'data-hover-text', 'TODO: this is a major ' + status + ' ' + status + ' ' + status + '!');
 };
 
-var assetLoadTest = function() {
-    cef.models.test_load_assets().then(function(assets) {
-        var html = '<div class="nes-table-responsive">'
-            +'<table class="nes-table is-bordered is-centered">'
-            + '<thead><th>Asset</th><th>Player</th></thead><tbody>';
-
-        if (assets.length == 0) {
-            html += '<tr><td colspan="2">No assets found!</td></tr>'
-        } else {
-            for (var i = 0; i < assets.length; i++) {
-                var asset = assets[i];
-                var url = cef.constants.MEDIA_URL + asset.audio;
-                html += '<tr><td><a href="' + url + '">' + asset.name
-                    + '</a></td><td><audio src="' + url + '" controls></audio></td></tr>\n';
-            }
-        }
-        html += '</tbody></table></div>';
-        $('#asset-list').html(html);
-    });
-};
-
 var sync = function() {
-    cef.models.sync().catch(function([error]) {
+    cef.models.sync().then(loadBlock).catch(function([error]) {
         if (error == cef.constants.API_ERROR_ACCESS_DENIED) {
             $('#login-errors').html('<span class="nes-text is-error">Access denied '
                     + "when sync'ing with server. Please log in again.</span>");
             cef.auth.logout().then(showLoginModal);
+        } else {
+            loadBlock();
         }
+    })
+};
+
+var loadBlock = function() {
+    cef.models.load_asset_block().then(function([context]) {
+        var playQueueTemplate = $('#play-queue-template').html();
+        var html = Mustache.render(playQueueTemplate, context);
+        $('#play-queue').html(html);
     });
-}
+};
 
 afterLoad(function() {
     var dialogs = [

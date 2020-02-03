@@ -49,6 +49,7 @@ afterLoad(function() {
     cef.auth.check_authorization().then(function([isLoggedIn, isConnected]) {
         if (isLoggedIn) {
             $('#loading').hide();
+            loadBlock();
             setStatusColor(isConnected ? STATUS_ONLINE : STATUS_OFFLINE);
         } else {
             showLoginModal();

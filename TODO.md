@@ -20,3 +20,7 @@
       _or_ configure cefpython.Initialize(...) to use appropriate path settings.
       Can comment on bug [here](https://github.com/cztomczak/cefpython/issues/135).
 - [ ] Create Linux `.deb` that depends on package `libgtk2.0`.
+- [ ] If an empty project is detected, create an install button on admin login/landing,
+      providing option to create initial data. Bonus: Station ID says _55.5 FM, KMUR Made
+      Up Radio_ or something silly.
+- [ ] Sample generation stop set block server side for testing

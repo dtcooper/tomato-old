@@ -30,6 +30,8 @@ MEDIA_URL = f'{urljoin("file:", pathname2url(MEDIA_DIR))}/'
 WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT = (900, 700)
 WINDOW_SIZE_MIN_WIDTH, WINDOW_SIZE_MIN_HEIGHT = (800, 600)
 
+API_ERROR_NO_HOSTNAME = 'Please provide a hostname.'
+API_ERROR_NO_USERPASS = 'Please provide a username and password.'
 API_ERROR_REQUESTS_TIMEOUT = 'Request timed out.'
 API_ERROR_REQUESTS_ERROR = 'Bad response from host.'
 API_ERROR_JSON_DECODE_ERROR = 'Invalid response format from host.'

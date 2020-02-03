@@ -82,7 +82,14 @@ class AuthAPI:
         return (logged_in, connected)
 
     def login(self, protocol, hostname, username, password):
+        if not hostname:
+            raise APIException(constants.API_ERROR_NO_HOSTNAME)
+
         self.conf.update(hostname=hostname, protocol=protocol)
+
+        if not username or not password:
+            raise APIException(constants.API_ERROR_NO_USERPASS)
+
         response = make_request('post', 'auth', data={'username': username, 'password': password})
         self.conf.auth_token = response.get('auth_token')
 
@@ -144,8 +151,26 @@ class ModelsAPI:
         else:
             return 0
 
-    def test_load_assets(self):
-        return list(Asset.objects.values('name', 'audio').order_by('duration'))
+    def load_asset_block(self):
+        context = {'wait': 60 * self.conf.wait_interval_minutes}
+        stopset, rotator_and_asset_list = StopSet.generate_asset_block()
+
+        if stopset:
+            context.update({'stopset': stopset.name, 'assets': []})
+
+            for rotator, asset in rotator_and_asset_list:
+                asset_context = {'rotator': rotator.name, 'color': rotator.color}
+
+                if asset:
+                    asset_context.update({'name': asset.name, 'exists': True, 'url': asset.audio.url})
+                else:
+                    asset_context['exists'] = False
+
+                context['assets'].append(asset_context)
+        else:
+            context['error'] = 'No stop sets with rotators currently eligible to air.'
+
+        return context
 
     def _sync_log(self, time_period):
         # No sense wasting time doing DB aggregates if we're not in debug mode.
@@ -179,6 +204,10 @@ class ModelsAPI:
             for model in (Asset, Rotator, StopSet, StopSetRotator):
                 model.objects.exclude(pk__in=pks[model]).delete()
 
-        self.conf.last_sync = datetime.datetime.now().strftime('%c')
+        self.conf.update(
+            last_sync=datetime.datetime.now().strftime('%c'),
+            **data['conf'],
+        )
+
         self._clear_media_folder()
         self._sync_log('Completed')

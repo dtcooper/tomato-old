@@ -14,6 +14,8 @@ class Config:
         'hostname': None,
         'last_sync': None,
         'protocol': 'https',
+        'wait_interval_minutes': 20,  # TODO: Common config -> common file
+        'wait_interval_subtracts_stopset_playtime': False,  # TODO: Common config -> common file
         'width': WINDOW_SIZE_DEFAULT_WIDTH,
     }
 

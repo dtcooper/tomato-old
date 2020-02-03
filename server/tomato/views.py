@@ -49,13 +49,7 @@ def export(request):
     response = HttpResponseForbidden()
 
     if request.user.is_authenticated:
-        options = {key.lower(): getattr(config, key) for key in dir(config)}
-
-        try:
-            pytz.timezone(options['timezone'])
-        except pytz.UnknownTimeZoneError:
-            options['timezone'] = settings.TIME_ZONE
-
+        # Make media_url absolute URL
         media_url = urlparse(settings.MEDIA_URL)
         if not media_url.netloc:
             media_url = media_url._replace(netloc=request.get_host())
@@ -63,7 +57,7 @@ def export(request):
             media_url = media_url._replace(scheme=request.scheme)
 
         response = JsonResponse({
-            'config': options,
+            'conf': {key.lower(): getattr(config, key) for key in settings.CLIENT_CONFIG_KEYS},
             'media_url': media_url.geturl(),
             'objects': serialize('python', itertools.chain.from_iterable(
                 cls.objects.all() for cls in apps.get_app_config('tomato').get_models())),

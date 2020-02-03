@@ -1,5 +1,6 @@
 import datetime
 import os
+import random
 import subprocess
 
 try:
@@ -80,6 +81,46 @@ class StopSet(EnabledBeginEndWeightMixin, models.Model):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def generate_asset_block(cls):
+        stopsets = list(cls.objects.currently_enabled().exclude(rotators=None))
+        if not stopsets:
+            return None, None
+
+        stopset = random.choices(stopsets, weights=[float(s.weight) for s in stopsets], k=1)[0]
+        rotators = stopset.get_rotator_block()
+
+        rotator_assets = {
+            rotator: list(rotator.assets.currently_enabled())
+            # Instantiate one list of assets per rotator
+            for rotator in set(rotators)
+        }
+
+        asset_block = []
+        for rotator in rotators:
+            assets = rotator_assets[rotator]
+            if assets:
+                # Pick a random asset according to its weight
+                asset = random.choices(assets, weights=[float(a.weight) for a in assets], k=1)[0]
+
+                # Remove asset from being eligible to play again in this block, even if it's
+                # part of another rotator
+                for assets in rotator_assets.values():
+                    try:
+                        assets.remove(asset)
+                    except ValueError:
+                        pass
+
+            else:
+                asset = None
+
+            asset_block.append(asset)
+
+        return stopset, list(zip(rotators, asset_block))
+
+    def get_rotator_block(self):
+        return [ssr.rotator for ssr in StopSetRotator.objects.filter(stopset=self).order_by('id')]
 
     class Meta:
         db_table = 'stopsets'

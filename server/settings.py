@@ -106,6 +106,7 @@ CONSTANCE_CONFIG = OrderedDict({
     'STRIP_UPLOADED_AUDIO': (True, 'TODO'),
     # sox in.wav out.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
 })
+CLIENT_CONFIG_KEYS = ('WAIT_INTERVAL_MINUTES', 'WAIT_INTERVAL_SUBTRACTS_STOPSET_PLAYTIME')
 
 # Valid file types as recognized by `soxi -t` and `file --mime-type` minus the audio/[x-]
 VALID_AUDIO_FILE_TYPES = {

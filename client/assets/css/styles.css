@@ -78,11 +78,14 @@ progress {
     height: calc(1rem + 16px) !important;
 }
 
-div.progress-text:before {
-    content: attr(data-text);
+progress[value]:before {
+    content: attr(data-text-fill);
     position: absolute;
-    margin-top: 8px;
-    margin-left: 12px;
+    left: 48px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    right: 44px;
 }
 
 /* Layout */
@@ -177,9 +180,34 @@ header {
     z-index: 1;
 }
 
-/* TODO: main doesn't stretch when it has minimal content */
 main {
+    height: 100%;
     align-self: stretch;
+    display: flex;
+    align-items: stretch;
+}
+
+#play-queue-container {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    padding-right: 0.25rem;
+    width: 100%;
+}
+
+#play-queue-container > p.title {
+    align-self: flex-start;
+}
+
+#play-queue-container > div {
+    display: flex;
+    align-items: stretch;
+}
+
+#play-queue-container > div > div {
+    overflow-y: auto;
+    padding-right: 1.75rem;
+    width: 100%;
 }
 
 footer {

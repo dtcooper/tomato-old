@@ -188,6 +188,7 @@ class JSBridge:
 
 class CefWindow:
     WINDOW_TITLE = 'Tomato Radio Automation'
+    APP_HTML_URL = urljoin('file:', pathname2url(os.path.realpath(APP_HTML_PATH)))
 
     def __init__(self, *js_api_list):
         self.conf = Config()
@@ -195,6 +196,7 @@ class CefWindow:
         self.ewmh = None
         self.x_pos = self.y_pos = self.width = self.height = None
         self.should_maximize = None
+        self.browser = None
         self.window = None
         self.window_handle = None
 
@@ -338,9 +340,8 @@ class CefWindow:
             js_bindings.SetObject('_jsBridge', js_bridge)
             self.browser.SetJavascriptBindings(js_bindings)
 
-            url = urljoin('file:', pathname2url(os.path.realpath(APP_HTML_PATH)))
-            logger.info(f'Loading URL: {url}')
-            self.browser.LoadUrl(url)
+            logger.info(f'Loading URL: {self.APP_HTML_URL}')
+            self.browser.LoadUrl(self.APP_HTML_URL)
 
             cef.MessageLoop()
 
