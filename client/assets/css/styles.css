@@ -1,6 +1,7 @@
 /* Variables */
 
 :root {
+    --font-size: 16px;
     --header-font-size: 2.7rem;
     --footer-font-size: 0.6rem;
     --max-width: 1400px;
@@ -19,7 +20,7 @@
 
 /* Global Styles / Utility Classes */
 html, body {
-    font-size: 18px;
+    font-size: var(--font-size);
     width: 100vw;
     height: 100vh;
     margin: 0;
