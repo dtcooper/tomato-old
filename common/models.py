@@ -84,6 +84,7 @@ class StopSet(EnabledBeginEndWeightMixin, models.Model):
 
     @classmethod
     def generate_asset_block(cls):
+        # Break out to an instance method on the stopset
         stopsets = list(cls.objects.currently_enabled().exclude(rotators=None))
         if not stopsets:
             return None, None

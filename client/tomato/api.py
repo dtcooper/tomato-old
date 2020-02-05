@@ -153,6 +153,8 @@ class ModelsAPI:
 
     def load_asset_block(self):
         context = {'wait': 60 * self.conf.wait_interval_minutes}
+        # Call `stopsets = list(cls.objects.currently_enabled().exclude(rotators=None))`
+        # here, and go through list, logging errors as a list
         stopset, rotator_and_asset_list = StopSet.generate_asset_block()
 
         if stopset:
