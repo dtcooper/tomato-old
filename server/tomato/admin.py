@@ -306,7 +306,7 @@ class StopSetModelAdmin(EnabledDatesRotatorMixin, NumAssetsMixin, TomatoModelAdm
 
 
 class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
-    readonly_fields = ('display_color', 'stopset_list')
+    readonly_fields = ('display_color', 'stopset_list', 'num_assets')
     list_display = ('name', 'stopset_list', 'display_color', 'num_assets')
     list_filter = ('stopsets',)
     list_prefetch_related = 'stopsets'
