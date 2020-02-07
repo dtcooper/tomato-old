@@ -315,7 +315,7 @@ class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
         js = ('admin/js/rotator_color.js',)
 
     def get_fields(self, request, obj):
-        return ('name', 'color', 'display_color') + (('stopset_list',) if obj else ())
+        return ('name', 'color', 'display_color') + (('stopset_list', 'num_assets') if obj else ())
 
     def display_color(self, obj):
         return format_html('<div class="color-preview" style="width: 8em; height: 3em; '
