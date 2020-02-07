@@ -82,15 +82,11 @@ class StopSet(EnabledBeginEndWeightMixin, models.Model):
     def __str__(self):
         return self.name
 
-    @classmethod
-    def generate_asset_block(cls):
-        # Break out to an instance method on the stopset
-        stopsets = list(cls.objects.currently_enabled().exclude(rotators=None))
-        if not stopsets:
-            return None, None
+    def generate_asset_block(self):
+        rotators = self.get_rotator_block()
 
-        stopset = random.choices(stopsets, weights=[float(s.weight) for s in stopsets], k=1)[0]
-        rotators = stopset.get_rotator_block()
+        if not rotators:
+            return []
 
         rotator_assets = {
             rotator: list(rotator.assets.currently_enabled())
@@ -118,7 +114,7 @@ class StopSet(EnabledBeginEndWeightMixin, models.Model):
 
             asset_block.append(asset)
 
-        return stopset, list(zip(rotators, asset_block))
+        return list(zip(rotators, asset_block))
 
     def get_rotator_block(self):
         return [ssr.rotator for ssr in StopSetRotator.objects.filter(stopset=self).order_by('id')]
@@ -184,6 +180,9 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
     audio_size = models.IntegerField()
     rotators = models.ManyToManyField(Rotator, related_name='assets', blank=True, verbose_name='Rotators',
                                       help_text='Rotators that this asset will be included in.')
+
+    def __str__(self):
+        return self.name
 
     def save(self, *args, **kwargs):
         # If first save, ie pk is None, action on:
@@ -261,9 +260,6 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
                     if file_type != valid_info['soxi']:
                         raise ValidationError({'audio': f"Detected file type {file_type} for '{self.audio.name}'. "
                                                         f'Expected {valid_info["soxi"]} from extension {audio_ext}.'})
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         db_table = 'assets'

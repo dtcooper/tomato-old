@@ -60,34 +60,38 @@
         <p class="title">Play Queue</p>
         <div>
           <script id="play-queue-template" type="text/x-mustache">
-            {{# error }}
+            {{# errors.length }}
               <div class="nes-container with-title">
                 <p class="title">Error Loading Stop Set</p>
-                <p>{{ error }}</p>
+                 <ul class="nes-list is-circle">
+                  {{# errors }}
+                    <li>{{ . }}</li>
+                  {{/ errors }}
+                  </ul>
               </div>
-            {{/ error }}
+            {{/ errors.length }}
 
             {{# stopset }}
               <div class="nes-container with-title">
-                <p class="title">{{ stopset }}</p>
+                <p class="title">{{ . }}</p>
                 <div class="lists">
                   <ul class="nes-list is-circle">
                   {{# assets }}
                     <li>
                       <span style="background-color: #{{color}}">[{{ rotator }}]</span>
-                    {{# exists }}
                       {{ name }}<br>
                       <audio src="{{ url }}" controls></audio>
-                    {{/ exists }}
-                    {{^ exists }}
-                      <em>No asset exists</em>
-                    {{/ exists }}
                     </li>
                   {{/ assets }}
                   </ul>
                 </div>
               </div>
             {{/ stopset }}
+
+            <div class="nes-container with-title">
+              <p class="title">Wait</p>
+              <p>Wait for {{ wait }} seconds</p>
+            </div>
           </script>
           <div id="play-queue"></div>
         </div>

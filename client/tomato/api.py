@@ -3,6 +3,7 @@ import datetime
 import logging
 from json.decoder import JSONDecodeError
 import os
+import random
 import time
 
 from django.core.serializers import deserialize
@@ -152,25 +153,49 @@ class ModelsAPI:
             return 0
 
     def load_asset_block(self):
-        context = {'wait': 60 * self.conf.wait_interval_minutes}
-        # Call `stopsets = list(cls.objects.currently_enabled().exclude(rotators=None))`
-        # here, and go through list, logging errors as a list
-        stopset, rotator_and_asset_list = StopSet.generate_asset_block()
+        context = {
+            'assets': [],
+            'errors': [],
+            'stopset': None,
+            'wait': 60 * self.conf.wait_interval_minutes,
+        }
+
+        stopset = None
+        stopsets = list(StopSet.objects.currently_enabled())
+
+        # Randomly select stopsets and make sure they have rotators
+        while stopsets:
+            potential_stopset = random.choices(stopsets, weights=[float(s.weight) for s in stopsets], k=1)[0]
+            stopsets.remove(potential_stopset)
+
+            rotator_and_asset_list = potential_stopset.generate_asset_block()
+            if any(asset for _, asset in rotator_and_asset_list):
+                stopset = potential_stopset
+                break
+
+            else:
+                context['errors'].append('No rotators or assets eligible to air found '
+                                         f'in stop set {potential_stopset.name}.')
 
         if stopset:
-            context.update({'stopset': stopset.name, 'assets': []})
+            context['stopset'] = stopset.name
 
             for rotator, asset in rotator_and_asset_list:
-                asset_context = {'rotator': rotator.name, 'color': rotator.color}
-
                 if asset:
-                    asset_context.update({'name': asset.name, 'exists': True, 'url': asset.audio.url})
+                    context['assets'].append({
+                        'rotator': rotator.name,
+                        'color': rotator.color,
+                        'asset': asset.name,
+                        'url': asset.audio.url,
+                        'length': asset.duration.total_seconds(),
+                    })
                 else:
-                    asset_context['exists'] = False
-
-                context['assets'].append(asset_context)
+                    context['errors'].append(f'No assets eligible to air in rotator {rotator.name}')
         else:
-            context['error'] = 'No stop sets with rotators currently eligible to air.'
+            context['errors'].append('No stop sets with currently eligible to air.')
+
+        if self.conf.wait_interval_subtracts_stopset_playtime:
+            context['wait'] = round(max(0, context['wait'] - sum(a['length'] for a in context['assets'])))
 
         return context
 
