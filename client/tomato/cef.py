@@ -90,15 +90,27 @@ class JSBridge:
 
         for js_api_class in self.cef_window.js_api_classes:
             js_api = js_api_class(execute_js_func=self.cef_window.browser.ExecuteFunction)
-            namespace = js_api.namespace
-            self.js_apis[namespace] = args = (js_api, queue.Queue())
-            thread = threading.Thread(name=f'{namespace}', target=self._run_call_thread, args=args)
-            thread.daemon = True  # Thread won't block program from exiting
-            thread.start()
-            self.threads.append(thread)
+            namespaces = [js_api.namespace]
+
+            for method_name in dir(js_api):
+                method = getattr(js_api, method_name)
+                if (
+                    not method_name.startswith('_') and inspect.ismethod(method)
+                    and getattr(method, 'use_own_thread', False)
+                ):
+                    namespaces.append(f'{js_api.namespace}::{method_name}')
+
+            for namespace in namespaces:
+                call_queue = queue.Queue()
+                self.js_apis[namespace] = (js_api, call_queue)
+                thread = threading.Thread(name=namespace, target=self._run_call_thread,
+                                          args=(js_api, namespace, call_queue))
+                thread.daemon = True  # Thread won't block program from exiting
+                thread.start()
+                self.threads.append(thread)
 
     def call(self, namespace, method, resolve, reject, args):
-        _, call_queue = self.js_apis[namespace]
+        _, call_queue = self.js_apis.get(f'{namespace}::{method}', self.js_apis[namespace])
         call_queue.put((method, resolve, reject, args))
 
     def _shutdown(self):
@@ -111,8 +123,7 @@ class JSBridge:
                 logger.info(f"JSBridge call thread didn't exit cleanly ({thread.name})")
 
     @staticmethod
-    def _run_call_thread(js_api, queue):
-        namespace = js_api.namespace
+    def _run_call_thread(js_api, namespace, queue):
         logger.info(f'JSBridge call thread booting ({namespace})')
 
         while True:
@@ -132,7 +143,7 @@ class JSBridge:
                 logger.exception(f'Unexpected exception raised by cef.{namespace}.{method}({pretty_args})')
                 reject.Call(('An unexpected error occurred.',))
             else:
-                logger.info(f'Called cef.{namespace}.{method}'
+                logger.info(f'Thread {namespace} called cef.{js_api.namespace}.{method}'
                             f'({", ".join(map(repr, args)) if args else ""}) -> {response!r}')
                 if not isinstance(response, (list, tuple)):
                     response = (response,)
@@ -146,13 +157,13 @@ class JSBridge:
 
         for namespace, (js_api, _) in self.js_apis.items():
             self.cef_window.browser.ExecuteJavascript(f'cef.{namespace} = {{}}')
-            for method in dir(js_api):
-                if not method.startswith('_') and inspect.ismethod(getattr(js_api, method)):
+            for method_name in dir(js_api):
+                if not method_name.startswith('_') and inspect.ismethod(getattr(js_api, method_name)):
                     self.cef_window.browser.ExecuteJavascript(f'''
-                        cef.{namespace}.{method} = function() {{
+                        cef.{namespace}.{method_name} = function() {{
                             var args = Array.from(arguments);
                             return new Promise(function(resolve, reject) {{
-                                cef.bridge.call('{namespace}', '{method}', resolve, reject, args);
+                                cef.bridge.call('{namespace}', '{method_name}', resolve, reject, args);
                             }});
                         }}
                     ''')

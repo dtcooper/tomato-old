@@ -13,8 +13,8 @@ var sync = function() {
             closeModal('first-sync-dialog');
             // If we get an access denied or we've never sync'd before, force new login.
             if (error == cef.constants.API_ERROR_ACCESS_DENIED || !lastSync) {
-                $('#login-errors').html('<span class="nes-text is-error">An error occurred '
-                        + "when sync'ing with server. <br>Please try logging in again.</span>");
+                $('#login-errors').html('<span class="nes-text is-error">An error occurred while'
+                        + " synchronizing with the server. <br>Please try logging in again.</span>");
                 cef.auth.logout().then(showLoginModal);
             } else {
                 setStatusColor('error');

@@ -67,6 +67,18 @@ class AuthAPI(APIBase):
     def logout(self):
         self.conf.update(auth_token=None, last_sync=None)
 
+        # TODO: When is the best time clean up assets? We shouldn't do it on sync
+        # because old assets may be being streamed from in CEF window.
+
+        # Clean up unused assets on logout
+        db_asset_paths = {asset.audio.path for asset in Asset.objects.all()}
+        for dirpath, dirnames, filenames in os.walk(constants.MEDIA_DIR):
+            for filename in filenames:
+                asset_path = os.path.join(dirpath, filename)
+                if asset_path not in db_asset_paths:
+                    logger.info(f'sync: Removing unused asset: {asset_path}')
+                    os.remove(asset_path)
+
     def check_authorization(self):
         logged_in = connected = False
 
@@ -116,17 +128,6 @@ class ConfigAPI(APIBase):
 
 class ModelsAPI(APIBase):
     namespace = 'models'
-
-    @staticmethod
-    def _clear_media_folder():
-        db_asset_paths = {asset.audio.path for asset in Asset.objects.all()}
-
-        for dirpath, dirnames, filenames in os.walk(constants.MEDIA_DIR):
-            for filename in filenames:
-                asset_path = os.path.join(dirpath, filename)
-                if asset_path not in db_asset_paths:
-                    logger.info(f'sync: Removing unused asset: {asset_path}')
-                    os.remove(asset_path)
 
     @staticmethod
     def _download_asset_audio(media_url, asset):
@@ -207,6 +208,7 @@ class ModelsAPI(APIBase):
         self._execute_js_func('reportSyncProgress', 0)
         data = make_request('get', 'export')
 
+        # 3% done after API response
         self._execute_js_func('reportSyncProgress', 3)
         self._sync_log('Starting')
 
@@ -218,8 +220,9 @@ class ModelsAPI(APIBase):
 
         for num_assets, deserialized_asset in enumerate(deserialized_assets, 1):
             bytes_synced += self._download_asset_audio(data['media_url'], deserialized_asset.object)
-            self._execute_js_func('reportSyncProgress', 3 + round((num_assets / len(deserialized_assets)) * 95))
-        self._execute_js_func('reportSyncProgress', 98)
+            # 99% done after assets sync'd
+            self._execute_js_func('reportSyncProgress', 3 + round((num_assets / len(deserialized_assets)) * 96))
+        self._execute_js_func('reportSyncProgress', 99)
 
         if bytes_synced:
             logger.info(f'sync: Downloaded {bytes_synced} bytes of asset data in {time.time() - time_before:.3f}s.')
@@ -234,6 +237,7 @@ class ModelsAPI(APIBase):
             for model in (Asset, Rotator, StopSet, StopSetRotator):
                 model.objects.exclude(pk__in=pks[model]).delete()
 
+        # 100% after DB sync'd
         self._execute_js_func('reportSyncProgress', 100)
 
         self.conf.update(
@@ -241,5 +245,5 @@ class ModelsAPI(APIBase):
             **data['conf'],
         )
 
-        self._clear_media_folder()
         self._sync_log('Completed')
+    sync.use_own_thread = True
