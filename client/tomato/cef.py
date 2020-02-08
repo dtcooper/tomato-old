@@ -88,7 +88,8 @@ class JSBridge:
         self.js_apis = {}  # namespace -> (api, call_queue)
         self.threads = []
 
-        for js_api in self.cef_window.js_api_list:
+        for js_api_class in self.cef_window.js_api_classes:
+            js_api = js_api_class(execute_js_func=self.cef_window.browser.ExecuteFunction)
             namespace = js_api.namespace
             self.js_apis[namespace] = args = (js_api, queue.Queue())
             thread = threading.Thread(name=f'{namespace}', target=self._run_call_thread, args=args)
@@ -190,9 +191,9 @@ class CefWindow:
     WINDOW_TITLE = 'Tomato Radio Automation'
     APP_HTML_URL = urljoin('file:', pathname2url(os.path.realpath(APP_HTML_PATH)))
 
-    def __init__(self, *js_api_list):
+    def __init__(self, *js_api_classes):
         self.conf = Config()
-        self.js_api_list = js_api_list
+        self.js_api_classes = js_api_classes
         self.ewmh = None
         self.x_pos = self.y_pos = self.width = self.height = None
         self.should_maximize = None

@@ -55,14 +55,17 @@ class make_request:
 make_request = make_request()
 
 
-class AuthAPI:
+class APIBase:
+    def __init__(self, execute_js_func):
+        self.conf = Config()
+        self._execute_js_func = execute_js_func
+
+
+class AuthAPI(APIBase):
     namespace = 'auth'
 
-    def __init__(self):
-        self.conf = Config()
-
     def logout(self):
-        self.conf.auth_token = None
+        self.conf.update(auth_token=None, last_sync=None)
 
     def check_authorization(self):
         logged_in = connected = False
@@ -95,11 +98,8 @@ class AuthAPI:
         self.conf.auth_token = response.get('auth_token')
 
 
-class ConfigAPI:
+class ConfigAPI(APIBase):
     namespace = 'conf'
-
-    def __init__(self):
-        self.conf = Config()
 
     def get(self, attr):
         return getattr(self.conf, attr)
@@ -114,11 +114,8 @@ class ConfigAPI:
         self.conf.update(**kwargs)
 
 
-class ModelsAPI:
+class ModelsAPI(APIBase):
     namespace = 'models'
-
-    def __init__(self):
-        self.conf = Config()
 
     @staticmethod
     def _clear_media_folder():
@@ -207,16 +204,22 @@ class ModelsAPI:
             logger.info(f'sync: {time_period} sync, objects: {obj_counts}')
 
     def sync(self):
+        self._execute_js_func('reportSyncProgress', 0)
         data = make_request('get', 'export')
+
+        self._execute_js_func('reportSyncProgress', 3)
         self._sync_log('Starting')
 
         deserialized_objs = list(deserialize('python', data['objects']))
         bytes_synced = 0
         time_before = time.time()
 
-        for deserialized_obj in deserialized_objs:
-            if isinstance(deserialized_obj.object, Asset):
-                bytes_synced += self._download_asset_audio(data['media_url'], deserialized_obj.object)
+        deserialized_assets = list(filter(lambda do: isinstance(do.object, Asset), deserialized_objs))
+
+        for num_assets, deserialized_asset in enumerate(deserialized_assets, 1):
+            bytes_synced += self._download_asset_audio(data['media_url'], deserialized_asset.object)
+            self._execute_js_func('reportSyncProgress', 3 + round((num_assets / len(deserialized_assets)) * 95))
+        self._execute_js_func('reportSyncProgress', 98)
 
         if bytes_synced:
             logger.info(f'sync: Downloaded {bytes_synced} bytes of asset data in {time.time() - time_before:.3f}s.')
@@ -230,6 +233,8 @@ class ModelsAPI:
 
             for model in (Asset, Rotator, StopSet, StopSetRotator):
                 model.objects.exclude(pk__in=pks[model]).delete()
+
+        self._execute_js_func('reportSyncProgress', 100)
 
         self.conf.update(
             last_sync=datetime.datetime.now().strftime('%c'),

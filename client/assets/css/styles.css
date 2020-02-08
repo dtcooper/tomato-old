@@ -35,17 +35,16 @@ html, body, pre, code, kbd, samp {
 }
 
 * {
-    box-sizing: border-box;
+    -webkit-touch-callout: none;
     -webkit-user-drag: none;
+    user-select: none;
+    outline: none !important;
+    box-shadow: none !important;
+    box-sizing: border-box;
 }
 
 img {
     image-rendering: pixelated;
-}
-
-.nes-btn:focus {
-    outline: 0 !important;
-    box-shadow: none !important;
 }
 
 ::-webkit-scrollbar {

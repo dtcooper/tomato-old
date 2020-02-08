@@ -12,35 +12,14 @@ var afterLoad = function(func) {
     window.addEventListener('cefReady', function() { $(func); })
 };
 
-var showModal = function(id) {
-    $('#' + id).get(0).showModal();
-};
+var closeModal = function(id) { $('#' + id).get(0).close() };
+var showModal = function(id) { $('#' + id).get(0).showModal(); };
 
 var STATUS_OFFLINE = 'error', STATUS_PENDING = 'warning', STATUS_ONLINE = 'success';
 var setStatusColor = function(status) {
     $('#connection-status').removeClass(
         'is-primary is-success is-warning is-error is-disabled').addClass('is-' + status).attr(
         'data-hover-text', 'TODO: this is a major ' + status + ' ' + status + ' ' + status + '!');
-};
-
-var sync = function() {
-    cef.models.sync().then(loadBlock).catch(function([error]) {
-        if (error == cef.constants.API_ERROR_ACCESS_DENIED) {
-            $('#login-errors').html('<span class="nes-text is-error">Access denied '
-                    + "when sync'ing with server. Please log in again.</span>");
-            cef.auth.logout().then(showLoginModal);
-        } else {
-            loadBlock();
-        }
-    })
-};
-
-var loadBlock = function() {
-    cef.models.load_asset_block().then(function([context]) {
-        var playQueueTemplate = $('#play-queue-template').html();
-        var html = Mustache.render(playQueueTemplate, context);
-        $('#play-queue').html(html);
-    });
 };
 
 afterLoad(function() {
@@ -59,7 +38,10 @@ afterLoad(function() {
          'buttons': [{'text': 'Cancel'}, {'text': 'Logout', 'class': 'is-error', 'id': 'confirm-logout-btn'}]},
         // Quit
         {'id': 'close', 'title': 'Quit Tomato', 'text': 'Are you sure you want to quit Tomato?',
-         'buttons': [{'text': 'Cancel'}, {'text': 'Quit Tomato', 'class': 'is-error', 'id': 'close-btn'}]}
+         'buttons': [{'text': 'Cancel'}, {'text': 'Quit Tomato', 'class': 'is-error', 'id': 'close-btn'}]},
+        {'id': 'first-sync', 'title': 'Synchronizing With Server',
+         'body_html': '<progress id="sync-progress" class="nes-progress is-primary" max="100" value="0"></progress>\n'
+            + 'Please wait while Tomato synchronizes for the first time.'}
     ]
 
 
@@ -67,6 +49,12 @@ afterLoad(function() {
     $(dialogs).each(function(i, context) {
         var html = Mustache.render(dialogTemplate, context);
         $('body').append(html);
+    });
+
+    $('dialog:not(#close-dialog)').each(function(i, elem) {
+        elem.addEventListener('cancel', function(event) {
+            event.preventDefault();
+        });
     });
 
     $('body').on('click', 'a', function(event) {

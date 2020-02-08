@@ -9,6 +9,7 @@
   <script src="js/jquery-3.4.1.min.js"></script>
   <script src="js/mustache-3.1.0.min.js"></script>
   <script src="js/base.js"></script>
+  <script src="js/sync.js"></script>
   <script src="js/login.js"></script>
 </head>
 <body>
@@ -116,13 +117,15 @@
           {{# body_html }}{{& body_html }}{{/ body_html }}
           {{# body }}<span class="nes-text is-error">{{ body }}</span>{{/ body }}
         </p>
-        <menu class="dialog-menu right">
-          {{# buttons }}
-            <button class="nes-btn{{ #class }} {{ class }}{{/ class }}"{{# id }} id="{{ id }}"{{/ id }}>
-              {{ text }}
-            </button>
-          {{/buttons}}
-        </menu>
+        {{# buttons.length }}
+          <menu class="dialog-menu right">
+            {{# buttons }}
+              <button class="nes-btn{{ #class }} {{ class }}{{/ class }}"{{# id }} id="{{ id }}"{{/ id }}>
+                {{ text }}
+              </button>
+            {{/buttons}}
+          </menu>
+        {{/ buttons.length }}
       </form>
     </dialog>
   </script>

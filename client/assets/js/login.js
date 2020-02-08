@@ -8,7 +8,8 @@ var doLogin = function([error]) {
     } else {
         setStatusColor(STATUS_ONLINE);
         // Reset form back to initial status in case we need it again
-        $('#login-dialog').get(0).close();
+        closeModal('login-dialog');
+        sync();
         $('#login-dialog form').get(0).reset();
         $('#login-status').text('Logged in!');
     }
@@ -34,12 +35,6 @@ afterLoad(function() {
                 $('#username').val(), $('#password').val()
             ).then(doLogin).catch(doLogin);
         }, 350); // A few ms here looks like something is happening
-    });
-
-    $('dialog:not(#close-dialog)').each(function(i, elem) {
-        elem.addEventListener('cancel', function(event) {
-            event.preventDefault();
-        });
     });
 
     $('#confirm-logout-btn').click(function(event) {

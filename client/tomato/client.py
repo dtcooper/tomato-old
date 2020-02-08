@@ -54,5 +54,5 @@ class Client:
         # Make sure Django is configured before importing so model import doesn't blow up
         from .api import AuthAPI, ConfigAPI, ModelsAPI
 
-        cef_window = CefWindow(AuthAPI(), ConfigAPI(), ModelsAPI())
+        cef_window = CefWindow(AuthAPI, ConfigAPI, ModelsAPI)
         cef_window.run()
