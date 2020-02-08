@@ -48,7 +48,7 @@ img {
 }
 
 ::-webkit-scrollbar {
-    width: 10px;
+    width: 8px;
     background-color: #eeeeee;
 }
 
@@ -58,7 +58,7 @@ img {
 
 ::-webkit-scrollbar-thumb {
     background-color: #000000;
-    width: 10px;
+    width: 8px;
 }
 
 .right {
@@ -70,12 +70,23 @@ img {
 }
 
 .nes-container {
-    margin: 10px;
+    margin: 7px;
+    padding: 10px;
+}
+
+.nes-container.with-title > .title {
+    margin-top: -1.1rem;
+    margin-bottom: 5px;
+}
+
+ul {
+    margin-bottom: 0;
 }
 
 progress {
     /* Plus border, padding, etc */
     height: calc(1rem + 16px) !important;
+    width: calc(100% - 8px) !important;
 }
 
 progress[value]:before {
@@ -191,7 +202,6 @@ main {
     display: flex;
     align-items: stretch;
     flex-direction: column;
-    padding-right: 0.25rem;
     width: 100%;
 }
 
@@ -206,7 +216,6 @@ main {
 
 #play-queue-container > div > div {
     overflow-y: auto;
-    padding-right: 1.75rem;
     width: 100%;
 }
 

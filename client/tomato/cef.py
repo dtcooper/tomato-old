@@ -143,7 +143,7 @@ class JSBridge:
                 logger.exception(f'Unexpected exception raised by cef.{namespace}.{method}({pretty_args})')
                 reject.Call(('An unexpected error occurred.',))
             else:
-                logger.info(f'Thread {namespace} called cef.{js_api.namespace}.{method}'
+                logger.info(f'Called cef.{namespace}.{method}'
                             f'({", ".join(map(repr, args)) if args else ""}) -> {response!r}')
                 if not isinstance(response, (list, tuple)):
                     response = (response,)
@@ -156,17 +156,18 @@ class JSBridge:
             f'cef.constants = {json.dumps({c: getattr(constants, c) for c in dir(constants) if c.isupper()})}')
 
         for namespace, (js_api, _) in self.js_apis.items():
-            self.cef_window.browser.ExecuteJavascript(f'cef.{namespace} = {{}}')
-            for method_name in dir(js_api):
-                if not method_name.startswith('_') and inspect.ismethod(getattr(js_api, method_name)):
-                    self.cef_window.browser.ExecuteJavascript(f'''
-                        cef.{namespace}.{method_name} = function() {{
-                            var args = Array.from(arguments);
-                            return new Promise(function(resolve, reject) {{
-                                cef.bridge.call('{namespace}', '{method_name}', resolve, reject, args);
-                            }});
-                        }}
-                    ''')
+            if '::' not in namespace:  # No special work for methods with their own threads
+                self.cef_window.browser.ExecuteJavascript(f'cef.{namespace} = {{}}')
+                for method_name in dir(js_api):
+                    if not method_name.startswith('_') and inspect.ismethod(getattr(js_api, method_name)):
+                        self.cef_window.browser.ExecuteJavascript(f'''
+                            cef.{namespace}.{method_name} = function() {{
+                                var args = Array.from(arguments);
+                                return new Promise(function(resolve, reject) {{
+                                    cef.bridge.call('{namespace}', '{method_name}', resolve, reject, args);
+                                }});
+                            }}
+                        ''')
 
         self.cef_window.browser.ExecuteJavascript("window.dispatchEvent(new CustomEvent('cefReady'))")
         self.cef_window.client_handler._dom_loaded = True
