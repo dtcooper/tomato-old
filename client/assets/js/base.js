@@ -40,7 +40,7 @@ afterLoad(function() {
         {'id': 'close', 'title': 'Quit Tomato', 'text': 'Are you sure you want to quit Tomato?',
          'buttons': [{'text': 'Cancel'}, {'text': 'Quit Tomato', 'class': 'is-error', 'id': 'close-btn'}]},
         {'id': 'first-sync', 'title': 'Synchronizing With Server',
-         'body_html': '<progress id="sync-progress" class="nes-progress is-primary" max="100" value="0"></progress>\n'
+         'body_html': '<progress id="sync-progress" class="nes-progress is-success" max="100" value="0"></progress>\n'
             + 'Please wait while Tomato synchronizes for the first time.'}
     ]
 

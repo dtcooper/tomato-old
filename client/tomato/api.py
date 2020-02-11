@@ -95,7 +95,7 @@ class AuthAPI(APIBase):
                 connected = True
                 logged_in = response['valid_token']
 
-        return (logged_in, connected)
+        return (logged_in, connected, bool(self.conf.last_sync))
 
     def login(self, protocol, hostname, username, password):
         if not hostname:

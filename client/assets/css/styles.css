@@ -2,9 +2,15 @@
 
 :root {
     --font-size: 16px;
-    --header-font-size: 3.15rem;
-    --footer-font-size: 0.6rem;
+    --header-font-size: 6.1vw;
+    --footer-font-size: 12px;
     --max-width: 1400px;
+}
+
+@media (min-width: 1200px) {
+  :root {
+     --header-font-size: 74px;
+  }
 }
 
 /* Fonts */
@@ -75,7 +81,7 @@ img {
 }
 
 .nes-container.with-title > .title {
-    margin-top: -1.1rem;
+    margin-top: -1.3rem;
     margin-bottom: 5px;
 }
 
@@ -250,7 +256,12 @@ footer p {
     font-size: var(--footer-font-size);
 }
 
-/* Login styles */
+/* Dialog styles */
+
 #login-dialog form > *:not(:last-child) {
     margin-bottom: 10px;
+}
+
+#first-sync-dialog {
+    cursor: wait;
 }

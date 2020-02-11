@@ -41,10 +41,14 @@ afterLoad(function() {
         cef.auth.logout().then(showLoginModal);
     });
 
-    cef.auth.check_authorization().then(function([isLoggedIn, isConnected]) {
+    cef.auth.check_authorization().then(function([isLoggedIn, isConnected, hasSynced]) {
         if (isLoggedIn) {
             $('#loading').hide();
-            loadBlock();
+            if (hasSynced) {
+                loadBlock();
+            } else {
+                sync();
+            }
             setStatusColor(isConnected ? STATUS_ONLINE : STATUS_OFFLINE);
         } else {
             showLoginModal();
