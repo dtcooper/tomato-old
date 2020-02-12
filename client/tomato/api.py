@@ -188,7 +188,8 @@ class ModelsAPI(APIBase):
                         'length': asset.duration.total_seconds(),
                     })
                 else:
-                    context['errors'].append(f'No assets eligible to air in rotator {rotator.name}')
+                    context['errors'].append(f"Stop set {stopset.name}'s rotator {rotator.name} "
+                                             'has no assets eligible to air.')
         else:
             context['errors'].append('No stop sets with currently eligible to air.')
 
@@ -221,7 +222,7 @@ class ModelsAPI(APIBase):
         for num_assets, deserialized_asset in enumerate(deserialized_assets, 1):
             bytes_synced += self._download_asset_audio(data['media_url'], deserialized_asset.object)
             # 99% done after assets sync'd
-            self._execute_js_func('reportSyncProgress', 3 + round((num_assets / len(deserialized_assets)) * 96))
+            self._execute_js_func('reportSyncProgress', 3 + (num_assets / len(deserialized_assets)) * 96)
         self._execute_js_func('reportSyncProgress', 99)
 
         if bytes_synced:
