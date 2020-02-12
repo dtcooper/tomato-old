@@ -53,18 +53,22 @@ img {
     image-rendering: pixelated;
 }
 
-::-webkit-scrollbar {
-    width: 8px;
-    background-color: #eeeeee;
+.scrollable {
+    overflow-y: auto;
 }
 
-::-webkit-scrollbar:hover {
-    background-color: #666666;
+/* Hack to have a padded scrollbar */
+.scrollable::-webkit-scrollbar {
+    width: 14px;
+    border-right: 7px solid #eee;
 }
 
-::-webkit-scrollbar-thumb {
-    background-color: #000000;
-    width: 8px;
+.scrollable::-webkit-scrollbar:hover {
+    border-right: 7px solid #666;
+}
+
+.scrollable::-webkit-scrollbar-thumb {
+    border-right: 7px solid #000;
 }
 
 .right {
@@ -76,8 +80,13 @@ img {
 }
 
 .nes-container {
-    margin: 7px;
+    margin: 7px 0;
     padding: 10px;
+}
+
+section > .nes-container, main > .nes-container {
+    margin-left: 7px;
+    margin-right: 7px;
 }
 
 .nes-container.with-title > .title {
@@ -221,7 +230,6 @@ main {
 }
 
 #play-queue-container > div > div {
-    overflow-y: auto;
     width: 100%;
 }
 
