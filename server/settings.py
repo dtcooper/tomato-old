@@ -90,6 +90,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 SHELL_PLUS_PRINT_SQL = True
 SHELL_PLUS_PRE_IMPORTS = [('constance', 'config')]
 
+# TODO: 1. Set validators for numeric fields
+# TODO: 2. Store constants in common file, so it can be imported by client's config.py
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_SUPERUSER_ONLY = False
 CONSTANCE_CONFIG = OrderedDict({

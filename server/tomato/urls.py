@@ -1,10 +1,10 @@
 from django.urls import path
 
-from .views import authenticate, export, ping
+from .views import auth, export, ping
 
 
 urlpatterns = [
     path('ping', ping, name='ping'),
-    path('auth', authenticate, name='auth'),
+    path('auth', auth, name='auth'),
     path('export', export, name='export'),
 ]

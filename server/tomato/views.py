@@ -2,13 +2,12 @@ import hashlib
 import itertools
 from urllib.parse import urlparse
 
-import pytz
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core import signing
 from django.core.serializers import serialize
+from django.contrib.auth import authenticate
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.gzip import gzip_page
@@ -26,20 +25,15 @@ def ping(request):
 
 
 @csrf_exempt
-def authenticate(request):
+def auth(request):
     response = HttpResponseForbidden()
-
-    try:
-        user = User.objects.get(username=request.POST.get('username', ''))
-    except User.DoesNotExist:
-        pass
-    else:
-        if user.check_password(request.POST.get('password', '')):
-            token = signing.dumps({
-                'user_id': user.id,
-                'pw_hash': hashlib.md5(user.password.encode('utf8')).hexdigest(),
-            })
-            response = JsonResponse({'auth_token': token})
+    user = authenticate(username=request.POST.get('username'),
+                        password=request.POST.get('password'))
+    if user:
+        response = JsonResponse({'auth_token': signing.dumps({
+            'user_id': user.id,
+            'pw_hash': hashlib.md5(user.password.encode('utf8')).hexdigest(),
+        })})
 
     return response
 
