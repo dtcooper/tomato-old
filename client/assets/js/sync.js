@@ -17,7 +17,7 @@ var sync = function() {
                         + " synchronizing with the server. <br>Please try logging in again.</span>");
                 cef.auth.logout().then(showLoginModal);
             } else {
-                setStatusColor('error');
+                setStatusColor('error', 'Error syncing');
                 loadBlock();
             }
         })
@@ -25,8 +25,10 @@ var sync = function() {
 };
 
 var loadBlock = function() {
+    setStatusColor('warning', 'Loading asset block');
     closeModal('first-sync-dialog');
     cef.models.load_asset_block().then(function([context]) {
+        setStatusColor('success', 'Asset block loaded');
         var playQueueTemplate = $('#play-queue-template').html();
         var html = Mustache.render(playQueueTemplate, context);
         $('#play-queue').html(html);

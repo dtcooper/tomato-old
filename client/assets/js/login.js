@@ -6,17 +6,16 @@ var doLogin = function([error]) {
         $('#login-errors').append(elem);
         showLoginModal();
     } else {
-        setStatusColor(STATUS_ONLINE);
+        setStatusColor(STATUS_ONLINE, 'Logged in!');
         // Reset form back to initial status in case we need it again
         closeModal('login-dialog');
         sync();
         $('#login-dialog form').get(0).reset();
-        $('#login-status').text('Logged in!');
     }
 };
 
 var showLoginModal = function() {
-    setStatusColor(STATUS_PENDING);
+    setStatusColor(STATUS_PENDING, 'Logging in...');
     $('#loading').show();
     cef.conf.get_many('hostname', 'protocol').then(function([hostname, protocol]) {
         $('#loading').hide();
@@ -49,7 +48,7 @@ afterLoad(function() {
             } else {
                 sync();
             }
-            setStatusColor(isConnected ? STATUS_ONLINE : STATUS_OFFLINE);
+            setStatusColor(isConnected ? STATUS_ONLINE : STATUS_OFFLINE, 'Checked authorization');
         } else {
             showLoginModal();
         }

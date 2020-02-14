@@ -47,10 +47,11 @@ logger = logging.getLogger('tomato')
 
 
 class ResourceHandler:
-    def __init__(self, client_handler):
+    def __init__(self, client_handler, browser_xxx):
         self.client_handler = client_handler
         self.url = self.file = None
         self.total_bytes_read = self.file_size = 0
+        self.browser_xxx = browser_xxx
 
     def ProcessRequest(self, request, callback):
         self.url = urlparse(request.GetUrl())
@@ -60,7 +61,6 @@ class ResourceHandler:
     def GetResponseHeaders(self, response, response_length_out, redirect_url_out):
         response.SetMimeType('audio/mpeg')
         file_path = url2pathname(self.url.path)
-        print(f'file path = {file_path}')
 
         if os.path.exists(file_path):
             self.file_size = os.path.getsize(file_path)
@@ -92,10 +92,13 @@ class ResourceHandler:
                 done = (self.total_bytes_read == self.file_size)
 
         if done:
+            logger.info(f'Served {self.url.geturl()} ({self.total_bytes_read} bytes)')
             self.file.close()
             self.client_handler._release_strong_resource_handler_reference(self)
             if self.md5sum_xxx != self.hasher_xxx.hexdigest():
                 logger.error(f'MD5 mismatch for {self.file.name}')
+                self.browser_xxx.ExecuteJavascript(
+                    f'alert("MD5 mistmatch! for " + {json.dumps(os.path.basename(self.file.name))});')
 
         return not done
 
@@ -156,7 +159,7 @@ class ClientHandler:
     def GetResourceHandler(self, browser, frame, request):
         url = request.GetUrl()
         if url.lower().startswith('http://'):
-            resource_handler = ResourceHandler(self)
+            resource_handler = ResourceHandler(self, browser)
             self._add_strong_resource_handler_reference(resource_handler)
             return resource_handler
 

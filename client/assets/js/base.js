@@ -16,10 +16,13 @@ var closeModal = function(id) { $('#' + id).get(0).close() };
 var showModal = function(id) { $('#' + id).get(0).showModal(); };
 
 var STATUS_OFFLINE = 'error', STATUS_PENDING = 'warning', STATUS_ONLINE = 'success';
-var setStatusColor = function(status) {
+var setStatusColor = function(status, text) {
     $('#connection-status').removeClass(
         'is-primary is-success is-warning is-error is-disabled').addClass('is-' + status).attr(
         'data-hover-text', 'TODO: this is a major ' + status + ' ' + status + ' ' + status + '!');
+    if (text) {
+        $('#connection-status').attr('data-content', text);
+    }
 };
 
 afterLoad(function() {
