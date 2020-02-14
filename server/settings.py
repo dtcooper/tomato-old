@@ -1,6 +1,9 @@
 from collections import OrderedDict
 import os
 
+import pytz
+
+from django.core import validators
 from django.utils.html import format_html
 
 BASE_DIR = os.path.realpath(os.path.dirname(os.path.abspath(__file__)))
@@ -90,25 +93,43 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 SHELL_PLUS_PRINT_SQL = True
 SHELL_PLUS_PRE_IMPORTS = [('constance', 'config')]
 
-# TODO: 1. Set validators for numeric fields
-# TODO: 2. Store constants in common file, so it can be imported by client's config.py
+# TODO: 3. Store constants in common file, so it can be imported by client's config.py
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_SUPERUSER_ONLY = False
+CONSTANCE_ADDITIONAL_FIELDS = {
+    'TIMEZONE': ('django.forms.fields.ChoiceField', {
+        'widget': 'django.forms.Select',
+        'choices': [(name, name) for name in pytz.common_timezones],
+    }),
+    'WAIT_INTERVAL_MINUTES': ('django.forms.fields.IntegerField', {
+        'widget': 'django.forms.TextInput',
+        'widget_kwargs': {'attrs': {'size': 10}},
+        'validators': [validators.MinValueValidator(0), validators.MaxValueValidator(600)],
+    }),
+    'FADE_ASSETS_MS': ('django.forms.fields.IntegerField', {
+        'widget': 'django.forms.TextInput',
+        'widget_kwargs': {'attrs': {'size': 10}},
+        'validators': [validators.MinValueValidator(0), validators.MaxValueValidator(10000)],
+    }),
+}
 CONSTANCE_CONFIG = OrderedDict({
     'TIMEZONE': (TIME_ZONE, format_html(
         '{}<a href="{}" target="_blank">{}</a>{}',
         'Timezone for server/client to operate in. Choose from ',
         'https://en.wikipedia.org/wiki/List_of_tz_database_time_zones',
-        'this list (TZ database name)', f'. (Defaults to {TIME_ZONE} if invalid.)')),
-    'WAIT_INTERVAL_MINUTES': (20, 'Time to wait between stop sets (in minutes).'),
+        'this list (TZ database name)', f'. (Defaults to {TIME_ZONE} if invalid.)'), 'TIMEZONE'),
+    'WAIT_INTERVAL_MINUTES': (20, 'Time to wait between stop sets (in minutes).', 'WAIT_INTERVAL_MINUTES'),
     'WAIT_INTERVAL_SUBTRACTS_STOPSET_PLAYTIME': (
-        False, 'Wait time subtracts the playtime of a stop set. This will provide more '
-               'even results, ie the number of stop sets played per hour will be more '
-               'consistent at the expense of a DJs air time.'),
+        False, 'Wait time subtracts the playtime of a stop set in minutes. This will provide more '
+               'even results, ie the number of stop sets played per hour will be more consistent at'
+               'the expense of a DJs air time.'),
+    'FADE_ASSETS_MS': (
+        0, 'Time at the beginning and end of each asset to fade in milliseconds '
+           '(1000 milliseconds = 1 second). Leave this as at 0 to disable fading.', 'FADE_ASSETS_MS'),
     'STRIP_UPLOADED_AUDIO': (True, 'TODO'),
-    # sox in.wav out.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
+    # TODO: $ sox in.wav out.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
 })
-CLIENT_CONFIG_KEYS = ('WAIT_INTERVAL_MINUTES', 'WAIT_INTERVAL_SUBTRACTS_STOPSET_PLAYTIME')
+CLIENT_CONFIG_KEYS = ('WAIT_INTERVAL_MINUTES', 'WAIT_INTERVAL_SUBTRACTS_STOPSET_PLAYTIME', 'FADE_ASSETS_MS')
 
 # Valid file types as recognized by `soxi -t` and `file --mime-type` minus the audio/[x-]
 VALID_AUDIO_FILE_TYPES = {

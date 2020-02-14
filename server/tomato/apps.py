@@ -15,3 +15,6 @@ class TomatoConfig(AppConfig):
         from constance.apps import ConstanceConfig
 
         ConstanceConfig.verbose_name = 'Tomato Configuration'
+
+        # Create permission here, re:
+        # - https://github.com/jazzband/django-constance/blob/master/constance/apps.py
