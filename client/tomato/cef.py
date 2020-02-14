@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import hashlib
 import json
 import inspect
 import logging
@@ -7,8 +8,8 @@ import sys
 import os
 import queue
 import shutil
-from urllib.parse import urljoin
-from urllib.request import pathname2url
+from urllib.parse import urljoin, urlparse
+from urllib.request import pathname2url, url2pathname
 import webbrowser
 import threading
 
@@ -43,6 +44,69 @@ elif IS_LINUX:
 APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', 'assets', 'app.html')
 
 logger = logging.getLogger('tomato')
+
+
+class ResourceHandler:
+    def __init__(self, client_handler):
+        self.client_handler = client_handler
+        self.url = self.file = None
+        self.total_bytes_read = self.file_size = 0
+
+    def ProcessRequest(self, request, callback):
+        self.url = urlparse(request.GetUrl())
+        callback.Continue()
+        return True
+
+    def GetResponseHeaders(self, response, response_length_out, redirect_url_out):
+        response.SetMimeType('audio/mpeg')
+        file_path = url2pathname(self.url.path)
+        print(f'file path = {file_path}')
+
+        if os.path.exists(file_path):
+            self.file_size = os.path.getsize(file_path)
+            self.md5sum_xxx = hashlib.md5(open(file_path, 'rb').read()).hexdigest()
+            self.hasher_xxx = hashlib.md5()
+            self.file = open(file_path, 'rb')
+            response_length_out[0] = self.file_size
+            response.SetStatus(200)
+            response.SetStatusText('OK')
+            response.SetHeaderMap({'Content-Length': str(self.file_size),
+                                   'Access-Control-Allow-Origin': '*'})
+        else:
+            response.SetStatus(404)
+            response.SetStatusText('Not Found')
+
+    def ReadResponse(self, data_out, bytes_to_read, bytes_read_out, callback):
+        done = True
+
+        if self.total_bytes_read < self.file_size:
+            bytes_read = self.file.read(bytes_to_read)
+            self.hasher_xxx.update(bytes_read)
+            num_bytes_read = len(bytes_read)
+
+            if len(bytes_read):
+                data_out[0] = bytes_read
+                self.total_bytes_read += num_bytes_read
+                bytes_read_out[0] = num_bytes_read
+
+                done = (self.total_bytes_read == self.file_size)
+
+        if done:
+            self.file.close()
+            self.client_handler._release_strong_resource_handler_reference(self)
+            if self.md5sum_xxx != self.hasher_xxx.hexdigest():
+                logger.error(f'MD5 mismatch for {self.file.name}')
+
+        return not done
+
+    def Cancel(self):
+        self.file.close()
+
+    def CanGetCookie(self, cookie):
+        return True
+
+    def CanSetCookie(self, cookie):
+        return True
 
 
 class ClientHandler:
@@ -80,6 +144,23 @@ class ClientHandler:
         else:
             browser.ExecuteFunction('cef.close')
             return True
+
+    _resource_handlers = set()
+
+    def _add_strong_resource_handler_reference(self, resource_handler):
+        self._resource_handlers.add(resource_handler)
+
+    def _release_strong_resource_handler_reference(self, resource_handler):
+        self._resource_handlers.remove(resource_handler)
+
+    def GetResourceHandler(self, browser, frame, request):
+        url = request.GetUrl()
+        if url.lower().startswith('http://'):
+            resource_handler = ResourceHandler(self)
+            self._add_strong_resource_handler_reference(resource_handler)
+            return resource_handler
+
+        return False
 
 
 class JSBridge:
