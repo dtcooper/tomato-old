@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import hashlib
 import json
 import inspect
 import logging
+import mimetypes
 import sys
 import os
 import queue
@@ -47,11 +47,10 @@ logger = logging.getLogger('tomato')
 
 
 class ResourceHandler:
-    def __init__(self, client_handler, browser_xxx):
+    def __init__(self, client_handler):
         self.client_handler = client_handler
         self.url = self.file = None
         self.total_bytes_read = self.file_size = 0
-        self.browser_xxx = browser_xxx
 
     def ProcessRequest(self, request, callback):
         self.url = urlparse(request.GetUrl())
@@ -59,50 +58,49 @@ class ResourceHandler:
         return True
 
     def GetResponseHeaders(self, response, response_length_out, redirect_url_out):
-        response.SetMimeType('audio/mpeg')
         file_path = url2pathname(self.url.path)
 
         if os.path.exists(file_path):
-            self.file_size = os.path.getsize(file_path)
-            self.md5sum_xxx = hashlib.md5(open(file_path, 'rb').read()).hexdigest()
-            self.hasher_xxx = hashlib.md5()
             self.file = open(file_path, 'rb')
-            response_length_out[0] = self.file_size
+            self.file_size = os.path.getsize(file_path)
+
             response.SetStatus(200)
             response.SetStatusText('OK')
-            response.SetHeaderMap({'Content-Length': str(self.file_size),
-                                   'Access-Control-Allow-Origin': '*'})
+            response.SetMimeType(
+                mimetypes.guess_type(file_path, strict=False)[0] or 'application/octet-stream')
+            response.SetHeaderMap({'Access-Control-Allow-Origin': '*'})
+            response_length_out[0] = self.file_size
+
         else:
             response.SetStatus(404)
             response.SetStatusText('Not Found')
 
     def ReadResponse(self, data_out, bytes_to_read, bytes_read_out, callback):
-        done = True
+        has_bytes = False
+        clean_up = True
 
         if self.total_bytes_read < self.file_size:
             bytes_read = self.file.read(bytes_to_read)
-            self.hasher_xxx.update(bytes_read)
             num_bytes_read = len(bytes_read)
+            has_bytes = num_bytes_read > 0
 
-            if len(bytes_read):
+            if num_bytes_read > 0:
+                has_bytes = True
                 data_out[0] = bytes_read
                 self.total_bytes_read += num_bytes_read
                 bytes_read_out[0] = num_bytes_read
 
-                done = (self.total_bytes_read == self.file_size)
+                clean_up = (self.total_bytes_read == self.file_size)
 
-        if done:
+        if clean_up:
             logger.info(f'Served {self.url.geturl()} ({self.total_bytes_read} bytes)')
             self.file.close()
             self.client_handler._release_strong_resource_handler_reference(self)
-            if self.md5sum_xxx != self.hasher_xxx.hexdigest():
-                logger.error(f'MD5 mismatch for {self.file.name}')
-                self.browser_xxx.ExecuteJavascript(
-                    f'alert("MD5 mistmatch! for " + {json.dumps(os.path.basename(self.file.name))});')
 
-        return not done
+        return has_bytes
 
     def Cancel(self):
+        self.client_handler._release_strong_resource_handler_reference(self)
         self.file.close()
 
     def CanGetCookie(self, cookie):
@@ -154,16 +152,17 @@ class ClientHandler:
         self._resource_handlers.add(resource_handler)
 
     def _release_strong_resource_handler_reference(self, resource_handler):
-        self._resource_handlers.remove(resource_handler)
+        self._resource_handlers.discard(resource_handler)
 
     def GetResourceHandler(self, browser, frame, request):
-        url = request.GetUrl()
-        if url.lower().startswith('http://'):
-            resource_handler = ResourceHandler(self, browser)
+        # Intercept local URLs (needed to AJAX + wavesurfer.js)
+        if request.GetUrl().lower().startswith(f'http://tomato/'):
+            resource_handler = ResourceHandler(self)
             self._add_strong_resource_handler_reference(resource_handler)
             return resource_handler
 
-        return False
+        else:
+            return False
 
 
 class JSBridge:
@@ -285,7 +284,7 @@ class JSBridge:
 
 class CefWindow:
     WINDOW_TITLE = 'Tomato Radio Automation'
-    APP_HTML_URL = urljoin('file:', pathname2url(os.path.realpath(APP_HTML_PATH)))
+    APP_HTML_URL = urljoin('http://tomato', pathname2url(os.path.realpath(APP_HTML_PATH)))
 
     def __init__(self, *js_api_classes):
         self.conf = Config()
