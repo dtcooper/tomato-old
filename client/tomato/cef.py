@@ -343,26 +343,23 @@ class CefWindow:
 
         return kwargs
 
-    def get_app_context(self):
-        # Performance: if we're rendering the app.html we add custom context here
-        # Make sure Django is configured before importing so model import doesn't blow up
-        from .api import API_LIST
-
-        return {
-            'constants': {c: getattr(constants, c) for c in dir(constants) if c.isupper()},
-            'js_apis': {
-                api.namespace: [
-                    method for method in dir(api)
-                    if not method.startswith('_') and callable(getattr(api, method))
-                ] for api in API_LIST
-            }
-        }
-
     def render_template(self, template_name, context=None):
         default_context = {}  # TODO: do we need context here?
 
+        # Performance: if we're rendering the app.html we add custom context here
         if template_name == 'app.html':
-            default_context.update(self.get_app_context())
+            # Make sure Django is configured before importing so model import doesn't blow up
+            from .api import API_LIST
+
+            default_context.update({
+                'constants': {c: getattr(constants, c) for c in dir(constants) if c.isupper()},
+                'js_apis': {
+                    api.namespace: [
+                        method for method in dir(api)
+                        if not method.startswith('_') and callable(getattr(api, method))
+                    ] for api in API_LIST
+                }
+            })
 
         if context is not None:
             default_context.update(context)
