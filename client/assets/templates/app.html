@@ -3,17 +3,24 @@
 <head>
   <title>Tomato Radio Automation</title>
 
-  <link href="css/nes-2.3.0.min.css" rel="stylesheet">
-  <link href="css/styles.css" rel="stylesheet">
+  <link href="../css/nes-2.3.0.min.css" rel="stylesheet">
+  <link href="../css/styles.css" rel="stylesheet">
 
-  <script src="js/jquery-3.4.1.min.js"></script>
-  <script src="js/mustache-3.1.0.min.js"></script>
-  <script src="js/wavesurfer-3.3.1.min.js"></script>
-  <script src="js/wavesurfer-3.3.1.timeline.min.js"></script>
-  <script src="js/wavesurfer-3.3.1.cursor.min.js"></script>
-  <script src="js/base.js"></script>
-  <script src="js/sync.js"></script>
-  <script src="js/login.js"></script>
+  <script src="../js/jquery-3.4.1.min.js"></script>
+  <script src="../js/wavesurfer-3.3.1.min.js"></script>
+  <script src="../js/wavesurfer-3.3.1.timeline.min.js"></script>
+  <script src="../js/wavesurfer-3.3.1.cursor.min.js"></script>
+  <script>
+    {# Dynamically generated JS, and base cef object #}
+    var cef = {
+      'bridge': _jsBridge,
+      'constants': {{ constants|tojson }},
+    };
+  </script>
+
+  <script src="../js/base.js"></script>
+  <script src="../js/sync.js"></script>
+  <script src="../js/login.js"></script>
   <script>
     var audioPaths = [
       '/Users/dave/spotify-exporter/tracks/Crypt - Outer Limits.mp3',
@@ -55,13 +62,13 @@
     $(function() {
       var kwargs = {
         normalize: true,
-        height: 125,
-        barWidth: 9,
+        height: 150,
+        barWidth: 3,
         minBarHeight: 1,
-        barGap: 4,
+        barGap: 3,
         hideScrollbar: true,
         responsive: true,
-        cursorWidth: 3,
+        cursorWidth: 2,
         cursorColor: '#f30000',
         closeAudioContext: true
       };
@@ -131,9 +138,9 @@
       </div>
 
       <h1>
-        <img src="images/tomato.png">
+        <img src="../images/tomato.png">
         Tomato Radio Automation
-        <img src="images/tomato.png">
+        <img src="../images/tomato.png">
       </h1>
 
       <div id="connection-status" class="nes-text is-warning nes-pointer" data-content="Loading...">
@@ -173,40 +180,6 @@
       <div id="play-queue-container" class="nes-container with-title">
         <p class="title">Play Queue</p>
         <div class="scrollable">
-          <script id="play-queue-template" type="text/x-mustache">
-            {{# errors.length }}
-              <div class="nes-container with-title">
-                <p class="title">Error Loading Stop Set</p>
-                 <ul class="nes-list is-circle">
-                  {{# errors }}
-                    <li>{{ . }}</li>
-                  {{/ errors }}
-                  </ul>
-              </div>
-            {{/ errors.length }}
-
-            {{# stopset }}
-              <div class="nes-container with-title">
-                <p class="title">{{ . }}</p>
-                <div class="lists">
-                  <ul class="nes-list is-circle">
-                  {{# assets }}
-                    <li>
-                      <span style="background-color: #{{color}}">[{{ rotator }}]</span>
-                      {{ asset }}<br>
-                      <audio src="{{ url }}" controls></audio>
-                    </li>
-                  {{/ assets }}
-                  </ul>
-                </div>
-              </div>
-            {{/ stopset }}
-
-            <div class="nes-container with-title">
-              <p class="title">Wait</p>
-              <p>Wait for {{ wait }} seconds</p>
-            </div>
-          </script>
           <div id="play-queue"></div>
         </div>
       </div>
@@ -222,53 +195,7 @@
 
   </div>
 
-  <script id="dialog-template" type="text/x-mustache">
-    <dialog class="nes-dialog is-rounded" id="{{ id }}-dialog">
-      <form method="dialog">
-        <p class="title">{{ title }}</p>
-        <p>
-          {{# body_html }}{{& body_html }}{{/ body_html }}
-          {{# body }}<span class="nes-text is-error">{{ body }}</span>{{/ body }}
-        </p>
-        {{# buttons.length }}
-          <menu class="dialog-menu right">
-            {{# buttons }}
-              <button class="nes-btn{{ #class }} {{ class }}{{/ class }}"{{# id }} id="{{ id }}"{{/ id }}>
-                {{ text }}
-              </button>
-            {{/buttons}}
-          </menu>
-        {{/ buttons.length }}
-      </form>
-    </dialog>
-  </script>
-
-  <script id="login-template" type="text/x-mustache">
-    <div id="login-errors"></div>
-
-    <div class="nes-field is-inline">
-      <label for="hostname">Host:</label>
-      <input type="text" id="hostname" class="nes-input" placeholder="eg. tomato.host.com or 1.2.3.4">
-    </div>
-    <div class="center">
-      <label>
-        <input type="radio" class="nes-radio" name="protocol" value="https" checked>
-        <span>Secure (https)</span>
-      </label>
-      <label>
-        <input type="radio" class="nes-radio" name="protocol" value="http">
-        <span>Insecure (http)</span>
-      </label>
-    </div>
-    <div class="nes-field is-inline auth-field">
-      <label for="username">Username:</label>
-      <input type="text" id="username" class="nes-input" placeholder="Enter username">
-    </div>
-    <div class="nes-field is-inline auth-field">
-      <label for="password">Password:</label>
-      <input type="password" id="password" class="nes-input" placeholder="Enter password">
-    </div>
-  </script>
+  {% include 'dialogs.html' %}
 
 </body>
 </html>

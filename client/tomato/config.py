@@ -13,6 +13,7 @@ class Config:
         'height': WINDOW_SIZE_DEFAULT_HEIGHT,
         'hostname': None,
         'last_sync': None,
+        'print_html': False,
         'protocol': 'https',
         'wait_interval_minutes': 20,  # TODO: Common config -> common file
         'wait_interval_subtracts_stopset_playtime': False,  # TODO: Common config -> common file

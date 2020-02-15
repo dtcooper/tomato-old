@@ -1,5 +1,6 @@
 cefpython3
 Django
+jinja2
 pyinstaller
 pytz
 requests

@@ -1,26 +1,32 @@
 #!/usr/bin/env python3
 
-import json
 import inspect
+import io
+import json
 import logging
 import mimetypes
-import sys
 import os
+import pprint
 import queue
 import shutil
-from urllib.parse import urljoin, urlparse
-from urllib.request import pathname2url, url2pathname
-import webbrowser
+import sys
+from urllib.parse import urlparse
+from urllib.request import url2pathname
 import threading
+import traceback
+import webbrowser
 
 from cefpython3 import cefpython as cef
+import jinja2
 
 from . import constants
 from .constants import (
     APIException,
+    APP_URL,
     IS_LINUX,
     IS_MACOS,
     IS_WINDOWS,
+    TEMPLATES_DIR,
     WINDOW_SIZE_MIN_HEIGHT,
     WINDOW_SIZE_MIN_WIDTH,
 )
@@ -41,8 +47,6 @@ elif IS_LINUX:
     import ewmh
 
 
-APP_HTML_PATH = os.path.join(os.path.dirname(__file__), '..', 'assets', 'app.html')
-
 logger = logging.getLogger('tomato')
 
 
@@ -61,8 +65,15 @@ class ResourceHandler:
         file_path = url2pathname(self.url.path)
 
         if os.path.exists(file_path):
-            self.file = open(file_path, 'rb')
-            self.file_size = os.path.getsize(file_path)
+            if file_path.startswith(TEMPLATES_DIR):
+                template_name = file_path[len(TEMPLATES_DIR):]
+                rendered = self.client_handler._cef_window.render_template(template_name)
+
+                self.file = io.BytesIO(rendered.encode('utf-8'))
+                self.file_size = len(rendered)
+            else:
+                self.file = open(file_path, 'rb')
+                self.file_size = os.path.getsize(file_path)
 
             response.SetStatus(200)
             response.SetStatusText('OK')
@@ -111,8 +122,9 @@ class ResourceHandler:
 
 
 class ClientHandler:
-    def __init__(self):
-        self._conf = Config()
+    def __init__(self, cef_window):
+        self._cef_window = cef_window
+        self._conf = cef_window.conf
         self._dom_loaded = False
         self._should_close = False
 
@@ -167,12 +179,15 @@ class ClientHandler:
 
 class JSBridge:
     def __init__(self, cef_window):
+        # Make sure Django is configured before importing so model import doesn't blow up
+        from .api import API_LIST
+
         self.cef_window = cef_window
         self.js_apis = {}  # namespace -> (api, call_queue)
         self.threads = []
 
-        for js_api_class in self.cef_window.js_api_classes:
-            js_api = js_api_class(execute_js_func=self.cef_window.browser.ExecuteFunction)
+        for js_api_class in API_LIST:
+            js_api = js_api_class(cef_window=self.cef_window)
             namespaces = [js_api.namespace]
 
             for method_name in dir(js_api):
@@ -235,6 +250,8 @@ class JSBridge:
         logger.info(f'JSBridge call thread exiting ({namespace})')
 
     def dom_loaded(self):
+        self.cef_window.client_handler._dom_loaded = True
+
         self.cef_window.browser.ExecuteJavascript(
             f'cef.constants = {json.dumps({c: getattr(constants, c) for c in dir(constants) if c.isupper()})}')
 
@@ -253,7 +270,6 @@ class JSBridge:
                         ''')
 
         self.cef_window.browser.ExecuteJavascript("window.dispatchEvent(new CustomEvent('cefReady'))")
-        self.cef_window.client_handler._dom_loaded = True
 
     def close_browser(self):
         self.cef_window.client_handler._should_close = True
@@ -284,17 +300,19 @@ class JSBridge:
 
 class CefWindow:
     WINDOW_TITLE = 'Tomato Radio Automation'
-    APP_HTML_URL = urljoin('http://tomato', pathname2url(os.path.realpath(APP_HTML_PATH)))
 
-    def __init__(self, *js_api_classes):
+    def __init__(self):
         self.conf = Config()
-        self.js_api_classes = js_api_classes
         self.ewmh = None
         self.x_pos = self.y_pos = self.width = self.height = None
         self.should_maximize = None
         self.browser = None
         self.window = None
         self.window_handle = None
+        self.template_env = jinja2.Environment(
+            loader=jinja2.FileSystemLoader(searchpath=TEMPLATES_DIR),
+            autoescape=jinja2.select_autoescape(['html']),
+        )
 
     def init_platform(self):
         if IS_LINUX:
@@ -340,10 +358,36 @@ class CefWindow:
                 'context_menu': {'enabled': True, 'external_browser': False,
                                  'print': False, 'view_source': False},
                 'debug': True,
-                'remote_debugging_port': 0,
+                'remote_debugging_port': 6969,
             })
 
         return kwargs
+
+    def render_template(self, template_name, context=None):
+        default_context = {
+            'constants': {c: getattr(constants, c) for c in dir(constants) if c.isupper()},
+        }
+
+        if context is not None:
+            default_context.update(context)
+
+        try:
+            template = self.template_env.get_template(template_name)
+            rendered = template.render(default_context)
+        except Exception as exc:
+            logger.exception(f'Error rendering template {template_name}')
+            template = jinja2.Template(
+                '<html><body><h1>{{ title }}</h1><pre>{{ exc }}</pre></body></html>', autoescape=True)
+            rendered = template.render({'title': exc, 'exc': traceback.format_exc()})
+
+        print(f'Rendered {template_name}')
+        if self.conf.print_html:
+            print(f' {template_name} '.center(40, '-'))
+            pprint.pprint(default_context)
+            print('-' * 40)
+            print(rendered)
+            print('-' * 40)
+        return rendered
 
     def init_window(self):
         self.window_handle = self.browser.GetOuterWindowHandle()
@@ -428,7 +472,7 @@ class CefWindow:
 
             self.init_window()
 
-            self.client_handler = ClientHandler()
+            self.client_handler = ClientHandler(self)
             self.browser.SetClientHandler(self.client_handler)
 
             js_bindings = cef.JavascriptBindings()
@@ -436,8 +480,8 @@ class CefWindow:
             js_bindings.SetObject('_jsBridge', js_bridge)
             self.browser.SetJavascriptBindings(js_bindings)
 
-            logger.info(f'Loading URL: {self.APP_HTML_URL}')
-            self.browser.LoadUrl(self.APP_HTML_URL)
+            logger.info(f'Loading URL: {APP_URL}')
+            self.browser.LoadUrl(APP_URL)
 
             cef.MessageLoop()
 

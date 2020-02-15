@@ -1,6 +1,5 @@
 import os
 import platform
-import sys
 from urllib.parse import urljoin
 from urllib.request import pathname2url
 
@@ -23,6 +22,10 @@ if IS_WINDOWS:
         USER_DIR = os.path.join(os.environ['LOCALAPPDATA'], 'Tomato')
     except KeyError:
         pass
+
+ASSETS_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'assets'))
+TEMPLATES_DIR = os.path.join(ASSETS_DIR, 'templates')
+APP_URL = urljoin('http://tomato', pathname2url(os.path.join(TEMPLATES_DIR, 'app.html')))
 
 MEDIA_DIR = os.path.join(USER_DIR, 'media')
 MEDIA_URL = f'{urljoin("http://tomato", pathname2url(MEDIA_DIR))}/'

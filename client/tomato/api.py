@@ -56,9 +56,10 @@ make_request = make_request()
 
 
 class APIBase:
-    def __init__(self, execute_js_func):
-        self.conf = Config()
-        self._execute_js_func = execute_js_func
+    def __init__(self, cef_window):
+        self.conf = cef_window.conf
+        self.cef_window = cef_window
+        self._execute_js_func = self.cef_window.browser.ExecuteFunction
 
 
 class AuthAPI(APIBase):
@@ -183,7 +184,7 @@ class ModelsAPI(APIBase):
                     context['assets'].append({
                         'rotator': rotator.name,
                         'color': rotator.color,
-                        'asset': asset.name,
+                        'name': asset.name,
                         'url': asset.audio.url,
                         'length': asset.duration.total_seconds(),
                     })
@@ -248,3 +249,13 @@ class ModelsAPI(APIBase):
 
         self._sync_log('Completed')
     sync.use_own_thread = True
+
+
+class TemplateAPI(APIBase):
+    namespace = 'template'
+
+    def render(self, template_name, context=None):
+        return self.cef_window.render_template(template_name, context)
+
+
+API_LIST = (AuthAPI, ConfigAPI, ModelsAPI, TemplateAPI)

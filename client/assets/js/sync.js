@@ -28,9 +28,9 @@ var loadBlock = function() {
     setStatusColor('warning', 'Loading asset block');
     closeModal('first-sync-dialog');
     cef.models.load_asset_block().then(function([context]) {
-        setStatusColor('success', 'Asset block loaded');
-        var playQueueTemplate = $('#play-queue-template').html();
-        var html = Mustache.render(playQueueTemplate, context);
-        $('#play-queue').html(html);
+        cef.template.render('asset_block.html', context).then(function([html]) {
+            setStatusColor('success', 'Asset block loaded');
+            $('#play-queue').html(html);
+        });
     });
 };

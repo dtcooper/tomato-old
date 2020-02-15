@@ -1,19 +1,13 @@
-var cef = {
-    'bridge': _jsBridge,
-    'constants': {},
-    'close': function() {
-        showModal('close-dialog');
-    }
-};
+cef.close = function() { showModal('close-dialog'); };
 
 var isClosing = false;
 
-var afterLoad = function(func) {
+function afterLoad(func) {
     window.addEventListener('cefReady', function() { $(func); })
 };
 
-var closeModal = function(id) { $('#' + id).get(0).close() };
-var showModal = function(id) { $('#' + id).get(0).showModal(); };
+function closeModal(id) { $('#' + id).get(0).close() };
+function showModal(id) { $('#' + id).get(0).showModal(); };
 
 var STATUS_OFFLINE = 'error', STATUS_PENDING = 'warning', STATUS_ONLINE = 'success';
 var setStatusColor = function(status, text) {
@@ -26,34 +20,6 @@ var setStatusColor = function(status, text) {
 };
 
 afterLoad(function() {
-    var dialogs = [
-        // Open link
-        {'id': 'link', 'title': 'Open Link',
-         'body_html': `Open in external browser?<br>
-                       -> <span class="nes-text is-primary" id="link-description">#</span>`,
-         'buttons': [{'class': 'is-error', 'text': 'Cancel'},
-                     {'class': 'is-success', 'text': 'Yes, open it!', 'id': 'link-open-btn'}]},
-        // Login
-        {'id': 'login', 'title': 'Please Login', 'buttons': [{'class': 'is-success', 'text': 'Login'}],
-         'body_html': $('#login-template').html()},
-        // Logout
-        {'id': 'logout', 'title': 'Logout', 'body': 'Are you sure you want to logout?',
-         'buttons': [{'text': 'Cancel'}, {'text': 'Logout', 'class': 'is-error', 'id': 'confirm-logout-btn'}]},
-        // Quit
-        {'id': 'close', 'title': 'Quit Tomato', 'text': 'Are you sure you want to quit Tomato?',
-         'buttons': [{'text': 'Cancel'}, {'text': 'Quit Tomato', 'class': 'is-error', 'id': 'close-btn'}]},
-        {'id': 'first-sync', 'title': 'Synchronizing With Server',
-         'body_html': '<progress id="sync-progress" class="nes-progress is-success" max="100" value="0"></progress>\n'
-            + 'Please wait while Tomato synchronizes for the first time.'}
-    ]
-
-
-    var dialogTemplate = $('#dialog-template').html();
-    $(dialogs).each(function(i, context) {
-        var html = Mustache.render(dialogTemplate, context);
-        $('body').append(html);
-    });
-
     $('dialog:not(#close-dialog)').each(function(i, elem) {
         elem.addEventListener('cancel', function(event) {
             event.preventDefault();

@@ -51,8 +51,5 @@ class Client:
         logger.info(f'Ran Django Migrations: {migrate_output.getvalue()}')
 
     def run_cef(self):
-        # Make sure Django is configured before importing so model import doesn't blow up
-        from .api import AuthAPI, ConfigAPI, ModelsAPI
-
-        cef_window = CefWindow(AuthAPI, ConfigAPI, ModelsAPI)
+        cef_window = CefWindow()
         cef_window.run()

@@ -1,0 +1,84 @@
+{% macro render_dialog(id, title, body=None, body_html=None, buttons=None) %}
+  {# buttons=[(<id or None>, <class or None>, text), ...] #}
+  <dialog class="nes-dialog is-rounded" id="{{ id }}-dialog">
+    <form method="dialog">
+      <p class="title">{{ title }}</p>
+      <p>
+        {% if body %}
+          <span class="nes-text is-error">{{ body }}</span>
+        {% elif body_html %}
+          {{ body_html|safe }}
+        {% endif %}
+      </p>
+      {% if buttons %}
+        <menu class="dialog-menu right">
+        {% for id, class, text in buttons %}
+          <button class="nes-btn{% if class %} {{ class }}{% endif %}"{% if id %} id="{{ id }}"{% endif %}>
+            {{ text }}
+          </button>
+        {% endfor %}
+        </menu>
+      {% endif %}
+    </form>
+  </dialog>
+{% endmacro %}
+
+{{
+  render_dialog('link', 'Open Link',
+    body_html='Open in external browser?<br>-> <span class="nes-text is-primary" id="link-description">#</span>',
+    buttons=[(None, 'is-error', 'Cancel'), ('link-open-btn', 'is-success', 'Yes, open it!')])
+}}
+
+{% with %}
+  {% set login_body %}
+    <div id="login-errors"></div>
+
+    <div class="nes-field is-inline">
+      <label for="hostname">Host:</label>
+      <input type="text" id="hostname" class="nes-input" placeholder="eg. tomato.host.com or 1.2.3.4">
+    </div>
+    <div class="center">
+      <label>
+        <input type="radio" class="nes-radio" name="protocol" value="https" checked>
+        <span>Secure (https)</span>
+      </label>
+      <label>
+        <input type="radio" class="nes-radio" name="protocol" value="http">
+        <span>Insecure (http)</span>
+      </label>
+    </div>
+    <div class="nes-field is-inline auth-field">
+      <label for="username">Username:</label>
+      <input type="text" id="username" class="nes-input" placeholder="Enter username">
+    </div>
+    <div class="nes-field is-inline auth-field">
+      <label for="password">Password:</label>
+      <input type="password" id="password" class="nes-input" placeholder="Enter password">
+    </div>
+  {% endset %}
+
+  {{
+    render_dialog('login', 'Please Login', body_html=login_body,
+      buttons=[(None, 'is-success', 'Login')])
+  }}
+
+{% endwith %}
+
+{{
+  render_dialog('logout', 'Logout', body='Are you sure you want to logout?',
+    buttons=[(None, None, 'Cancel'), ('confirm-logout-btn', 'is-error', 'Logout')])
+}}
+
+{{
+  render_dialog('close', 'Quit Tomato', body='Are you sure you want to quit Tomato?',
+    buttons=[(None, None, 'Cancel'), ('close-btn', 'is-error', 'Quit Tomato')])
+}}
+
+{% with %}
+  {% set first_sync_body %}
+    <progress id="sync-progress" class="nes-progress is-success" max="100" value="0"></progress>
+    Please wait while Tomato synchronizes for the first time.
+  {% endset %}
+
+  {{ render_dialog('first-sync', 'Synchronizing With Server', body_html=first_sync_body) }}
+{% endwith %}
