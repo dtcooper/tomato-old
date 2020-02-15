@@ -25,7 +25,8 @@ if IS_WINDOWS:
 
 ASSETS_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'assets'))
 TEMPLATES_DIR = os.path.join(ASSETS_DIR, 'templates')
-APP_URL = urljoin('http://tomato', pathname2url(os.path.join(TEMPLATES_DIR, 'app.html')))
+APP_PATH = os.path.join(TEMPLATES_DIR, 'app.html')
+APP_URL = urljoin('http://tomato', pathname2url(APP_PATH))
 
 MEDIA_DIR = os.path.join(USER_DIR, 'media')
 MEDIA_URL = f'{urljoin("http://tomato", pathname2url(MEDIA_DIR))}/'

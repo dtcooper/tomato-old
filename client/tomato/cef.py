@@ -2,7 +2,6 @@
 
 import inspect
 import io
-import json
 import logging
 import mimetypes
 import os
@@ -66,7 +65,7 @@ class ResourceHandler:
 
         if os.path.exists(file_path):
             if file_path.startswith(TEMPLATES_DIR):
-                template_name = file_path[len(TEMPLATES_DIR):]
+                template_name = file_path[len(TEMPLATES_DIR) + 1:]
                 rendered = self.client_handler._cef_window.render_template(template_name)
 
                 self.file = io.BytesIO(rendered.encode('utf-8'))
@@ -252,25 +251,6 @@ class JSBridge:
     def dom_loaded(self):
         self.cef_window.client_handler._dom_loaded = True
 
-        self.cef_window.browser.ExecuteJavascript(
-            f'cef.constants = {json.dumps({c: getattr(constants, c) for c in dir(constants) if c.isupper()})}')
-
-        for namespace, (js_api, _) in self.js_apis.items():
-            if '::' not in namespace:  # No special work for methods with their own threads
-                self.cef_window.browser.ExecuteJavascript(f'cef.{namespace} = {{}}')
-                for method_name in dir(js_api):
-                    if not method_name.startswith('_') and inspect.ismethod(getattr(js_api, method_name)):
-                        self.cef_window.browser.ExecuteJavascript(f'''
-                            cef.{namespace}.{method_name} = function() {{
-                                var args = Array.from(arguments);
-                                return new Promise(function(resolve, reject) {{
-                                    cef.bridge.call('{namespace}', '{method_name}', resolve, reject, args);
-                                }});
-                            }}
-                        ''')
-
-        self.cef_window.browser.ExecuteJavascript("window.dispatchEvent(new CustomEvent('cefReady'))")
-
     def close_browser(self):
         self.cef_window.client_handler._should_close = True
         self.cef_window.browser.SendFocusEvent(True)
@@ -363,10 +343,26 @@ class CefWindow:
 
         return kwargs
 
-    def render_template(self, template_name, context=None):
-        default_context = {
+    def get_app_context(self):
+        # Performance: if we're rendering the app.html we add custom context here
+        # Make sure Django is configured before importing so model import doesn't blow up
+        from .api import API_LIST
+
+        return {
             'constants': {c: getattr(constants, c) for c in dir(constants) if c.isupper()},
+            'js_apis': {
+                api.namespace: [
+                    method for method in dir(api)
+                    if not method.startswith('_') and callable(getattr(api, method))
+                ] for api in API_LIST
+            }
         }
+
+    def render_template(self, template_name, context=None):
+        default_context = {}  # TODO: do we need context here?
+
+        if template_name == 'app.html':
+            default_context.update(self.get_app_context())
 
         if context is not None:
             default_context.update(context)
@@ -374,13 +370,13 @@ class CefWindow:
         try:
             template = self.template_env.get_template(template_name)
             rendered = template.render(default_context)
+            logger.info(f'Rendered {template_name}')
         except Exception as exc:
             logger.exception(f'Error rendering template {template_name}')
             template = jinja2.Template(
                 '<html><body><h1>{{ title }}</h1><pre>{{ exc }}</pre></body></html>', autoescape=True)
             rendered = template.render({'title': exc, 'exc': traceback.format_exc()})
 
-        print(f'Rendered {template_name}')
         if self.conf.print_html:
             print(f' {template_name} '.center(40, '-'))
             pprint.pprint(default_context)
@@ -476,8 +472,8 @@ class CefWindow:
             self.browser.SetClientHandler(self.client_handler)
 
             js_bindings = cef.JavascriptBindings()
-            js_bridge = JSBridge(self)
-            js_bindings.SetObject('_jsBridge', js_bridge)
+            self.js_bridge = JSBridge(self)
+            js_bindings.SetObject('_jsBridge', self.js_bridge)
             self.browser.SetJavascriptBindings(js_bindings)
 
             logger.info(f'Loading URL: {APP_URL}')
@@ -486,7 +482,7 @@ class CefWindow:
             cef.MessageLoop()
 
             logger.info('Shutting down')
-            js_bridge._shutdown()
+            self.js_bridge._shutdown()
             cef.Shutdown()
 
         finally:

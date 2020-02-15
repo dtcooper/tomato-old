@@ -2,10 +2,6 @@ cef.close = function() { showModal('close-dialog'); };
 
 var isClosing = false;
 
-function afterLoad(func) {
-    window.addEventListener('cefReady', function() { $(func); })
-};
-
 function closeModal(id) { $('#' + id).get(0).close() };
 function showModal(id) { $('#' + id).get(0).showModal(); };
 
@@ -19,7 +15,7 @@ var setStatusColor = function(status, text) {
     }
 };
 
-afterLoad(function() {
+$(function() {
     $('dialog:not(#close-dialog)').each(function(i, elem) {
         elem.addEventListener('cancel', function(event) {
             event.preventDefault();

@@ -25,7 +25,7 @@ var showLoginModal = function() {
     });
 };
 
-afterLoad(function() {
+$(function() {
     $('#login-dialog').submit(function(event) {
         $('#loading').show();
         setTimeout(function() {

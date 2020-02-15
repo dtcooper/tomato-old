@@ -16,6 +16,18 @@
       'bridge': _jsBridge,
       'constants': {{ constants|tojson }},
     };
+
+    {% for namespace, methods in js_apis.items() %}
+      cef[{{ namespace|tojson }}] = {};
+      {% for method in methods %}
+        cef[{{ namespace|tojson }}][{{ method|tojson}}] = function() {
+          let args = Array.from(arguments);
+          return new Promise(function(resolve, reject) {
+            cef.bridge.call({{ namespace|tojson }}, {{ method|tojson }}, resolve, reject, args);
+          });
+        };
+      {% endfor %}
+    {% endfor %}
   </script>
 
   <script src="../js/base.js"></script>
