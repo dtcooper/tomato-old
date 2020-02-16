@@ -1,7 +1,7 @@
 # TODO List
 
 - [x] Minimum window dimensions and full screen on all three platforms.
-- [ ] Save window position on all three platforms and whether maximized / fullscreen
+- [x] Save window position on all three platforms and whether maximized / fullscreen
 - [ ] Prevent hibernation, ie using `caffeinate` cmd on macOS and on Windows,
       `SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED)`
 - [ ] Implement `STRIP_UPLOADED_AUDIO`.

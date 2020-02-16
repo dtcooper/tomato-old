@@ -6,22 +6,22 @@ var doLogin = function([error]) {
         $('#login-errors').append(elem);
         showLoginModal();
     } else {
-        setStatusColor(STATUS_ONLINE, 'Logged in!');
+        ui.setStatusColor(STATUS_ONLINE, 'Logged in!');
         // Reset form back to initial status in case we need it again
-        closeModal('login-dialog');
+        ui.closeModal('login-dialog');
         sync();
         $('#login-dialog form').get(0).reset();
     }
 };
 
 var showLoginModal = function() {
-    setStatusColor(STATUS_PENDING, 'Logging in...');
+    ui.setStatusColor(STATUS_PENDING, 'Logging in...');
     $('#loading').show();
     cef.conf.get_many('hostname', 'protocol').then(function([hostname, protocol]) {
         $('#loading').hide();
         $('#hostname').val(hostname);
         $('input[name=protocol][value=' + protocol + ']').prop('checked', true);
-        showModal('login-dialog');
+        ui.showModal('login-dialog');
     });
 };
 
@@ -48,7 +48,7 @@ $(function() {
             } else {
                 sync();
             }
-            setStatusColor(isConnected ? STATUS_ONLINE : STATUS_OFFLINE, 'Checked authorization');
+            ui.setStatusColor(isConnected ? STATUS_ONLINE : STATUS_OFFLINE, 'Checked authorization');
         } else {
             showLoginModal();
         }

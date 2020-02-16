@@ -7,9 +7,11 @@
   <link href="../css/styles.css" rel="stylesheet">
 
   <script src="../js/jquery-3.4.1.min.js"></script>
+  {#
   <script src="../js/wavesurfer-3.3.1.min.js"></script>
   <script src="../js/wavesurfer-3.3.1.timeline.min.js"></script>
   <script src="../js/wavesurfer-3.3.1.cursor.min.js"></script>
+  #}
   <script>
     {# Dynamically generated JS, and base cef object #}
     var cef;
@@ -41,96 +43,6 @@
   <script src="../js/base.js"></script>
   <script src="../js/sync.js"></script>
   <script src="../js/login.js"></script>
-  <script>
-    var audioPaths = [
-      '/Users/dave/spotify-exporter/tracks/Crypt - Outer Limits.mp3',
-      '/Users/dave/spotify-exporter/tracks/Steel Guitar Jazz/01 Buddy Emmons - Bluemmons.mp3',
-      '/Users/dave/spotify-exporter/tracks/Steel Guitar Jazz/02 Buddy Emmons - Any Time.mp3',
-      '/Users/dave/spotify-exporter/tracks/Steel Guitar Jazz/03 Buddy Emmons - Where Or When.mp3',
-      '/Users/dave/spotify-exporter/tracks/Steel Guitar Jazz/04 Buddy Emmons - Indiana.mp3',
-      '/Users/dave/spotify-exporter/tracks/Steel Guitar Jazz/05 Buddy Emmons - Gravy Waltz.mp3',
-      '/Users/dave/spotify-exporter/tracks/Steel Guitar Jazz/06 Buddy Emmons - Oleo.mp3',
-      '/Users/dave/spotify-exporter/tracks/Steel Guitar Jazz/07 Buddy Emmons - The Preacher.mp3',
-      '/Users/dave/spotify-exporter/tracks/Steel Guitar Jazz/08 Buddy Emmons - Cherokee.mp3',
-      '/Users/dave/spotify-exporter/tracks/Steel Guitar Jazz/09 Buddy Emmons - Witchcraft.mp3',
-      '/Users/dave/spotify-exporter/tracks/Steel Guitar Jazz/10 Buddy Emmons - Gonna Build A Mountain.mp3',
-      '/Users/dave/spotify-exporter/tracks/Steel Guitar Jazz/11 Buddy Emmons - There Will Never Be Another You.mp3',
-    ];
-
-    var colors = [
-        ['#ff8a80', '#e53935'],
-        ['#ff80ab', '#d81b60'],
-        ['#ea80fc', '#8e24aa'],
-        ['#b388ff', '#5e35b1'],
-        ['#8c9eff', '#3949ab'],
-        ['#82b1ff', '#1e88e5'],
-        ['#80d8ff', '#039be5'],
-        ['#84ffff', '#00acc1'],
-        ['#a7ffeb', '#00897b'],
-        ['#b9f6ca', '#43a047'],
-        ['#ccff90', '#7cb342'],
-        ['#f4ff81', '#c0ca33'],
-        ['#ffff8d', '#fdd835'],
-        ['#ffe57f', '#ffb300'],
-        ['#ffd180', '#fb8c00'],
-        ['#ff9e80', '#f4511e']
-    ]
-    var color = colors[Math.floor(Math.random() * colors.length)];
-
-    var wavesurfer1, wavesurfer2;
-    var place = 1;
-    $(function() {
-      var kwargs = {
-        normalize: true,
-        height: 150,
-        barWidth: 3,
-        minBarHeight: 1,
-        barGap: 3,
-        hideScrollbar: true,
-        responsive: true,
-        cursorWidth: 2,
-        cursorColor: '#f30000',
-        closeAudioContext: true
-      };
-
-      wavesurfer1 = WaveSurfer.create(Object.assign({
-        container: '#waveform1',
-        waveColor: color[0],
-        progressColor: color[1],
-        plugins: [
-          WaveSurfer.timeline.create({
-            container: "#waveform1-timeline",
-            height: 10
-          }),
-          WaveSurfer.cursor.create({width: 2})
-        ]
-      }, kwargs));
-
-      color = colors[Math.floor(Math.random() * colors.length)];
-
-      wavesurfer2 = WaveSurfer.create(Object.assign({
-        container: '#waveform2',
-        waveColor: color[0],
-        progressColor: color[1],
-        plugins: [
-          WaveSurfer.timeline.create({
-            container: "#waveform2-timeline",
-            height: 10
-          }),
-          WaveSurfer.cursor.create({width: 2})
-        ]
-      }, kwargs));
-
-      wavesurfer1.on('ready', function() {
-        wavesurfer1.play();
-      });
-      wavesurfer1.on('finish', function() {
-        wavesurfer2.play();
-      });
-      wavesurfer1.load(audioPaths[0]);
-      wavesurfer2.load(audioPaths[1]);
-    });
-  </script>
 </head>
 <body>
   <div id="loading"></div>
@@ -150,8 +62,8 @@
               <button class="nes-btn is-success" onclick="sync();">Sync</button>
               <button class="nes-btn" onclick="loadBlock();">Load Block</button>
               <button class="nes-btn is-primary" onclick="cef.bridge.toggle_fullscreen();">Toggle Fullscreen</button>
-              <button class="nes-btn is-warning" onclick="showModal('logout-dialog');">Logout</button>
-              <button class="nes-btn is-error" onclick="showModal('close-dialog');">Quit</button>
+              <button class="nes-btn is-warning" onclick="ui.showModal('logout-dialog');">Logout</button>
+              <button class="nes-btn is-error" onclick="ui.showModal('close-dialog');">Quit</button>
             </p>
           </div>
         </div>
@@ -172,6 +84,7 @@
       <div class="nes-container with-title">
         <p class="title">Now Playing</p>
 
+        {# waveform prototype code
         <div id="waveform1-timeline"></div>
         <div id="waveform1" class="nes-pointer" style="margin-bottom: 20px; position: relative"></div>
 
@@ -191,8 +104,9 @@
           <button class="nes-btn is-warning" onclick="wavesurfer2.load(audioPaths[++place % audioPaths.length]);">New Track</button>
           <button class="nes-btn" onclick="color = colors[Math.floor(Math.random() * colors.length)]; wavesurfer2.setWaveColor(color[0]); wavesurfer2.setProgressColor(color[1]);">Change color</button>
         </p>
+        #}
 
-        <!-- <progress class="nes-progress is-primary" value="50" max="100" data-text-fill="test content test content test content test content test content test content test content test content test content"></progress> -->
+        <progress class="nes-progress is-primary" value="50" max="100" data-text-fill="test content test content test content test content test content test content test content test content test content"></progress>
       </div>
     </section>
 
