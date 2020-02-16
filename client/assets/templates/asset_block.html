@@ -1,6 +1,6 @@
 {% if errors %}
-  <div class="nes-container with-title">
-    <p class="title">Error Loading Stop Set</p>
+  <div class="nes-container with-title" style="border-color: #e53935;">
+    <p class="title" style="color: #e53935">Error Loading Stop Set</p>
      <ul class="nes-list is-circle">
       {% for error in errors %}
         <li>{{ error }}</li>
@@ -11,15 +11,14 @@
 
 {% if stopset %}
   <div class="nes-container with-title">
-    <p class="title">{{ stopset }}</p>
+    <p class="title">Stop Set: {{ stopset }}</p>
 
     <div class="lists">
       <ul class="nes-list is-circle">
       {% for asset in assets %}
-        <li>
-          <span style="background-color: #{{ asset.color }}">[{{ asset.rotator }}]</span>
-            {{ asset.name }} ({{ asset.length|round(1) }} seconds)<br>
-          <audio src="{{ asset.url }}" controls></audio>
+        <li class="nes-pointer asset-item" data-asset-idx="{{ loop.index - 1 }}">
+          {{ loop.index }}. <strong>{{ asset.name }}</strong> ({{ asset.length|round(1) }} secs)
+          <span style="background-color: #{{ asset.color }}">[Rotator: {{ asset.rotator }}]</span>
         </li>
       {% endfor %}
       </ul>

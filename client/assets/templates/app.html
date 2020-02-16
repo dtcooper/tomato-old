@@ -7,11 +7,9 @@
   <link href="../css/styles.css" rel="stylesheet">
 
   <script src="../js/jquery-3.4.1.min.js"></script>
-  {#
   <script src="../js/wavesurfer-3.3.1.min.js"></script>
   <script src="../js/wavesurfer-3.3.1.timeline.min.js"></script>
   <script src="../js/wavesurfer-3.3.1.cursor.min.js"></script>
-  #}
   <script>
     {# Dynamically generated JS, and base cef object #}
     var cef;
@@ -60,7 +58,6 @@
           <div class="nes-container is-rounded">
             <p>
               <button class="nes-btn is-success" onclick="sync();">Sync</button>
-              <button class="nes-btn" onclick="loadBlock();">Load Block</button>
               <button class="nes-btn is-primary" onclick="cef.bridge.toggle_fullscreen();">Toggle Fullscreen</button>
               <button class="nes-btn is-warning" onclick="ui.showModal('logout-dialog');">Logout</button>
               <button class="nes-btn is-error" onclick="ui.showModal('close-dialog');">Quit</button>
@@ -82,7 +79,13 @@
 
     <section>
       <div class="nes-container with-title">
-        <p class="title">Now Playing</p>
+        <p class="title">Now Playing<span id="track-title"></span></p>
+        <div id="waveform-timeline" style="height: 10px"></div>
+        {# Relative position fixes cursor #}
+        <div id="waveform" style="height: 128px; margin-bottom: 10px; position: relative;"></div>
+        <button class="nes-btn is-success" onclick="if (wavesurfer) { wavesurfer.playPause() }">Play / Pause</button>
+        <button class="nes-btn is-warning" id="next-btn">Load Next Asset in Stop Set</button>
+        <button class="nes-btn is-primary" onclick="loadBlock();">Load New Stop Set</button>
 
         {# waveform prototype code
         <div id="waveform1-timeline"></div>
@@ -104,9 +107,10 @@
           <button class="nes-btn is-warning" onclick="wavesurfer2.load(audioPaths[++place % audioPaths.length]);">New Track</button>
           <button class="nes-btn" onclick="color = colors[Math.floor(Math.random() * colors.length)]; wavesurfer2.setWaveColor(color[0]); wavesurfer2.setProgressColor(color[1]);">Change color</button>
         </p>
-        #}
 
         <progress class="nes-progress is-primary" value="50" max="100" data-text-fill="test content test content test content test content test content test content test content test content test content"></progress>
+        #}
+
       </div>
     </section>
 
