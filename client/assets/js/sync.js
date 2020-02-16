@@ -84,11 +84,11 @@ var loadWaveform = function(asset, play = true) {
     }
     wavesurfer.load(asset.url);
     $('#track-title').text(': ' + asset.name + ' (' + asset.length + ' secs)');
-    $('.asset-item').css('background-color', 'initial');
-    $('.asset-item[data-asset-idx=' + assetIdx + ']').css('background-color', '#e3f2fd');
+    $('.asset-item[data-asset-idx=' + assetIdx + ']').css('background-color', '#90caf9');
 }
 
 var loadNext = function(play = true) {
+    $('.asset-item').css('background-color', 'initial');
     if (assetIdx < assets.length) {
         loadWaveform(assets[assetIdx], play);
         assetIdx++;
@@ -109,10 +109,10 @@ var loadBlock = function() {
         assets = Array.from(context.assets);
         assetIdx = 0;
         wait = context.wait;
-        loadNext(false);
         cef.template.render('asset_block.html', context).then(function([html]) {
             ui.setStatusColor('success', 'Asset block loaded');
             $('#play-queue').html(html);
+            loadNext(false);
         });
     });
 };
