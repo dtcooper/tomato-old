@@ -80,12 +80,15 @@
     <section>
       <div class="nes-container with-title">
         <p class="title">Now Playing<span id="track-title"></span></p>
-        <div id="waveform-timeline" style="height: 10px"></div>
+        <div id="waveform-timeline" style="height: 11px;"></div>
         {# Relative position fixes cursor #}
         <div id="waveform" style="height: 128px; margin-bottom: 10px; position: relative;"></div>
-        <button class="nes-btn is-success" onclick="if (wavesurfer) { wavesurfer.playPause() }">Play / Pause</button>
-        <button class="nes-btn is-warning" id="next-btn">Load Next Asset in Stop Set</button>
-        <button class="nes-btn is-primary" onclick="loadBlock();">Load New Stop Set</button>
+        <p class="center">
+          <button class="nes-btn is-success" onclick="if (wavesurfer) { wavesurfer.playPause() }">Play / Pause</button>
+          <button class="nes-btn is-warning" id="next-btn">Next Asset</button>
+          <button class="nes-btn is-primary" onclick="loadBlock();">Load New Stop Set</button>
+          <button class="nes-btn" onclick="asdjbskdbsk()">Generate Error :(</button>
+        </p>
 
         {# waveform prototype code
         <div id="waveform1-timeline"></div>

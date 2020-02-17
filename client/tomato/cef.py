@@ -293,6 +293,8 @@ class CefWindow:
             loader=jinja2.FileSystemLoader(searchpath=TEMPLATES_DIR),
             autoescape=jinja2.select_autoescape(['html']),
         )
+        self.template_env.filters['prettyduration'] = lambda seconds: (
+            f'{round(seconds) // 60}:{round(seconds) % 60:02}')
 
     def init_platform(self):
         if IS_LINUX:

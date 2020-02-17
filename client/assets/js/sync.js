@@ -59,12 +59,10 @@ var loadWaveform = function(asset, play = true) {
     wavesurfer = WaveSurfer.create({
         container: '#waveform',
         waveColor: shadeColor('#' + asset.color, -3),
-        progressColor: shadeColor('#' + asset.color, -15),
+        progressColor: shadeColor('#' + asset.color, -22),
         normalize: true,
         height: 128,
         barWidth: 3,
-        minBarHeight: 1,
-        barGap: 3,
         hideScrollbar: true,
         responsive: true,
         cursorWidth: 2,
@@ -73,7 +71,10 @@ var loadWaveform = function(asset, play = true) {
         plugins: [
             WaveSurfer.timeline.create({
                 container: "#waveform-timeline",
-                height: 10
+                formatTimeCallback: prettyDuration,
+                fontFamily: 'Tomato Text',
+                fontSize: 11,
+                height: 11
           }),
           WaveSurfer.cursor.create({width: 2})
         ]
@@ -83,7 +84,7 @@ var loadWaveform = function(asset, play = true) {
         wavesurfer.on('ready', function() { wavesurfer.play() });
     }
     wavesurfer.load(asset.url);
-    $('#track-title').text(': ' + asset.name + ' (' + asset.length + ' secs)');
+    $('#track-title').text(': ' + asset.name + ' (' + prettyDuration(asset.length) + ')');
     $('.asset-item[data-asset-idx=' + assetIdx + ']').css('background-color', '#90caf9');
 }
 
@@ -98,7 +99,7 @@ var loadNext = function(play = true) {
             wavesurfer.destroy();
             wavesurfer = null;
         }
-        $('#waveform').text('Should wait for ' + wait + ' seconds...');
+        $('#waveform').text('Should wait for ' + prettyDuration(wait));
     }
 }
 
@@ -121,6 +122,6 @@ $(function() {
     $('#next-btn').click(function() { loadNext(false) });
     $('body').on('click', '.asset-item', function() {
         assetIdx = parseInt($(this).data('asset-idx'), 0);
-        loadNext(false);
+        loadNext(wavesurfer ? wavesurfer.isPlaying() : false);
     });
 });

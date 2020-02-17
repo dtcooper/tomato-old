@@ -17,7 +17,7 @@
       <ul class="nes-list is-circle">
       {% for asset in assets %}
         <li class="nes-pointer asset-item" data-asset-idx="{{ loop.index - 1 }}">
-          {{ loop.index }}. <strong>{{ asset.name }}</strong> ({{ asset.length|round(1) }} secs)
+          {{ loop.index }}. <strong>{{ asset.name }}</strong> ({{ asset.length|prettyduration }})
           <span style="background-color: #{{ asset.color }}">[Rotator: {{ asset.rotator }}]</span>
         </li>
       {% endfor %}
@@ -28,5 +28,5 @@
 
 <div class="nes-container with-title">
   <p class="title">Wait</p>
-  <p>Wait for {{ wait }} seconds</p>
+  <p>Wait for {{ wait|prettyduration }} seconds</p>
 </div>

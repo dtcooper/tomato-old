@@ -2,6 +2,13 @@ cef.close = function() { showModal('close-dialog'); };
 
 var STATUS_OFFLINE = 'error', STATUS_PENDING = 'warning', STATUS_ONLINE = 'success';
 
+var prettyDuration = function(seconds) {
+    seconds = Math.round(seconds);
+    minutes = Math.floor(seconds / 60);
+    seconds = seconds % 60;
+    return minutes + ':' + seconds.toString().padStart(2, '0');
+};
+
 class BaseUI {
     constructor() {
         this.isClosing =false;
@@ -71,7 +78,13 @@ class BaseUI {
                 }, 500);
             }
         });
+
+        window.onerror = function(message, source, lineno, colno, error) {
+            $('#js-error').text(error.stack);
+            ui.showModal('error-dialog');
+        };
     };
+
 };
 
 var ui = new BaseUI();

@@ -82,3 +82,8 @@
 
   {{ render_dialog('first-sync', 'Synchronizing With Server', body_html=first_sync_body) }}
 {% endwith %}
+
+{{
+  render_dialog('error', 'An Unexpected Error Occurred', body_html='<div id="js-error"></div>',
+    buttons=[(None, 'is-error', 'Okay')])
+}}
