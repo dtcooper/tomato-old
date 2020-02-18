@@ -10,4 +10,5 @@ pyinstaller \
         --noconfirm \
         --noupx \
         --windowed \
+        --icon tomato.icns \
     run.py

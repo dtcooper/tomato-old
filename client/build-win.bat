@@ -7,6 +7,8 @@ pyinstaller ^
         --clean ^
         --noconfirm ^
         --noupx ^
+        --windowed ^
+        --icon tomato.ico ^
         --win-no-prefer-redirects ^
         --win-private-assemblies ^
     run.py
