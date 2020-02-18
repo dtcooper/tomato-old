@@ -1,4 +1,4 @@
-cef.close = function() { showModal('close-dialog'); };
+cef.close = function() { ui.showModal('close-dialog'); };
 
 var STATUS_OFFLINE = 'error', STATUS_PENDING = 'warning', STATUS_ONLINE = 'success';
 
