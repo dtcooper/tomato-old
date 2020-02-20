@@ -17,12 +17,9 @@ var doLogin = function([error]) {
 var showLoginModal = function() {
     ui.setStatusColor(STATUS_PENDING, 'Logging in...');
     $('#loading').show();
-    cef.conf.get_many('hostname', 'protocol').then(function([hostname, protocol]) {
-        $('#loading').hide();
-        $('#hostname').val(hostname);
-        $('input[name=protocol][value=' + protocol + ']').prop('checked', true);
-        ui.showModal('login-dialog');
-    });
+    $('#hostname').val(cef.conf.hostname);
+    $('input[name=protocol][value=' + cef.conf.protocol + ']').prop('checked', true);
+    ui.showModal('login-dialog');
 };
 
 $(function() {

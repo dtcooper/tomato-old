@@ -6,6 +6,7 @@ from .constants import USER_DIR, WINDOW_SIZE_DEFAULT_HEIGHT, WINDOW_SIZE_DEFAULT
 
 class Config:
     __instance = None
+    __on_update = None
     DATA_FILE = os.path.join(USER_DIR, 'config.json')
     DEFAULTS = {
         'auth_token': None,
@@ -36,6 +37,9 @@ class Config:
         return cls.__instance
 
     def save(self):
+        if self.__on_update:
+            self.__on_update(self.data)
+
         with open(self.DATA_FILE, 'w') as file:
             json.dump(self.data, file, indent=2, sort_keys=True)
             file.write('\n')
@@ -44,6 +48,10 @@ class Config:
         # If we have multiple keys to update, we can do that with only one save
         self.data.update(kwargs)
         self.save()
+
+    @classmethod
+    def register_on_update(cls, on_update):
+        cls.__on_update = on_update
 
     def __getattr__(self, attr):
         try:

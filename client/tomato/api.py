@@ -112,13 +112,7 @@ class AuthAPI(APIBase):
 
 
 class ConfigAPI(APIBase):
-    namespace = 'conf'
-
-    def get(self, attr):
-        return getattr(self.conf, attr)
-
-    def get_many(self, *attrs):
-        return [self.get(attr) for attr in attrs]
+    namespace = 'writeconf'
 
     def set(self, attr, value):
         setattr(self.conf, attr, value)

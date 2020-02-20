@@ -26,6 +26,7 @@
 
       cef = {
         'bridge': _jsBridge,
+        'conf': {{ conf|tojson }},
         'constants': {{ constants|tojson }},
         {# generate API calls #}
         {% for namespace, methods in js_apis.items() %}

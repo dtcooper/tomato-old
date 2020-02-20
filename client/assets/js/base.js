@@ -70,7 +70,7 @@ class BaseUI {
                         // and window.innerHeight values.
                         cef.bridge.windows_resize();
                     } else {
-                        cef.conf.update({
+                        cef.writeconf.update({
                             'width': window.innerWidth,
                             'height': window.innerHeight
                         });

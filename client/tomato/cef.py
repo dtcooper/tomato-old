@@ -2,6 +2,7 @@
 
 import inspect
 import io
+import json
 import logging
 import mimetypes
 import os
@@ -354,6 +355,7 @@ class CefWindow:
             from .api import API_LIST
 
             default_context.update({
+                'conf': self.conf.data,
                 'constants': {c: getattr(constants, c) for c in dir(constants) if c.isupper()},
                 'js_apis': {
                     api.namespace: [
@@ -383,6 +385,9 @@ class CefWindow:
             print(rendered)
             print('-' * 40)
         return rendered
+
+    def on_conf_update(self, conf):
+        self.browser.ExecuteJavascript(f'cef.conf = {json.dumps(conf)};')
 
     def init_window(self):
         self.window_handle = self.browser.GetOuterWindowHandle()
@@ -466,6 +471,7 @@ class CefWindow:
             )
 
             self.init_window()
+            self.conf.register_on_update(self.on_conf_update)
 
             self.client_handler = ClientHandler(self)
             self.browser.SetClientHandler(self.client_handler)

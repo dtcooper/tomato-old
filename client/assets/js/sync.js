@@ -2,25 +2,23 @@ var reportSyncProgress = function(percent) { $('#sync-progress').attr('value', p
 
 var sync = function() {
     console.log('Syncing');
-    cef.conf.get('last_sync').then(function([lastSync]) {
-        console.log('last sync: ' + lastSync);
+    console.log('last sync: ' + cef.conf.last_sync);
 
-        if (!lastSync) {
-            ui.showModal('first-sync-dialog');
+    if (!cef.conf.last_sync) {
+        ui.showModal('first-sync-dialog');
+    }
+
+    cef.models.sync().then(loadBlock).catch(function([error]) {
+        ui.closeModal('first-sync-dialog');
+        // If we get an access denied or we've never sync'd before, force new login.
+        if (error == cef.constants.API_ERROR_ACCESS_DENIED || !cef.conf.last_sync) {
+            $('#login-errors').html('<span class="nes-text is-error">An error occurred while'
+                    + " synchronizing with the server. <br>Please try logging in again.</span>");
+            cef.auth.logout().then(showLoginModal);
+        } else {
+            ui.setStatusColor('error', 'Error syncing');
+            loadBlock();
         }
-
-        cef.models.sync().then(loadBlock).catch(function([error]) {
-            ui.closeModal('first-sync-dialog');
-            // If we get an access denied or we've never sync'd before, force new login.
-            if (error == cef.constants.API_ERROR_ACCESS_DENIED || !lastSync) {
-                $('#login-errors').html('<span class="nes-text is-error">An error occurred while'
-                        + " synchronizing with the server. <br>Please try logging in again.</span>");
-                cef.auth.logout().then(showLoginModal);
-            } else {
-                ui.setStatusColor('error', 'Error syncing');
-                loadBlock();
-            }
-        })
     });
 };
 
@@ -63,11 +61,14 @@ var loadWaveform = function(asset, play = true) {
         normalize: true,
         height: 128,
         barWidth: 3,
+        barGap: 2,
         hideScrollbar: true,
+        interact: true,
         responsive: true,
         cursorWidth: 2,
         cursorColor: '#f30000',
         closeAudioContext: true,
+        pixelRatio: 1,
         plugins: [
             WaveSurfer.timeline.create({
                 container: "#waveform-timeline",
