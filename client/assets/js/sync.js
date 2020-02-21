@@ -72,7 +72,6 @@ var loadWaveform = function(asset, play = true) {
         container: '#waveform',
         waveColor: shadeColor('#' + asset.color, -3),
         progressColor: shadeColor('#' + asset.color, -22),
-        normalize: true,
         height: 128,
         barWidth: 3,
         barGap: 2,
@@ -126,7 +125,7 @@ var loadBlock = function() {
 };
 
 $(function() {
-    $('#next-btn').click(function() { loadNext(false) });
+    $('#next-btn').click(function() { loadNext(wavesurfer ? wavesurfer.isPlaying() : false) });
     $('body').on('click', '.asset-item', function() {
         assetIdx = parseInt($(this).data('asset-idx'), 0);
         loadNext(wavesurfer ? wavesurfer.isPlaying() : false);

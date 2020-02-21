@@ -184,7 +184,7 @@ class ModelsAPI(APIBase):
                     })
                 else:
                     context['errors'].append(f"Stop set {stopset.name}'s rotator {rotator.name} "
-                                             'has no assets eligible to air.')
+                                             'has no additional assets eligible to air.')
         else:
             context['errors'].append('No stop sets with currently eligible to air.')
 

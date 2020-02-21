@@ -32,6 +32,7 @@ from .constants import (
     WINDOW_SIZE_MIN_WIDTH,
 )
 from .config import Config
+from .version import __version__
 
 if IS_WINDOWS:
     import ctypes
@@ -361,7 +362,9 @@ class CefWindow:
         return kwargs
 
     def render_template(self, template_name, context=None):
-        default_context = {}  # TODO: do we need context here?
+        default_context = {
+            'VERSION': __version__,
+        }
 
         # Performance: if we're rendering the app.html we add custom context here
         if template_name == 'app.html':

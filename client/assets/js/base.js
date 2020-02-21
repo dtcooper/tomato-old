@@ -28,8 +28,6 @@ class BaseUI {
     showModal(id) { $('#' + id).get(0).showModal(); };
 
     bindEvents() {
-        var instance = this;
-
         $('dialog:not(#close-dialog)').each(function(i, elem) {
             elem.addEventListener('cancel', function(event) {
                 event.preventDefault();
@@ -47,7 +45,7 @@ class BaseUI {
 
             $('#link-open-btn').data('href', href);
             $('#link-description').text(linkDescription)
-            instance.showModal('link-dialog');
+            ui.showModal('link-dialog');
         });
 
         $('#link-open-btn').click(function() {
@@ -56,14 +54,14 @@ class BaseUI {
 
         $('#close-btn').click(function(event) {
             event.preventDefault();
-            instance.isClosing = true;
+            ui.isClosing = true;
             cef.bridge.close_browser();
         });
 
         $(window).resize(function() {
-            if (!instance.isClosing) {  // Avoid a segfault on Mac when closing in fullscreen mode
-                clearTimeout(instance.resizeTimer);
-                instance.resizeTimer = setTimeout(function() {
+            if (!ui.isClosing) {  // Avoid a segfault on Mac when closing in fullscreen mode
+                clearTimeout(ui.resizeTimer);
+                ui.resizeTimer = setTimeout(function() {
                     if (cef.constants.IS_WINDOWS) {
                         // Windows is funky with resizing and how it computes its window
                         // sizes, so we use win32gui in the backend rather window.innerWidth
