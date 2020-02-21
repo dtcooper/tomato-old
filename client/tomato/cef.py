@@ -56,9 +56,11 @@ class ResourceHandler:
         self.client_handler = client_handler
         self.url = self.file = None
         self.total_bytes_read = self.file_size = 0
+        self.wants_content_range = False
 
     def ProcessRequest(self, request, callback):
         self.url = urlparse(request.GetUrl())
+        self.wants_content_range = 'Range' in request.GetHeaderMap()
         callback.Continue()
         return True
 
@@ -66,6 +68,8 @@ class ResourceHandler:
         file_path = url2pathname(self.url.path)
 
         if os.path.exists(file_path):
+            headers = {'Access-Control-Allow-Origin': '*'}
+
             if file_path.startswith(TEMPLATES_DIR):
                 template_name = file_path[len(TEMPLATES_DIR) + 1:]
                 rendered = self.client_handler._cef_window.render_template(template_name)
@@ -76,11 +80,19 @@ class ResourceHandler:
                 self.file = open(file_path, 'rb')
                 self.file_size = os.path.getsize(file_path)
 
-            response.SetStatus(200)
-            response.SetStatusText('OK')
+            # Let's us seek audio files with MediaElement
+            # https://magpcss.org/ceforum/viewtopic.php?f=6&t=13491#p27943
+            if self.wants_content_range:
+                status, status_text = 206, 'Partial Content'
+                headers['Content-Range'] = f'bytes 0-{self.file_size - 1}/{self.file_size}'
+            else:
+                status, status_text = 200, 'OK'
+
+            response.SetStatus(status)
+            response.SetStatusText(status_text)
             response.SetMimeType(
                 mimetypes.guess_type(file_path, strict=False)[0] or 'application/octet-stream')
-            response.SetHeaderMap({'Access-Control-Allow-Origin': '*'})
+            response.SetHeaderMap(headers)
             response_length_out[0] = self.file_size
 
         else:
@@ -491,6 +503,9 @@ class CefWindow:
             logger.info('Shutting down')
             self.js_bridge._shutdown()
             cef.Shutdown()
+
+            if self.client_handler._resource_handlers:
+                logger.warn(f'{len(self.client_handler._resource_handlers)} ResourceHandlers exist, possible memleak!')
 
         finally:
             sys.excepthook = original_excepthook

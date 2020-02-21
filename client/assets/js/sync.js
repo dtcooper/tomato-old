@@ -68,6 +68,7 @@ var loadWaveform = function(asset, play = true) {
         cursorWidth: 2,
         cursorColor: '#f30000',
         closeAudioContext: true,
+        backend: 'MediaElement',  // less modern backend, but loads faster
         pixelRatio: 1,
         plugins: [
             WaveSurfer.timeline.create({
