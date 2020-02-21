@@ -27,6 +27,7 @@ from .constants import (
     IS_MACOS,
     IS_WINDOWS,
     TEMPLATES_DIR,
+    USER_DIR,
     WINDOW_SIZE_MIN_HEIGHT,
     WINDOW_SIZE_MIN_WIDTH,
 )
@@ -330,6 +331,7 @@ class CefWindow:
             },
             'settings': {
                 'background_color': 0xFFDDDDDD,
+                'cache_path': os.path.join(USER_DIR, 'cef_cache'),
                 'context_menu': {'enabled': False},
                 'debug': False,
                 'remote_debugging_port': -1,

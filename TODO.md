@@ -24,3 +24,8 @@
       providing option to create initial data. Bonus: Station ID says _55.5 FM, KMUR Made
       Up Radio_ or something silly.
 - [ ] Sample generation stop set block server side for testing
+- [ ] Allow output device selection, ie via `navigator.mediaDevices.enumerateDevices()`,
+      and `wavesurfer.setSinkId()`. Note: there's
+      [a bug](https://bitbucket.org/chromiumembedded/cef/issues/2064/persist-webrtc-deviceids-across-restart)
+      in cef where the `deviceId` (aka `sinkId`) of a device changes every start,
+      so I'll have to persist the output device via label matching.
