@@ -14,6 +14,7 @@ from django.views.decorators.gzip import gzip_page
 
 from constance import config
 
+from .client_server_constants import CLIENT_CONFIG_KEYS
 from .version import __version__
 
 
@@ -51,7 +52,7 @@ def export(request):
             media_url = media_url._replace(scheme=request.scheme)
 
         response = JsonResponse({
-            'conf': {key.lower(): getattr(config, key) for key in settings.CLIENT_CONFIG_KEYS},
+            'conf': {key: getattr(config, key.upper()) for key in CLIENT_CONFIG_KEYS},
             'media_url': media_url.geturl(),
             'objects': serialize('python', itertools.chain.from_iterable(
                 cls.objects.all() for cls in apps.get_app_config('tomato').get_models())),

@@ -6,6 +6,8 @@ import pytz
 from django.core import validators
 from django.utils.html import format_html
 
+from tomato.client_server_constants import CLIENT_CONFIG_KEYS
+
 BASE_DIR = os.path.realpath(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'hackme'
 
@@ -113,23 +115,34 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     }),
 }
 CONSTANCE_CONFIG = OrderedDict({
-    'TIMEZONE': (TIME_ZONE, format_html(
-        '{}<a href="{}" target="_blank">{}</a>{}',
-        'Timezone for server/client to operate in. Choose from ',
-        'https://en.wikipedia.org/wiki/List_of_tz_database_time_zones',
-        'this list (TZ database name)', f'. (Defaults to {TIME_ZONE} if invalid.)'), 'TIMEZONE'),
-    'WAIT_INTERVAL_MINUTES': (20, 'Time to wait between stop sets (in minutes).', 'WAIT_INTERVAL_MINUTES'),
+    'TIMEZONE': (
+        TIME_ZONE, format_html(
+            '{}<a href="{}" target="_blank">{}</a>{}',
+            'Timezone for server/client to operate in. Choose from ',
+            'https://en.wikipedia.org/wiki/List_of_tz_database_time_zones',
+            'this list (TZ database name)', f'. (Defaults to {TIME_ZONE} if invalid.)'),
+        'TIMEZONE'),
+    'WAIT_INTERVAL_MINUTES': (
+        CLIENT_CONFIG_KEYS['wait_interval_minutes'],
+        'Time to wait between stop sets (in minutes).',
+        'WAIT_INTERVAL_MINUTES'),
     'WAIT_INTERVAL_SUBTRACTS_STOPSET_PLAYTIME': (
-        False, 'Wait time subtracts the playtime of a stop set in minutes. This will provide more '
-               'even results, ie the number of stop sets played per hour will be more consistent at'
-               'the expense of a DJs air time.'),
+        CLIENT_CONFIG_KEYS['wait_interval_subtracts_stopset_playtime'],
+        'Wait time subtracts the playtime of a stop set in minutes. This will provide more '
+        'even results, ie the number of stop sets played per hour will be more consistent at'
+        'the expense of a DJs air time.'),
     'FADE_ASSETS_MS': (
-        0, 'Time at the beginning and end of each asset to fade in milliseconds '
-           '(1000 milliseconds = 1 second). Leave this as at 0 to disable fading.', 'FADE_ASSETS_MS'),
-    'STRIP_UPLOADED_AUDIO': (True, 'TODO'),
+        CLIENT_CONFIG_KEYS['fade_assets_ms'],
+        'Time at the beginning and end of each asset to fade in milliseconds '
+        '(1000 milliseconds = 1 second). Leave this as at 0 to disable fading.',
+        'FADE_ASSETS_MS'),
+    'CLICKABLE_WAVEFORM': (
+        CLIENT_CONFIG_KEYS['clickable_waveform'],
+        'Client has a clickable waveform. This will allow a the client to "seek" (fast-forward or '
+        'rewind) the waveform, which could potentially be confusing or disruptive to the listener.'),
+    # 'STRIP_UPLOADED_AUDIO': (True, 'TODO'),
     # TODO: $ sox in.wav out.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
 })
-CLIENT_CONFIG_KEYS = ('WAIT_INTERVAL_MINUTES', 'WAIT_INTERVAL_SUBTRACTS_STOPSET_PLAYTIME', 'FADE_ASSETS_MS')
 
 # Valid file types as recognized by `soxi -t` and `file --mime-type` minus the audio/[x-]
 VALID_AUDIO_FILE_TYPES = {

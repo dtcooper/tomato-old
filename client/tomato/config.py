@@ -1,6 +1,7 @@
 import json
 import os
 
+from .client_server_constants import CLIENT_CONFIG_KEYS
 from .constants import USER_DIR, WINDOW_SIZE_DEFAULT_HEIGHT, WINDOW_SIZE_DEFAULT_WIDTH
 
 
@@ -16,10 +17,9 @@ class Config:
         'last_sync': None,
         'print_html': False,
         'protocol': 'https',
-        'wait_interval_minutes': 20,  # TODO: Common config -> common file
-        'wait_interval_subtracts_stopset_playtime': False,  # TODO: Common config -> common file
         'width': WINDOW_SIZE_DEFAULT_WIDTH,
     }
+    DEFAULTS.update(CLIENT_CONFIG_KEYS)
 
     def __new__(cls, *args, **kwargs):
         # Singleton

@@ -16,3 +16,4 @@ venv/
 /client/dist/
 /client/error.log
 /client/webrtc_event_logs
+/client/run.spec

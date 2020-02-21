@@ -54,6 +54,20 @@ var loadWaveform = function(asset, play = true) {
         wavesurfer = null;
     }
     $('#waveform').text('');
+    var plugins = [
+        WaveSurfer.timeline.create({
+            container: "#waveform-timeline",
+            formatTimeCallback: prettyDuration,
+            fontFamily: 'Tomato Text',
+            fontSize: 11,
+            height: 11
+      }),
+    ]
+
+    if (cef.conf.clickable_waveform) {
+        plugins.push(WaveSurfer.cursor.create({width: 2}))
+    }
+
     wavesurfer = WaveSurfer.create({
         container: '#waveform',
         waveColor: shadeColor('#' + asset.color, -3),
@@ -63,23 +77,14 @@ var loadWaveform = function(asset, play = true) {
         barWidth: 3,
         barGap: 2,
         hideScrollbar: true,
-        interact: true,
+        interact: cef.conf.clickable_waveform,
         responsive: true,
         cursorWidth: 2,
         cursorColor: '#f30000',
         closeAudioContext: true,
         backend: 'MediaElement',  // less modern backend, but loads faster
         pixelRatio: 1,
-        plugins: [
-            WaveSurfer.timeline.create({
-                container: "#waveform-timeline",
-                formatTimeCallback: prettyDuration,
-                fontFamily: 'Tomato Text',
-                fontSize: 11,
-                height: 11
-          }),
-          WaveSurfer.cursor.create({width: 2})
-        ]
+        plugins: plugins,
     });
     wavesurfer.on('finish', loadNext);
     if (play) {
