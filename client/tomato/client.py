@@ -9,6 +9,7 @@ from django.core.management import call_command
 from .cef import CefWindow
 from .config import Config
 from .constants import MEDIA_DIR, MEDIA_URL, USER_DIR
+from .version import __version__
 
 logger = logging.getLogger('tomato')
 
@@ -24,7 +25,7 @@ class Client:
                 level=logging.INFO,
                 format='%(asctime)s [%(filename)s:%(lineno)s %(levelname)s] %(name)s: %(message)s')
 
-        logger.info(f'Starting Tomato with configuration: {dict(conf)}')
+        logger.info(f'Starting Tomato v{__version__} with configuration: {dict(conf)}')
 
         self.init_django()
         self.run_cef()

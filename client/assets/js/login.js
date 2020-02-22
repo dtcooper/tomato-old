@@ -9,6 +9,7 @@ var doLogin = function([error]) {
         ui.setStatusColor(STATUS_ONLINE, 'Logged in!');
         // Reset form back to initial status in case we need it again
         ui.closeModal('login-dialog');
+        // TODO: Call a (renamed) check_authorization() func after login
         sync();
         $('#login-dialog form').get(0).reset();
     }
@@ -37,6 +38,7 @@ $(function() {
         cef.auth.logout().then(showLoginModal);
     });
 
+    // TODO: Call this after login
     cef.auth.check_authorization().then(function([isLoggedIn, isConnected, hasSynced]) {
         if (isLoggedIn) {
             $('#loading').hide();
@@ -49,5 +51,13 @@ $(function() {
         } else {
             showLoginModal();
         }
-    }).catch(showLoginModal);
+    }).catch(function([error, serverVersion]) {
+        showLoginModal();
+        if (error == cef.constants.API_ERROR_DB_MIGRATION_MISMATCH) {
+            ui.showError(
+                '<span class="nes-text is-error">Incompatible Tomato version on the server.</span><br>'
+                + 'Our version: ' + cef.constants.VERSION + '<br>'
+                + 'Server version: ' + serverVersion);
+        }
+    });
 });

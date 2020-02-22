@@ -13,7 +13,7 @@ import requests
 from . import constants
 from .constants import APIException
 from .config import Config
-from .models import Asset, Rotator, StopSet, StopSetRotator
+from .models import get_latest_tomato_migration, Asset, Rotator, StopSet, StopSetRotator
 
 logger = logging.getLogger('tomato')
 
@@ -95,6 +95,14 @@ class AuthAPI(APIBase):
             else:
                 connected = True
                 logged_in = response['valid_token']
+                logger.info(f'Server version {response["version"]}')
+
+                if logged_in:
+                    our_migration = get_latest_tomato_migration()
+                    if our_migration != response['latest_migration']:
+                        logger.error(f'DB migration mismatch! Ours: {our_migration!r}, '
+                                     f'server: {response["latest_migration"]!r}')
+                        raise APIException(constants.API_ERROR_DB_MIGRATION_MISMATCH, response['version'])
 
         return (logged_in, connected, bool(self.conf.last_sync))
 

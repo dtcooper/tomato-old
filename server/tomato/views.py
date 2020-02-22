@@ -15,13 +15,15 @@ from django.views.decorators.gzip import gzip_page
 from constance import config
 
 from .client_server_constants import CLIENT_CONFIG_KEYS
+from .models import get_latest_tomato_migration
 from .version import __version__
 
 
 def ping(request):
     return JsonResponse({
+        'latest_migration': get_latest_tomato_migration(),
         'valid_token': request.valid_token,
-        'software': f'tomato-server/{__version__}',
+        'version': __version__,
     })
 
 

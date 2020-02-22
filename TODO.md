@@ -2,7 +2,7 @@
 
 ## Client and Server
 
-- [ ] Make sure server has the same DB migration version as client via the ping
+- [x] Make sure server has the same DB migration version as client via the ping
       and/or auth endpoints.
 
 ## Server

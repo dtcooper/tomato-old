@@ -9,12 +9,15 @@ from .version import __version__
 
 
 class APIException(Exception):
-    pass
+    def __init__(self, message, *extra_args):
+        self.extra_args = extra_args
+        super().__init__(message)
 
 
 IS_WINDOWS = platform.system() == 'Windows'
 IS_MACOS = platform.system() == 'Darwin'
 IS_LINUX = platform.system() == 'Linux'
+VERSION = __version__
 
 USER_DIR = os.path.join(os.path.expanduser('~'), '.tomato')
 if IS_WINDOWS:
@@ -41,6 +44,7 @@ API_ERROR_REQUESTS_ERROR = 'Bad response from host.'
 API_ERROR_JSON_DECODE_ERROR = 'Invalid response format from host.'
 API_ERROR_ACCESS_DENIED = 'Access denied.'
 API_ERROR_INVALID_HTTP_STATUS_CODE = 'Bad response from host.'
+API_ERROR_DB_MIGRATION_MISMATCH = 'Database version on server and client do not match.'
 
 REQUEST_TIMEOUT = 10
 REQUEST_USER_AGENT = (f'tomato-client/{__version__} ({platform.system()} {platform.release()} '

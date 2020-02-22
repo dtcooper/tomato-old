@@ -10,13 +10,21 @@ except ImportError:
     HAVE_SOX = False
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.db import models
+from django.db.migrations.recorder import MigrationRecorder
 from django.utils import timezone
 
 
 MAX_NAME_LEN = 100
+
+
+def get_latest_tomato_migration():
+    try:
+        return MigrationRecorder.Migration.objects.filter(app='tomato').latest('id').name
+    except ObjectDoesNotExist:
+        return None
 
 
 class CurrentlyEnabledQueryset(models.QuerySet):

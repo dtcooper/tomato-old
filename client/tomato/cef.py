@@ -250,7 +250,7 @@ class JSBridge:
                 response = getattr(js_api, method)(*args)
             except APIException as e:
                 logger.exception(f'APIException raised by cef.{namespace}.{method}({pretty_args})')
-                reject.Call((str(e),))  # todo: null if unexpected, string if expected
+                reject.Call((str(e),) + e.extra_args)  # todo: null if unexpected, string if expected
             except Exception:
                 logger.exception(f'Unexpected exception raised by cef.{namespace}.{method}({pretty_args})')
                 reject.Call(('An unexpected error occurred.',))
@@ -362,9 +362,7 @@ class CefWindow:
         return kwargs
 
     def render_template(self, template_name, context=None):
-        default_context = {
-            'VERSION': __version__,
-        }
+        default_context = {}
 
         # Performance: if we're rendering the app.html we add custom context here
         if template_name == 'app.html':

@@ -9,6 +9,23 @@ var prettyDuration = function(seconds) {
     return minutes + ':' + seconds.toString().padStart(2, '0');
 };
 
+var entityMap = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+  '/': '&#x2F;',
+  '`': '&#x60;',
+  '=': '&#x3D;'
+};
+
+function escapeHTML(string) {
+    return String(string).replace(/[&<>"'`=\/]/g, function(s) {
+        return entityMap[s];
+    });
+}
+
 class BaseUI {
     constructor() {
         this.isClosing =false;
@@ -26,6 +43,11 @@ class BaseUI {
 
     closeModal(id) { $('#' + id).get(0).close() };
     showModal(id) { $('#' + id).get(0).showModal(); };
+
+    showError(errorHTML) {
+        $('#error-description').html(errorHTML);
+        this.showModal('error-dialog');
+    };
 
     bindEvents() {
         $('dialog:not(#close-dialog)').each(function(i, elem) {
@@ -78,11 +100,9 @@ class BaseUI {
         });
 
         window.onerror = function(message, source, lineno, colno, error) {
-            $('#js-error').text(error.stack);
-            ui.showModal('error-dialog');
+            ui.showError(escapeHTML(error.stack));
         };
     };
-
 };
 
 var ui = new BaseUI();
