@@ -38,3 +38,4 @@
       in cef where the `deviceId` (aka `sinkId`) of a device changes every start,
       so I'll have to persist the output device via label matching.
 - [ ] Long tracks render using NES.css's progress bar, rather than Wavesurfer.
+- [ ] Error checking, see Wavesurfer's [error event](https://wavesurfer-js.org/docs/events.html)
