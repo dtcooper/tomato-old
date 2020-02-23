@@ -5,15 +5,23 @@ for [BMIR](https://bmir.org/).
 
 ## Client
 
-Cross-platform (macOS/Windows/Linux), native Desktop application that utilities
-the following libraries (amongst others).
+Cross-platform (macOS/Windows/Linux), native Desktop application.
+
+<img src="docs/client-screenshot-preview1.png">
+
+The client utilizes the following,
 
 * [CEF Python](https://github.com/cztomczak/cefpython/), ie Python's bindings to
-  the Chromium Embedded Framework.
-* [NES.css](https://nostalgic-css.github.io/NES.css/) as a novel CSS framework for UI components.
-* [wavesurfer.js](https://wavesurfer-js.org/) to playout audio assets and render audio waveforms.
+  the [Chromium Embedded Framework](https://bitbucket.org/chromiumembedded/cef).
+* [NES.css](https://nostalgic-css.github.io/NES.css/) as a novel CSS library for
+   most of the UI components.
+* [wavesurfer.js](https://wavesurfer-js.org/) to play audio assets and render
+   seekable audio waveforms in the UI.
+* And others!
 
 ## Server
+
+<img src="docs/server-screenshot-preview1.png">
 
 Server is a straightforward [Django](https://www.djangoproject.com/) app, taking full
 advance of Django's admin interface.

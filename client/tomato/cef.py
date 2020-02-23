@@ -282,8 +282,8 @@ class JSBridge:
             self.cef_window.browser.ToggleFullscreen()
 
         elif IS_MACOS:
-            # Need to figure out 1<<7 ?
             # https://github.com/r0x0r/pywebview/blob/master/webview/platforms/cocoa.py
+            # NSWindowCollectionBehaviorFullScreenPrimary
             self.cef_window.window.setCollectionBehavior_(1 << 7)
             self.cef_window.window.toggleFullScreen_(None)
 

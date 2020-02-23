@@ -34,7 +34,7 @@ APP_URL = urljoin('http://tomato', pathname2url(APP_PATH))
 MEDIA_DIR = os.path.join(USER_DIR, 'media')
 MEDIA_URL = f'{urljoin("http://tomato", pathname2url(MEDIA_DIR))}/'
 
-WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT = (900, 700)
+WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT = (925, 700)
 WINDOW_SIZE_MIN_WIDTH, WINDOW_SIZE_MIN_HEIGHT = (800, 600)
 
 API_ERROR_NO_HOSTNAME = 'Please provide a hostname.'
