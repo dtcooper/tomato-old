@@ -11,7 +11,7 @@ the following libraries (amongst others).
 * [CEF Python](https://github.com/cztomczak/cefpython/), ie Python's bindings to
   the Chromium Embedded Framework.
 * [NES.css](https://nostalgic-css.github.io/NES.css/) as a novel CSS framework for UI components.
-* [wavesurfer.s](https://wavesurfer-js.org/) to playout audio assets and render audio waveforms.
+* [wavesurfer.js](https://wavesurfer-js.org/) to playout audio assets and render audio waveforms.
 
 ## Server
 

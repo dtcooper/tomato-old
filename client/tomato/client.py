@@ -1,6 +1,7 @@
 import logging
 from io import StringIO
 import os
+import sys
 
 import django
 from django.conf import settings
@@ -8,8 +9,11 @@ from django.core.management import call_command
 
 from .cef import CefWindow
 from .config import Config
-from .constants import MEDIA_DIR, MEDIA_URL, USER_DIR
+from .constants import MEDIA_DIR, MEDIA_URL, USER_DIR, IS_WINDOWS
 from .version import __version__
+
+if not IS_WINDOWS:
+    import fcntl
 
 logger = logging.getLogger('tomato')
 
@@ -17,6 +21,36 @@ logger = logging.getLogger('tomato')
 class Client:
     def __init__(self):
         os.makedirs(USER_DIR, exist_ok=True)
+        self.lockfile = None
+
+    def ensure_not_running(self):
+        # Adapted from
+        # https://github.com/pycontribs/tendo/blob/master/tendo/singleton.py
+        lockfile_path = os.path.join(USER_DIR, 'tomato.run')
+        is_running = False
+
+        if IS_WINDOWS:
+            try:
+                if os.path.exists(lockfile_path):
+                    os.remove(lockfile_path)
+
+                self.lockfile = os.open(lockfile_path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+            except OSError as exception:
+                if exception.errno == 13:
+                    is_running = True
+
+        else:
+            self.lockfile = open(lockfile_path, 'w')
+            self.lockfile.flush()
+
+            try:
+                fcntl.lockf(self.lockfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except IOError:
+                is_running = True
+
+        if is_running:
+            logger.warn('Client already found running. Exiting')
+            sys.exit(0)
 
     def run(self):
         conf = Config()
@@ -27,6 +61,7 @@ class Client:
 
         logger.info(f'Starting Tomato v{__version__} with configuration: {dict(conf)}')
 
+        self.ensure_not_running()
         self.init_django()
         self.run_cef()
 

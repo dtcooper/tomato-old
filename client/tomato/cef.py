@@ -32,7 +32,6 @@ from .constants import (
     WINDOW_SIZE_MIN_WIDTH,
 )
 from .config import Config
-from .version import __version__
 
 if IS_WINDOWS:
     import ctypes
