@@ -1,7 +1,13 @@
 # <img src="tomato.png" width="40" height="40"> Tomato Radio Automation <img src="tomato.png" width="40" height="40">
 
-Client and server code for Tomato Radio Automation software, written specifically
-for [BMIR](https://bmir.org/).
+Client and server code for Tomato Radio Automation software. Simple, easy to use,
+and hard to screw up Playout software written very specifically
+for [Burning Man Information Radio](https://bmir.org/)'s use case (BMIR).
+
+## Development
+
+Tomato is in *active development* right now. So expect things to change and break.
+Often.
 
 ## Client
 
