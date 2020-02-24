@@ -59,16 +59,16 @@ img {
 
 /* Hack to have a padded scrollbar */
 .scrollable::-webkit-scrollbar {
-    width: 14px;
-    border-right: 7px solid #eee;
+    width: 17px;
+    border-right: 10px solid #ccc;
 }
 
 .scrollable::-webkit-scrollbar:hover {
-    border-right: 7px solid #666;
+    border-right: 10px solid #666;
 }
 
 .scrollable::-webkit-scrollbar-thumb {
-    border-right: 7px solid #000;
+    border-right: 10px solid #000;
 }
 
 .right {

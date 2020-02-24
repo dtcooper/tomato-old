@@ -60,7 +60,8 @@ var loadWaveform = function(asset, play = true) {
             formatTimeCallback: prettyDuration,
             fontFamily: 'Tomato Text',
             fontSize: 11,
-            height: 11
+            height: 11,
+            labelPadding: 3
       }),
     ]
 
@@ -72,7 +73,9 @@ var loadWaveform = function(asset, play = true) {
         container: '#waveform',
         waveColor: shadeColor('#' + asset.color, -3),
         progressColor: shadeColor('#' + asset.color, -22),
-        height: 128,
+        height: 100,
+        normalize: true,
+        barMinHeight: 1,
         barWidth: 3,
         barGap: 2,
         hideScrollbar: true,
