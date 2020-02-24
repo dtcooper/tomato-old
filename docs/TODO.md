@@ -11,6 +11,8 @@
       providing option to create initial data. Bonus: Station ID says _55.5 FM, KMUR Made
       Up Radio_ or something silly.
 - [ ] Sample generation stop set block server side testing, with optional date override.
+- [ ] Use expose nginx + gunicorn container, rather than Django so uploads are performant
+      and one can deploy to prod using Docker.
 
 ## Client
 
@@ -26,7 +28,7 @@
       [`PyInstaller:MERGE(...)` being broken](https://pyinstaller.readthedocs.io/en/latest/spec-files.html#multipackage-bundles).)
 - [ ] Build Windows with high res manifest file:
       [link](https://github.com/cztomczak/cefpython/issues/530#issuecomment-505066492)
-- [ ] Build macOS with a high DPI plist file `NSPrincipalClass = NSApplication`,
+- [x] Build macOS with a high DPI plist file `NSPrincipalClass = NSApplication`,
       [example here.](https://pyinstaller.readthedocs.io/en/stable/spec-files.html#spec-file-options-for-a-mac-os-x-bundle)
 - [x] For linux PyInstaller example, need to move files to `dist/cefpython3` folder
       _or_ configure cefpython.Initialize(...) to use appropriate path settings.

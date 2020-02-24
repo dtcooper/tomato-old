@@ -5,10 +5,13 @@ pyinstaller ^
         --add-data tomato\migrations\*.py;tomato\migrations ^
         --additional-hooks-dir . ^
         --clean ^
+        --icon tomato.ico ^
         --noconfirm ^
         --noupx ^
-        --windowed ^
-        --icon tomato.ico ^
         --win-no-prefer-redirects ^
         --win-private-assemblies ^
+        --windowed ^
     run.py
+
+rename dist\run\run.exe Tomato.exe
+rename dist\run Tomato

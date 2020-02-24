@@ -15,7 +15,7 @@
     var cef;
 
     (function() {
-      var generateCall = function(namespace, method) {
+      var generateBridgeCall = function(namespace, method) {
         return function() {
           let args = Array.from(arguments);
           return new Promise(function(resolve, reject) {
@@ -25,14 +25,15 @@
       };
 
       cef = {
-        'bridge': _jsBridge,
+        'bridge': __cefBridge,
         'conf': {{ conf|tojson }},
         'constants': {{ constants|tojson }},
         {# generate API calls #}
         {% for namespace, methods in js_apis.items() %}
             {{ namespace|tojson }}: {
               {% for method in methods %}
-                {{ method|tojson }}: generateCall({{ namespace|tojson }}, {{ method|tojson}}){% if not loop.last %},{% endif %}
+                {{ method|tojson }}: generateBridgeCall(
+                  {{ namespace|tojson }}, {{ method|tojson}}){% if not loop.last %},{% endif %}
               {% endfor %}
           }{% if not loop.last %},{% endif %}
         {% endfor %}

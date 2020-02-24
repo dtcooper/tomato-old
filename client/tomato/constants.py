@@ -1,5 +1,6 @@
 import os
 import platform
+import sys
 from urllib.parse import urljoin
 from urllib.request import pathname2url
 
@@ -17,6 +18,7 @@ class APIException(Exception):
 IS_WINDOWS = platform.system() == 'Windows'
 IS_MACOS = platform.system() == 'Darwin'
 IS_LINUX = platform.system() == 'Linux'
+IS_FROZEN = getattr(sys, 'frozen', False)
 VERSION = __version__
 
 USER_DIR = os.path.join(os.path.expanduser('~'), '.tomato')
@@ -25,6 +27,11 @@ if IS_WINDOWS:
         USER_DIR = os.path.join(os.environ['LOCALAPPDATA'], 'Tomato')
     except KeyError:
         pass
+
+# If it's a preview build, we namespace the USERDIR, so we can introduce breaking
+# DB and config changes
+if IS_FROZEN and 'preview' in VERSION:
+    USER_DIR = f'{USER_DIR}-{VERSION}'
 
 ASSETS_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'assets'))
 TEMPLATES_DIR = os.path.join(ASSETS_DIR, 'templates')

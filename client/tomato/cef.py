@@ -283,7 +283,7 @@ class JSBridge:
 
         elif IS_MACOS:
             # https://github.com/r0x0r/pywebview/blob/master/webview/platforms/cocoa.py
-            # NSWindowCollectionBehaviorFullScreenPrimary
+            # 1 << 7 = NSWindowCollectionBehaviorFullScreenPrimary
             self.cef_window.window.setCollectionBehavior_(1 << 7)
             self.cef_window.window.toggleFullScreen_(None)
 
@@ -492,7 +492,7 @@ class CefWindow:
 
             js_bindings = cef.JavascriptBindings()
             self.js_bridge = JSBridge(self)
-            js_bindings.SetObject('_jsBridge', self.js_bridge)
+            js_bindings.SetObject('__cefBridge', self.js_bridge)
             self.browser.SetJavascriptBindings(js_bindings)
 
             logger.info(f'Loading URL: {APP_URL}')

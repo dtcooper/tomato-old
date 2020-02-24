@@ -2,7 +2,7 @@ import json
 import os
 
 from .client_server_constants import CLIENT_CONFIG_KEYS
-from .constants import USER_DIR, WINDOW_SIZE_DEFAULT_HEIGHT, WINDOW_SIZE_DEFAULT_WIDTH
+from .constants import IS_FROZEN, USER_DIR, WINDOW_SIZE_DEFAULT_HEIGHT, WINDOW_SIZE_DEFAULT_WIDTH
 
 
 class Config:
@@ -11,7 +11,7 @@ class Config:
     DATA_FILE = os.path.join(USER_DIR, 'config.json')
     DEFAULTS = {
         'auth_token': None,
-        'debug': bool(os.environ.get('TOMATO_DEBUG')),  # Manually override
+        'debug': not IS_FROZEN,
         'height': WINDOW_SIZE_DEFAULT_HEIGHT,
         'hostname': None,
         'last_sync': None,
