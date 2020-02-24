@@ -76,7 +76,7 @@ var loadWaveform = function(asset, play = true) {
         height: 100,
         normalize: true,
         barMinHeight: 1,
-        barWidth: 3,
+        barWidth: 4,
         barGap: 2,
         hideScrollbar: true,
         interact: cef.conf.clickable_waveform,
@@ -85,8 +85,7 @@ var loadWaveform = function(asset, play = true) {
         cursorColor: '#f30000',
         closeAudioContext: true,
         backend: 'MediaElement',  // less modern backend, but loads faster
-        pixelRatio: 1,
-        plugins: plugins,
+        plugins: plugins
     });
     wavesurfer.on('finish', loadNext);
     if (play) {
