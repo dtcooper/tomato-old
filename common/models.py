@@ -28,18 +28,20 @@ def get_latest_tomato_migration():
 
 
 class CurrentlyEnabledQueryset(models.QuerySet):
-    def currently_airing(self):
-        now = timezone.now()
+    def currently_airing(self, now=None):
+        if now is None:
+            now = timezone.now()
         return self.filter((models.Q(begin__isnull=True) | models.Q(begin__lte=now))
                            & (models.Q(end__isnull=True) | models.Q(end__gte=now)))
 
-    def not_currently_airing(self):
-        now = timezone.now()
+    def not_currently_airing(self, now=None):
+        if now is None:
+            now = timezone.now()
         return self.exclude((models.Q(begin__isnull=True) | models.Q(begin__lte=now))
                             & (models.Q(end__isnull=True) | models.Q(end__gte=now)))
 
-    def currently_enabled(self):
-        return self.filter(enabled=True).currently_airing()
+    def currently_enabled(self, now=None):
+        return self.filter(enabled=True).currently_airing(now=now)
 
 
 class EnabledBeginEndWeightMixin(models.Model):
@@ -64,8 +66,9 @@ class EnabledBeginEndWeightMixin(models.Model):
                    "'2' is 2x as likely, '3' is 3x as likely, '0.5' half as likely, "
                    'and so on.'))
 
-    def currently_airing(self):
-        now = timezone.now()
+    def currently_airing(self, now=None):
+        if now is None:
+            now = timezone.now()
         if self.begin and self.end:
             return self.begin <= now <= self.end
         elif self.begin:
@@ -90,14 +93,14 @@ class StopSet(EnabledBeginEndWeightMixin, models.Model):
     def __str__(self):
         return self.name
 
-    def generate_asset_block(self):
+    def generate_asset_block(self, now=None):
         rotators = self.get_rotator_block()
 
         if not rotators:
             return []
 
         rotator_assets = {
-            rotator: list(rotator.assets.currently_enabled())
+            rotator: list(rotator.assets.currently_enabled(now=now))
             # Instantiate one list of assets per rotator
             for rotator in set(rotators)
         }

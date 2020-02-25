@@ -10,9 +10,10 @@
 - [ ] If an empty project is detected, create an install button on admin login/landing,
       providing option to create initial data. Bonus: Station ID says _55.5 FM, KMUR Made
       Up Radio_ or something silly.
-- [ ] Sample generation stop set block server side testing, with optional date override.
+- [x] Sample generation stop set block server side testing, with optional date override.
 - [ ] Use expose nginx + gunicorn container, rather than Django so uploads are performant
       and one can deploy to prod using Docker.
+- [ ] Implement `STRIP_UPLOADED_AUDIO`.
 
 ## Client
 
@@ -20,7 +21,6 @@
 - [x] Save window position on all three platforms and whether maximized / fullscreen
 - [ ] Prevent hibernation, ie using `caffeinate` cmd on macOS and on Windows,
       `SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED)`
-- [ ] Implement `STRIP_UPLOADED_AUDIO`.
 - [ ] Write unit tests.
 - [ ] Client standalone mode, ie run Django in a separate process. (Will need to
       build an additional Django executable with PyInstaller, however will need to
@@ -42,3 +42,5 @@
 - [ ] Long tracks render using NES.css's progress bar, rather than Wavesurfer.
 - [ ] Error checking, see Wavesurfer's [error event](https://wavesurfer-js.org/docs/events.html)
 - [ ] Refactor / clean up JS. Currently it's pretty prototype-y.
+- [ ] Animation when wait time is up
+- [ ] Clean cache button (cache size estimate based on files not backed by Asset rows)

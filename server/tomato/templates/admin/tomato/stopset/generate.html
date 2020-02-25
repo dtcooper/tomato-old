@@ -1,0 +1,114 @@
+{% extends 'admin/base_site.html' %}
+
+{% load static %}
+
+{# Adapted from http://www.dmertl.com/blog/?p=116 #}
+
+{% block extrastyle %}
+    <script type="text/javascript" src="/jsi18n/"></script>
+    <script type="text/javascript" src="{% static 'admin/js/core.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}"/>
+    <style>
+        .generate-stopset-table {
+            margin: 0 0 10px 10px;
+        }
+        .generate-stopset-table td, .generate-stopset-table th {
+            vertical-align: middle;
+            font-size: 16px;
+            text-align: center;
+        }
+    </style>
+
+
+    {{ block.super }}
+{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url 'admin:tomato_stopset_changelist' %}">Audio Assets</a>
+    &rsaquo; <a href="{% url 'admin:tomato_stopset_change' object_id=stopset.id %}">{{ stopset.name }}</a>
+    &rsaquo; Generate
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    <form action="{% url 'admin:tomato_stopset_generate' object_id=stopset.id %}" method="post">
+        {% csrf_token %}
+        {{ form.media }}
+
+        {% if save_on_top %}
+            <div class="submit-row">
+                <input type="Submit" value="Generate New Sample Stop Set Block" class="default">
+            </div>
+        {% endif %}
+
+        <table class="generate-stopset-table">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Asset</th>
+                    <th>Rotator</th>
+                    <th>Audio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    {% for rotator, asset in asset_block %}
+                        <tr>
+                            <td>{{ forloop.counter }}.</td>
+                            <td>
+                                {% if asset %}
+                                    <a href="{% url 'admin:tomato_asset_change' object_id=asset.id %}">
+                                        {{ asset.name }}
+                                    </a>
+                                {% else %}
+                                    <em>No asset eligible to air at {{ now }}</em>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'admin:tomato_rotator_change' object_id=rotator.id %}" style="padding: 0 2px; background-color: #{{ rotator.color }}">
+                                    {{ rotator.name }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if asset %}
+                                    <audio src="{{ asset.audio.url }}" controls></audio>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        {%  if not stopset.enabled %}
+                            <b>Airing Disabled</b>
+                        {% else %}
+                            At {{ now }}, Stop Set {{ stopset.name }} would
+                            {% if not currently_airing %}<b>NOT</b>{% endif %} air.<br>
+                            {{ enabled_dates }}
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>
+            <label for="date">
+                Enter a date and time to generate a new sample block for. Leave blank set to now.
+                (Timezone: {{ timezone }}).
+            </label>
+            {{ form.now.errors }}
+            {{ form.now }}
+        </p>
+
+        <div class="submit-row">
+            <input type="Submit" value="Generate New Sample Stop Set Block" class="default">
+        </div>
+
+    </form>
+{% endblock %}

@@ -3,17 +3,22 @@ import datetime
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin.helpers import ActionForm, AdminForm
+from django.contrib.admin.widgets import AdminSplitDateTime
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group, User
 from django.core.exceptions import PermissionDenied
 from django.db.models.functions import Coalesce
 from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import escape, format_html, mark_safe
 
 from .models import Asset, Rotator, StopSet, StopSetRotator
+
+
+STRFTIME_FMT = '%a %b %-d %Y %-I:%M %p'
 
 
 class TomatoUserAdmin(UserAdmin):
@@ -67,22 +72,21 @@ class EnabledDatesRotatorMixin:
     list_filter = ('rotators', CurrentlyAiringListFilter, 'enabled')
     actions = ('enable', 'disable')
 
-    def enabled_dates(self, obj):
-        tz = timezone.get_default_timezone()
-        fmt = '%a %b %-d %Y %-I:%M %p'
+    def enabled_dates(self, obj, now=None):
+        tz = timezone.get_current_timezone()
 
-        enabled_html = '' if obj.currently_airing() else '<br><em>Not currently eligible to air.</em>'
+        enabled_html = '' if obj.currently_airing(now) else '<br><em>Not currently eligible to air.</em>'
 
         if obj.begin and obj.end:
             return format_html(
                 '<b>Begins:</b> {}<br><b>Ends:</b> {}' + enabled_html,
-                tz.normalize(obj.begin).strftime(fmt), tz.normalize(obj.end).strftime(fmt))
+                tz.normalize(obj.begin).strftime(STRFTIME_FMT), tz.normalize(obj.end).strftime(STRFTIME_FMT))
         elif obj.begin:
             return format_html('<b>Begins:</b> {}' + enabled_html,
-                               tz.normalize(obj.begin).strftime(fmt))
+                               tz.normalize(obj.begin).strftime(STRFTIME_FMT))
         elif obj.end:
             return format_html('<b>Ends:</b> {}' + enabled_html,
-                               tz.normalize(obj.end).strftime(fmt))
+                               tz.normalize(obj.end).strftime(STRFTIME_FMT))
         else:
             return 'Always Airs'
     enabled_dates.short_description = 'Air Dates'
@@ -148,10 +152,10 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
     readonly_fields = ('duration_pretty', 'audio_player', 'rotator_list')
 
     def get_urls(self):
-        return [path('upload/', self.admin_site.admin_view(self.upload),
+        return [path('upload/', self.admin_site.admin_view(self.upload_view),
                 name='tomato_asset_upload')] + super().get_urls()
 
-    def upload(self, request):
+    def upload_view(self, request):
         if not self.has_add_permission(request):
             raise PermissionDenied
 
@@ -286,11 +290,55 @@ class StopSetRotatorInline(admin.TabularInline):
         return formset
 
 
+class GenerateStopSetForm(forms.Form):
+    now = forms.SplitDateTimeField(widget=AdminSplitDateTime(), required=False)
+
+
 class StopSetModelAdmin(EnabledDatesRotatorMixin, NumAssetsMixin, TomatoModelAdmin):
     inlines = (StopSetRotatorInline,)
-    list_display = ('name', 'rotator_entry_list', 'enabled_dates', 'enabled', 'weight', 'num_assets')
-    fieldsets = ((None, {'fields': ('name',)}),
-                 ('Eligibility', {'fields': ('weight', 'enabled', 'begin', 'end')}))
+    list_display = ('name', 'rotator_entry_list', 'enabled_dates', 'enabled',
+                    'weight', 'num_assets', 'generate')
+    readonly_fields = ('generate',)
+
+    def get_urls(self):
+        return [path('<int:object_id>/generate/', self.admin_site.admin_view(self.generate_view),
+                name='tomato_stopset_generate')] + super().get_urls()
+
+    def get_fieldsets(self, request, obj):
+        return ((None, {'fields': ('name',) + (('generate',) if obj else ())}),
+                ('Eligibility', {'fields': ('weight', 'enabled', 'begin', 'end')}))
+
+    def generate_view(self, request, object_id):
+        if not self.has_view_permission(request):
+            raise PermissionDenied
+
+        now = timezone.localtime()
+
+        if request.method == 'POST':
+            form = GenerateStopSetForm(request.POST)
+            if form.is_valid() and form.cleaned_data['now']:
+                now = form.cleaned_data['now']
+
+        else:
+            form = GenerateStopSetForm()
+
+        stopset = get_object_or_404(StopSet, id=object_id)
+
+        opts = self.model._meta
+        return TemplateResponse(request, 'admin/tomato/stopset/generate.html', {
+            'app_label': opts.app_label,
+            'asset_block': stopset.generate_asset_block(now),
+            'currently_airing': stopset.currently_airing(now),
+            'enabled_dates': self.enabled_dates(stopset, now),
+            'now': now.strftime(STRFTIME_FMT),
+            'opts': opts,
+            'form': form,
+            'save_on_top': self.save_on_top,
+            'stopset': stopset,
+            'timezone': now.tzinfo.zone,
+            'title': f'Generate Sample Stop Set Block: {stopset.name}',
+            **self.admin_site.each_context(request),
+        })
 
     def rotator_entry_list(self, obj):
         rotator_entries = list(StopSetRotator.objects.filter(stopset=obj).order_by(
@@ -303,6 +351,11 @@ class StopSetModelAdmin(EnabledDatesRotatorMixin, NumAssetsMixin, TomatoModelAdm
             html = '<em>None</em>'
         return mark_safe(html)
     rotator_entry_list.short_description = 'Rotator Entries'
+
+    def generate(self, obj):
+        return format_html('<a href="{}">Generate Sample Block</a>',
+                           reverse('admin:tomato_stopset_generate', kwargs={'object_id': obj.id}))
+    generate.short_description = 'Generate Sample Block'
 
 
 class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
