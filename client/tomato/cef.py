@@ -340,6 +340,10 @@ class CefWindow:
                 'autoplay-policy': 'no-user-gesture-required',  # Allow audio to play with no gesture
                 'enable-media-stream': '',  # Get device names from `mediaDevices.enumerateDevices();'
                 'enable-font-antialiasing': '',  # Better fonts in some cases on Windows
+                # These two are required to disable pinch zooming on macOS, along with @viewport CSS
+                # https://ixn.intersection.com/web-app-multi-touch-is-complicated-16e1db2b29ba
+                'enable-experimental-web-platform-features': '',
+                'enable-viewport': '',
             },
             'settings': {
                 'background_color': 0xFFDDDDDD,

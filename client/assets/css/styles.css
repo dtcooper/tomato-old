@@ -25,6 +25,19 @@
 }
 
 /* Global Styles / Utility Classes */
+
+/* cefpython66, in order for @viewport to work and disable pinch zooming we need to
+   add the following to CEF's switches
+    --enable-experimental-web-platform-features
+    --enable-viewport */
+@viewport {
+    width: device-width;
+    user-scalable: no;
+    zoom: 1.0;
+    min-zoom: 1.0;
+    max-zoom: 1.0;
+}
+
 html, body {
     font-size: var(--font-size);
     width: 100vw;
@@ -77,6 +90,10 @@ img {
 
 .center {
     text-align: center;
+}
+
+.small-btn {
+    padding: 0 4px 2px 4px;
 }
 
 .nes-container {
