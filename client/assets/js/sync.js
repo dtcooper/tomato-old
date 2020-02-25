@@ -53,7 +53,7 @@ var loadWaveform = function(asset, play = true) {
         wavesurfer.destroy();
         wavesurfer = null;
     }
-    $('#waveform').text('');
+    $('#waveform').removeClass('nes-pointer').text('');
     var plugins = [
         WaveSurfer.timeline.create({
             container: "#waveform-timeline",
@@ -66,7 +66,8 @@ var loadWaveform = function(asset, play = true) {
     ]
 
     if (cef.conf.clickable_waveform) {
-        plugins.push(WaveSurfer.cursor.create({width: 2}))
+        plugins.push(WaveSurfer.cursor.create());
+        $('#waveform').addClass('nes-pointer');
     }
 
     wavesurfer = WaveSurfer.create({
@@ -76,12 +77,12 @@ var loadWaveform = function(asset, play = true) {
         height: 100,
         normalize: true,
         barMinHeight: 1,
-        barWidth: 4,
-        barGap: 2,
+        barWidth: 3,
+        barGap: 3,
         hideScrollbar: true,
         interact: cef.conf.clickable_waveform,
         responsive: true,
-        cursorWidth: 2,
+        cursorWidth: 1,
         cursorColor: '#f30000',
         closeAudioContext: true,
         backend: 'MediaElement',  // less modern backend, but loads faster
