@@ -354,7 +354,7 @@ class StopSetModelAdmin(EnabledDatesRotatorMixin, NumAssetsMixin, TomatoModelAdm
 
     def generate(self, obj):
         return format_html('<a href="{}">Generate Sample Block</a>',
-                           reverse('admin:tomato_stopset_generate', kwargs={'object_id': obj.id}))
+                           reverse('admin:tomato_stopset_generate', args=(obj.id,)))
     generate.short_description = 'Generate Sample Block'
 
 

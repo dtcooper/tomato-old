@@ -1,9 +1,12 @@
 from collections import namedtuple
 from base64 import b64decode
+import shutil
+import tempfile
 
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
-from django.test import Client, TestCase
+from django.conf import settings
+from django.test import Client, override_settings, TestCase
 from django.urls import reverse
 
 from .models import Asset, Rotator, StopSet, StopSetRotator
@@ -12,12 +15,17 @@ from .models import Asset, Rotator, StopSet, StopSetRotator
 Dataset = namedtuple('Dataset', ('asset', 'rotator', 'stopset'))
 
 
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class ServerTests(TestCase):
     def setUp(self):
         self.colors = {v: k for k, v in Rotator.COLOR_CHOICES}
         self.user = User.objects.create_user(username='user', password='user')
         self.super = User.objects.create_superuser(username='super', password='super')
         self.client = Client()
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(settings.MEDIA_ROOT)
 
     def create_basic_data(self):
         rotator = Rotator.objects.create(name='rotator')
@@ -49,6 +57,7 @@ class ServerTests(TestCase):
             reverse('admin:tomato_stopset_changelist'),
             reverse('admin:tomato_stopset_add'),
             reverse('admin:tomato_stopset_change', args=(data.stopset.id,)),
+            reverse('admin:tomato_stopset_generate', args=(data.stopset.id,)),
         ):
             response = self.client.get(test_url)
             self.assertEqual(response.status_code, 200)
