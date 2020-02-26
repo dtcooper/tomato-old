@@ -17,7 +17,7 @@ from django.db.migrations.recorder import MigrationRecorder
 from django.utils import timezone
 
 
-MAX_NAME_LEN = 100
+MAX_NAME_LEN = 60
 
 
 def get_latest_tomato_migration():

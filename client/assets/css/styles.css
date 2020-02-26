@@ -1,7 +1,7 @@
 /* Variables */
 
 :root {
-    --font-size: 16px;
+    --font-size: 17px;
     --header-font-size: 6.1vw;
     --footer-font-size: 12px;
     --max-width: 1400px;
@@ -60,6 +60,7 @@ html, body, pre, code, kbd, samp {
     outline: none !important;
     box-shadow: none !important;
     box-sizing: border-box;
+    -webkit-font-smoothing: none;
 }
 
 img {
@@ -107,8 +108,8 @@ section > .nes-container, main > .nes-container {
 }
 
 .nes-container.with-title > .title {
-    margin-top: -1.3rem;
-    margin-bottom: 5px;
+    margin-top: -1.2rem;
+    margin-bottom: 4px;
 }
 
 ul {
