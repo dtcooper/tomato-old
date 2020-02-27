@@ -174,63 +174,49 @@ header {
     padding-bottom: 3px;
 }
 
-#dropdown {
+.header-mouseover-common {
     position: absolute;
     display: inline;
-    left: 8px;
     top: 3px;
-    text-align: left;
     z-index: 1;
     vertical-align: top;
+}
+
+#dropdown {
+    left: 8px;
 }
 
 #dropdown > button {
     vertical-align: top;
 }
 
-#dropdown:hover > div {
+#dropdown:hover > div, #connection-status-asterisk:hover + div {
     display: inline-block;
 }
 
-#dropdown > div {
+#dropdown > div, #connection-status > div {
     display: none;
     position: relative;
     width: max-content;
 }
 
-#dropdown .nes-container {
+#dropdown .nes-container, #connection-status .nes-container {
     background-color: #ffffff;
     margin: 5px 0 0 0;
 }
 
 #connection-status {
-    position: absolute;
-    display: inline;
+    direction: rtl;
     right: 8px;
-    top: 3px;
-    font-size: 1.5rem;
 }
 
-#connection-status:hover::before {
-    all: initial;
-    display: inline-block;
-    padding: 8px;
-    font-family: 'Tomato Text';
-    content: attr(data-content);
-    color: #f9f9f9;
-    border: 3px solid #1a1a1a;
-    border-radius: 6px;
-    background-color: #1a1a1a;
-    position: absolute;
-    width: max-content;
-    white-space: pre-wrap;
-    max-width: 250px;
-    top: 50%;
-    right: 100%;
-    margin-right: 10px;
-    text-align: center;
-    font-size: 0.75rem;
-    z-index: 1;
+#connection-status-asterisk {
+    font-size: 1.5rem;
+    vertical-align: top;
+}
+
+#conntection-status-bubble {
+    direction: ltr;
 }
 
 main {

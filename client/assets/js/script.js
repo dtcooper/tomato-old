@@ -28,11 +28,13 @@ var isClosing = false,
     resizeTimer = null;
 
 function setStatusColor(status, text) {
-    $('#connection-status').removeClass(
-        'is-primary is-success is-warning is-error is-disabled').addClass('is-' + status).attr(
-        'data-hover-text', 'TODO: this is a major ' + status + ' ' + status + ' ' + status + '!');
+    $('#connection-status-asterisk').removeClass(
+        'is-primary is-success is-warning is-error is-disabled').addClass('is-' + status);
+
     if (text) {
-        $('#connection-status').attr('data-content', text);
+        $('#conntection-status-bubble').text(text);
+    } else {
+        $('#conntection-status-bubble').text('TODO no text');
     }
 }
 
