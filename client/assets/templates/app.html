@@ -5,6 +5,37 @@
 
   <link href="../css/nes-2.3.0.min.css" rel="stylesheet">
   <link href="../css/styles.css" rel="stylesheet">
+  <style>
+    {% for name, hex in colors.items() if not name.endswith('-dark') and not name.endswith('-light') %}
+      .nes-btn.is-{{ name}} {
+        color: #{{ white_or_black_from_color(colors[name + '-light']) }};
+        background-color: #{{ colors[name + '-light'] }};
+      }
+
+      .nes-btn.is-{{ name}}::after {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        bottom: -4px;
+        left: -4px;
+        content: "";
+        box-shadow: inset -4px -4px #{{ colors[name + '-dark'] }};
+      }
+
+      .nes-btn.is-{{ name}}:hover {
+        color: #{{ white_or_black_from_color(colors[name]) }};
+        background-color: #{{ colors[name] }};
+      }
+
+      .nes-btn.is-{{ name}}:hover::after {
+        box-shadow: inset -6px -6px #{{ colors[name + '-dark'] }};
+      }
+
+      .nes-btn.is-{{ name}}:active:not(.is-disabled)::after {
+        box-shadow: inset 4px 4px #{{ colors[name + '-dark'] }};
+      }
+    {% endfor %}
+  </style>
 
   <script src="../js/jquery-3.4.1.min.js"></script>
   <script src="../js/wavesurfer-3.3.1.min.js"></script>

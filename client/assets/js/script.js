@@ -319,11 +319,9 @@ function loadWaveform(asset, play = true) {
     wavesurfer.load(asset.url);
     $('#track-title').text(': ' + asset.name);
     $('#track-time').text(' {0:00/' + prettyDuration(asset.length) + '}');
-    $('.asset-item[data-asset-idx=' + assetIdx + ']').css('background-color', '#e3f2fd');
 }
 
 var loadNext = function(play = true) {
-    $('.asset-item').css('background-color', 'initial');
     if (assetIdx < assets.length) {
         loadWaveform(assets[assetIdx], play);
         assetIdx++;

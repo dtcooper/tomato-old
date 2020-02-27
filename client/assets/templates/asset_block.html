@@ -13,17 +13,16 @@
   <div class="nes-container with-title">
     <p class="title">Stop Set: {{ stopset }}</p>
 
-    <div class="lists">
-      <ul class="nes-list is-circle">
-      {% for asset in assets %}
-        <li class="nes-pointer asset-item" data-asset-idx="{{ loop.index - 1 }}">
-          {{ loop.index }}. <strong>{{ asset.name }}</strong>
-          {% raw %}{{% endraw %}{{ asset.length|prettyduration }}}
-          / <span style="background-color: #{{ colors[asset.color + "-light"] }}">{{ asset.rotator }}</span>
-        </li>
-      {% endfor %}
-      </ul>
-    </div>
+    {% for asset in assets %}
+      <p>
+        <button class="nes-btn is-{{asset.color }} small-btn asset-item right" data-asset-idx="{{ loop.index - 1 }}">
+          <span class="arrows">&#x35;</span>
+          {{ loop.index }}. {{ asset.name }}
+          - {{ asset.length|prettyduration }}<br>
+          <em>{{ asset.rotator }}</em>
+        </button>
+      </p>
+    {% endfor %}
   </div>
 {% endif %}
 

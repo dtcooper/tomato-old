@@ -366,12 +366,18 @@ class CefWindow:
         return kwargs
 
     def render_template(self, template_name, context=None):
-        default_context = {'colors': dict(COLORS)}
+        default_context = {
+            'colors': dict(COLORS),
+        }
 
         # Performance: if we're rendering the app.html we add custom context here
         if template_name == 'app.html':
             # Make sure Django is configured before importing so model import doesn't blow up
             from .api import API_LIST
+
+            def white_or_black_from_color(color):
+                red, green, blue = map(lambda c: int(c, 16), (color[0:2], color[2:4], color[4:6]))
+                return '000000' if (red * 0.299 + green * 0.587 + blue * 0.114) > 186 else 'FFFFFF'
 
             default_context.update({
                 'conf': self.conf.data,
@@ -381,7 +387,8 @@ class CefWindow:
                         method for method in dir(api)
                         if not method.startswith('_') and callable(getattr(api, method))
                     ] for api in API_LIST
-                }
+                },
+                'white_or_black_from_color': white_or_black_from_color,
             })
 
         if context is not None:
