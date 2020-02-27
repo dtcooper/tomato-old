@@ -198,6 +198,7 @@ header {
     display: none;
     position: relative;
     width: max-content;
+    max-width: 80vw;
 }
 
 #dropdown .nes-container, #connection-status .nes-container {

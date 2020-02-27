@@ -83,7 +83,20 @@
   {{ render_dialog('first-sync', 'Synchronizing With Server', body_html=first_sync_body) }}
 {% endwith %}
 
+{% with %}
+  {% set audio_devices_body %}
+    <label for="audio-device">Select an output device</label>
+    <div class="nes-select">
+      <select required id="audio-device"></select>
+    </div>
+  {% endset %}
+  {{
+    render_dialog('audio-devices', 'Output Device', body_html=audio_devices_body,
+      buttons=[(None, 'is-error', 'Cancel'), ('select-audio-device', 'is-success', 'Select Device')])
+  }}
+{% endwith %}
+
 {{
-  render_dialog('error', 'An Error Occurred', body_html='<div id="error-description"></div>',
+  render_dialog('error', 'Output Device', body_html='<div id="error-description"></div>',
     buttons=[(None, 'is-error', 'Okay')])
 }}

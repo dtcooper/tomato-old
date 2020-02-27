@@ -10,6 +10,7 @@ class Config:
     __on_update = None
     DATA_FILE = os.path.join(USER_DIR, 'config.json')
     DEFAULTS = {
+        'audio_device': None,
         'auth_token': None,
         'debug': not IS_FROZEN,
         'height': WINDOW_SIZE_DEFAULT_HEIGHT,

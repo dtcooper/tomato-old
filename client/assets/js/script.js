@@ -231,6 +231,38 @@ function updateTrackTime() {
     }
 }
 
+var showDevicePickerModal = function() {
+    $('#loading').show();
+    navigator.mediaDevices.enumerateDevices().then(function(devices) {
+        $('#loading').hide();
+        var selected = false;
+        var html = '';
+        for (var i = 0; i < devices.length; i++) {
+            var device = devices[i];
+            if (device.kind == 'audiooutput' && device.deviceId != 'communications') {
+                var label = device.label;
+                if (device.deviceId == 'default') {
+                    html += '<option value="NULL"'
+                    if (!selected && !cef.conf.audio_device) {
+                        html += ' selected';
+                        selected = true;
+                    }
+                    html += '>' + escapeHTML('Default' + device.label) + '</option>';
+                } else {
+                    html += '<option value="' + escapeHTML(device.deviceId) + '"';
+                    if (!selected && label == cef.conf.audio_device) {
+                        html += 'selected';
+                        selected = true;
+                    }
+                    html += '>' + escapeHTML(device.label) + '</option>';
+                }
+            }
+        }
+        $('#audio-device').html(html);
+        showModal('audio-devices-dialog');
+    });
+}
+
 var loadWaveform = function(asset, play = true) {
     if (wavesurfer) {
         wavesurfer.destroy();
@@ -335,5 +367,10 @@ $(function() {
                     break;
             }
         }
+    });
+
+    $('#select-audio-device').click(function() {
+        var device = $('#audio-device').val();
+        cef.writeconf.set('audio_device', device == 'NULL' ? null : device);
     });
 });
