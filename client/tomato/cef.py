@@ -20,6 +20,7 @@ from cefpython3 import cefpython as cef
 import jinja2
 
 from . import constants
+from .client_server_constants import COLORS
 from .constants import (
     APIException,
     APP_URL,
@@ -365,7 +366,7 @@ class CefWindow:
         return kwargs
 
     def render_template(self, template_name, context=None):
-        default_context = {}
+        default_context = {'colors': dict(COLORS)}
 
         # Performance: if we're rendering the app.html we add custom context here
         if template_name == 'app.html':

@@ -13,6 +13,7 @@
   <script>
     {# Dynamically generated JS, and base cef object #}
     var cef;
+    var colors = {{ colors|tojson }};
 
     (function() {
       var generateBridgeCall = function(namespace, method) {
@@ -105,6 +106,7 @@
           <button class="nes-btn small-btn is-warning arrows" id="next-btn">&#x33;</button>
           <button class="nes-btn small-btn is-primary arrows" onclick="loadBlock();">&#x54;</button>
           {% if conf.debug %}
+            <button class="nes-btn small-btn arrows" onclick="sync();">&#x38;</button>
             <button class="nes-btn small-btn is-error arrows" onclick="location.reload()">&#x54;&#x54;&#x54;</button>
           {% endif %}
         </p>

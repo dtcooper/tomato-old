@@ -17,8 +17,9 @@
       <ul class="nes-list is-circle">
       {% for asset in assets %}
         <li class="nes-pointer asset-item" data-asset-idx="{{ loop.index - 1 }}">
-          {{ loop.index }}. <strong>{{ asset.name }}</strong> {% raw %}{{% endraw %}{{ asset.length|prettyduration }}}
-          <span style="background-color: #{{ asset.color }}">[Rotator: {{ asset.rotator }}]</span>
+          {{ loop.index }}. <strong>{{ asset.name }}</strong>
+          {% raw %}{{% endraw %}{{ asset.length|prettyduration }}}
+          / <span style="background-color: #{{ colors[asset.color + "-light"] }}">{{ asset.rotator }}</span>
         </li>
       {% endfor %}
       </ul>

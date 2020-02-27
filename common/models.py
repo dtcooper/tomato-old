@@ -16,6 +16,8 @@ from django.db import models
 from django.db.migrations.recorder import MigrationRecorder
 from django.utils import timezone
 
+from .client_server_constants import COLORS
+
 
 MAX_NAME_LEN = 60
 
@@ -137,19 +139,15 @@ class StopSet(EnabledBeginEndWeightMixin, models.Model):
 
 
 class Rotator(models.Model):
-    COLOR_CHOICES = (
-        # accent-1 choices from https://materializecss.com/color.html
-        ('ff8a80', 'Red'), ('ff80ab', 'Pink'), ('ea80fc', 'Purple'), ('b388ff', 'Deep Purple'),
-        ('8c9eff', 'Indigo'), ('82b1ff', 'Blue'), ('80d8ff', 'Light Blue'), ('84ffff', 'Cyan'),
-        ('a7ffeb', 'Teal'), ('b9f6ca', 'Green'), ('ccff90', 'Light Green'), ('f4ff81', 'Lime'),
-        ('ffff8d', 'Yellow'), ('ffe57f', 'Amber'), ('ffd180', 'Orange'), ('ff9e80', 'Deep Orange'),
-    )
+    COLOR_CHOICES = tuple(
+        (name, name.replace('-', ' ').title()) for name, _ in COLORS
+        if not name.endswith('-light') and not name.endswith('-dark'))
 
     name = models.CharField(
         'Rotator Name', max_length=MAX_NAME_LEN, db_index=True,
         help_text="Category name of this asset rotator, eg 'ADs', 'Station IDs, 'Short Interviews', etc.")
     color = models.CharField(
-        'Color', default=COLOR_CHOICES[0][0], max_length=6, choices=COLOR_CHOICES,
+        'Color', default=COLOR_CHOICES[0][0], max_length=20, choices=COLOR_CHOICES,
         help_text='Color that appears in the playout software for assets in this rotator.')
     stopsets = models.ManyToManyField(StopSet, through='StopSetRotator', related_name='rotators',
                                       through_fields=('rotator', 'stopset'), verbose_name='Stop Set')

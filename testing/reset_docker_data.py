@@ -58,11 +58,10 @@ def main():
 
     User.objects.create_superuser(username='test', password='test')
 
-    colors = {v: k for k, v in Rotator.COLOR_CHOICES}
     rotators = {
-        'ad': Rotator.objects.create(name='ADs', color=colors['Light Blue']),
-        'spotlight': Rotator.objects.create(name='Spotlight on Art', color=colors['Pink']),
-        'station-id': Rotator.objects.create(name='Station IDs', color=colors['Orange']),
+        'ad': Rotator.objects.create(name='ADs', color='light-blue'),
+        'spotlight': Rotator.objects.create(name='Spotlight on Art', color='pink'),
+        'station-id': Rotator.objects.create(name='Station IDs', color='orange'),
     }
 
     os.chdir(sounds_path)

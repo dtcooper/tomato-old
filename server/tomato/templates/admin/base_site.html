@@ -34,8 +34,10 @@
 {% block extrahead %}
     {{ block.super }}
     <link rel="icon" href="{% static 'admin/images/tomato.png' %}" sizes="48x48" />
-
-    {{ rotator_colors|json_script:'rotator-colors' }}
+    {{ ROTATOR_COLORS|json_script:"rotator-colors" }}
+    <script>
+      var rotatorColors = JSON.parse(document.getElementById('rotator-colors').textContent);
+    </script>
 {% endblock %}
 
 

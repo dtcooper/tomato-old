@@ -61,6 +61,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'constance.context_processors.config',
+                'tomato.context_processors.rotator_colors',
             ],
         },
     },

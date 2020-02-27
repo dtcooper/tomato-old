@@ -15,6 +15,7 @@ from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import escape, format_html, mark_safe
 
+from .client_server_constants import COLORS
 from .models import Asset, Rotator, StopSet, StopSetRotator
 
 
@@ -247,7 +248,8 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
         rotators = list(obj.rotators.all())
         if rotators:
             html = '<br>'.join(
-                f'&bull; <span style="background-color: #{rotator.color}">{escape(rotator.name)}</span>'
+                (f'&bull; <span style="background-color: #{dict(COLORS)[f"{rotator.color}-light"]}">'
+                 f'{escape(rotator.name)}</span>')
                 for rotator in rotators)
         else:
             html = '<em>None</em>'
@@ -345,7 +347,7 @@ class StopSetModelAdmin(EnabledDatesRotatorMixin, NumAssetsMixin, TomatoModelAdm
             'id').values_list('rotator__name', 'rotator__color'))
         if rotator_entries:
             html = '<br>'.join(
-                f'<span style="background-color: #{color}">{num}. {escape(name)}</span>'
+                f'<span style="background-color: #{dict(COLORS)[f"{color}-light"]}">{num}. {escape(name)}</span>'
                 for num, (name, color) in enumerate(rotator_entries, 1))
         else:
             html = '<em>None</em>'
@@ -373,7 +375,7 @@ class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
     def display_color(self, obj):
         return format_html('<div class="color-preview" style="width: 8em; height: 3em; '
                            'border: 1px solid #333; display: inline-block;{}"></div>',
-                           f' background-color: #{obj.color}' if isinstance(obj, Rotator) else '')
+                           f' background-color: #{dict(COLORS)[obj.color]}' if isinstance(obj, Rotator) else '')
     display_color.short_description = 'Display Color'
 
     def stopset_list(self, obj):
