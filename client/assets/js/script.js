@@ -200,6 +200,7 @@ var sync = function() {
 };
 
 var wavesurfer = null;
+var sinkId = null;
 var wait = null;
 var assetIdx = 0;
 var assets = [];
@@ -231,31 +232,41 @@ function updateTrackTime() {
     }
 }
 
+if (cef.conf.audio_device) {
+    navigator.mediaDevices.enumerateDevices().then(function(devices) {
+        var found = false
+        for (var i = 0; i < devices.length; i++) {
+            var device = devices[i];
+            if (device.kind == 'audiooutput' && device.deviceId != 'communications') {
+                if (cef.conf.audio_device == device.label) {
+                    sinkId = device.deviceId;
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            cef.writeconf.set('audio_device', null);
+        }
+    });
+}
+
 var showDevicePickerModal = function() {
     $('#loading').show();
     navigator.mediaDevices.enumerateDevices().then(function(devices) {
         $('#loading').hide();
-        var selected = false;
         var html = '';
         for (var i = 0; i < devices.length; i++) {
             var device = devices[i];
             if (device.kind == 'audiooutput' && device.deviceId != 'communications') {
-                var label = device.label;
-                if (device.deviceId == 'default') {
-                    html += '<option value="NULL"'
-                    if (!selected && !cef.conf.audio_device) {
-                        html += ' selected';
-                        selected = true;
-                    }
-                    html += '>' + escapeHTML('Default' + device.label) + '</option>';
-                } else {
-                    html += '<option value="' + escapeHTML(device.deviceId) + '"';
-                    if (!selected && label == cef.conf.audio_device) {
-                        html += 'selected';
-                        selected = true;
-                    }
-                    html += '>' + escapeHTML(device.label) + '</option>';
+                var label = device.deviceId == 'default' ? 'Default' + device.label : device.label;
+                html += '<option value="' + escapeHTML(
+                    JSON.stringify({label: device.label, device: device.deviceId})) + '"';
+                if ((cef.conf.audio_device == device.label)
+                        || (device.deviceId == 'default' && !cef.conf.audio_device)) {
+                    html += ' selected';
                 }
+                html += '>' + escapeHTML(label) + '</option>';
             }
         }
         $('#audio-device').html(html);
@@ -263,7 +274,7 @@ var showDevicePickerModal = function() {
     });
 }
 
-var loadWaveform = function(asset, play = true) {
+function loadWaveform(asset, play = true) {
     if (wavesurfer) {
         wavesurfer.destroy();
         wavesurfer = null;
@@ -308,7 +319,20 @@ var loadWaveform = function(asset, play = true) {
     wavesurfer.on('interaction', updateTrackTime);
     wavesurfer.on('ready', function() {
         updateTrackTime();
-        if (play) {
+        if (sinkId) {
+            var promise = wavesurfer.setSinkId(sinkId);
+
+            if (play) {
+                promise.then(() => wavesurfer.play()
+                    ).catch(() => {
+                        cef.writeconf.set('audio_device', null);
+                        sinkId = null;
+                        wavesurfer.play();
+                    })
+            } else {
+                promise.catch(() => { cef.writeconf.set('audio_device', null); sinkId = null; })
+            }
+        } else if (play) {
             wavesurfer.play()
         };
     });
@@ -370,7 +394,19 @@ $(function() {
     });
 
     $('#select-audio-device').click(function() {
-        var device = $('#audio-device').val();
-        cef.writeconf.set('audio_device', device == 'NULL' ? null : device);
+        var value = JSON.parse($('#audio-device').val());
+        if (value.device == 'default') {
+            sinkId = null;
+            cef.writeconf.set('audio_device', null);
+        } else {
+            sinkId = value.device;
+            cef.writeconf.set('audio_device', value.label);
+        }
+        if (wavesurfer) {
+            wavesurfer.setSinkId(value.device).catch(() => {
+                cef.writeconf.set('audio_device', null);
+                sinkId = null;
+            });
+        }
     });
 });

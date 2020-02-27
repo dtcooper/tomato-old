@@ -35,7 +35,7 @@
       _or_ configure cefpython.Initialize(...) to use appropriate path settings.
       Can comment on bug [here](https://github.com/cztomczak/cefpython/issues/135).
 - [ ] Create Linux `.deb` that depends on package `libgtk2.0`.
-- [ ] Allow output device selection, ie via `navigator.mediaDevices.enumerateDevices()`,
+- [x] Allow output device selection, ie via `navigator.mediaDevices.enumerateDevices()`,
       and `wavesurfer.setSinkId()`. Note: there's
       [a bug](https://bitbucket.org/chromiumembedded/cef/issues/2064/persist-webrtc-deviceids-across-restart)
       in cef where the `deviceId` (aka `sinkId`) of a device changes every start,
