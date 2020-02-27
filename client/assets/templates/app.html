@@ -40,9 +40,7 @@
       };
     })();
   </script>
-  <script src="../js/base.js"></script>
-  <script src="../js/sync.js"></script>
-  <script src="../js/login.js"></script>
+  <script src="../js/script.js"></script>
 </head>
 <body>
   <div id="loading"></div>
@@ -61,8 +59,8 @@
             <p>
               <button class="nes-btn is-success" onclick="sync();">Sync</button>
               <button class="nes-btn is-primary" onclick="cef.bridge.toggle_fullscreen();">Toggle Fullscreen</button>
-              <button class="nes-btn is-warning" onclick="ui.showModal('logout-dialog');">Logout</button>
-              <button class="nes-btn is-error" onclick="ui.showModal('close-dialog');">Quit</button>
+              <button class="nes-btn is-warning" onclick="showModal('logout-dialog');">Logout</button>
+              <button class="nes-btn is-error" onclick="showModal('close-dialog');">Quit</button>
             </p>
           </div>
         </div>
@@ -90,39 +88,18 @@
 
     <section>
       <div class="nes-container with-title">
-        <p class="title">Now Playing<span id="track-title"></span></p>
+        <p class="title">Now Playing<span id="track-title"></span><span style="text-transform: full-width;" id="track-time"></span></p>
         <div id="waveform-timeline" style="height: 11px;"></div>
         {# Relative position fixes cursor #}
         <div id="waveform" style="height: 100px; margin-bottom: 5px; position: relative;"></div>
         <p class="center">
-          <button class="nes-btn small-btn is-success" onclick="if (wavesurfer) { wavesurfer.playPause() }">Play / Pause</button>
-          <button class="nes-btn small-btn is-warning" id="next-btn">Next Asset</button>
-          <button class="nes-btn small-btn is-primary" onclick="loadBlock();">Load New Stop Set</button>
-          <button class="nes-btn small-btn" onclick="asdjbskdbsk()">Error</button>
+          <button title="Play or Pause" class="nes-btn small-btn is-success arrows" onclick="if (wavesurfer) { wavesurfer.playPause() }">&#x35;&#x31;</button>
+          <button class="nes-btn small-btn is-warning arrows" id="next-btn">&#x33;</button>
+          <button class="nes-btn small-btn is-primary arrows" onclick="loadBlock();">&#x54;</button>
           <button class="nes-btn small-btn is-error" onclick="location.reload()">Reload Window</button>
         </p>
 
-        {# waveform prototype code
-        <div id="waveform1-timeline"></div>
-        <div id="waveform1" class="nes-pointer" style="margin-bottom: 20px; position: relative"></div>
-
-        <p class="center">
-          <button class="nes-btn is-success" onclick="wavesurfer1.playPause();">Play / Pause</button>
-          <button class="nes-btn is-error" onclick="wavesurfer1.stop();">Stop</button>
-          <button class="nes-btn is-warning" onclick="wavesurfer1.load(audioPaths[++place % audioPaths.length]);">New Track</button>
-          <button class="nes-btn" onclick="color = colors[Math.floor(Math.random() * colors.length)]; wavesurfer1.setWaveColor(color[0]); wavesurfer1.setProgressColor(color[1]);">Change color</button>
-        </p>
-
-        <div id="waveform2-timeline"></div>
-        <div id="waveform2" class="nes-pointer" style="margin-bottom: 20px; position: relative"></div>
-
-        <p class="center">
-          <button class="nes-btn is-success" onclick="wavesurfer2.playPause();">Play / Pause</button>
-          <button class="nes-btn is-error" onclick="wavesurfer2.stop();">Stop</button>
-          <button class="nes-btn is-warning" onclick="wavesurfer2.load(audioPaths[++place % audioPaths.length]);">New Track</button>
-          <button class="nes-btn" onclick="color = colors[Math.floor(Math.random() * colors.length)]; wavesurfer2.setWaveColor(color[0]); wavesurfer2.setProgressColor(color[1]);">Change color</button>
-        </p>
-
+        {# Wait
         <progress class="nes-progress is-primary" value="50" max="100" data-text-fill="test content test content test content test content test content test content test content test content test content"></progress>
         #}
 

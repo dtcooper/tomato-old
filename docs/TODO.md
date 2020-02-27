@@ -45,3 +45,5 @@
 - [ ] Refactor / clean up JS. Currently it's pretty prototype-y.
 - [ ] Animation when wait time is up
 - [ ] Clean cache button (cache size estimate based on files not backed by Asset rows)
+- [x] Left/right keyboard controls iff `CLICKABLE_WAVEFORM = True`
+- [ ] Total stopset time, as well as MM:SS / MM:SS total left in current Stop Set.

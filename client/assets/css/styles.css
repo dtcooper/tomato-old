@@ -24,6 +24,11 @@
     src: url('../fonts/title.otf') format('opentype');
 }
 
+@font-face {
+    font-family: 'Tomato Arrows';
+    src: url('../fonts/arrows.ttf') format('truetype');
+}
+
 /* Global Styles / Utility Classes */
 
 /* cefpython66, in order for @viewport to work and disable pinch zooming we need to
@@ -65,6 +70,10 @@ html, body, pre, code, kbd, samp {
 
 img {
     image-rendering: pixelated;
+}
+
+.arrows {
+    font-family: 'Tomato Arrows';
 }
 
 .scrollable {
