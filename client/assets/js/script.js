@@ -296,7 +296,7 @@ function loadWaveform(asset, play = true) {
     });
     wavesurfer.on('finish', loadNext);
     wavesurfer.on('audioprocess', updateTrackTime);
-    wavesurfer.on('interaction', updateTrackTime);
+    wavesurfer.on('seek', updateTrackTime);
     wavesurfer.on('ready', function() {
         updateTrackTime();
         if (sinkId) {
