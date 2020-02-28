@@ -13,7 +13,7 @@ Often.
 
 Cross-platform (macOS/Windows/Linux), native Desktop application.
 
-<img src="docs/client-screenshot-preview1.png">
+<img src="docs/client-screenshot-preview3.png">
 
 The client utilizes the following,
 
