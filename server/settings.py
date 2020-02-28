@@ -93,7 +93,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
-SHELL_PLUS_PRINT_SQL = True
 SHELL_PLUS_PRE_IMPORTS = [('constance', 'config')]
 
 # TODO: 3. Store constants in common file, so it can be imported by client's config.py
