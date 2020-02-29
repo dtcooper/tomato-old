@@ -19,7 +19,7 @@ from django.utils import timezone
 from .client_server_constants import COLORS
 
 
-MAX_NAME_LEN = 60
+MAX_NAME_LEN = 75
 
 
 def get_latest_tomato_migration():

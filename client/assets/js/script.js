@@ -347,6 +347,7 @@ var loadBlock = function() {
             setStatusColor('success', 'Asset block loaded');
             $('#play-queue').html(html);
             loadNext(false);
+            $('#play-queue').parent().scrollTop(0);
         });
     });
 };

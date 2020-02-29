@@ -15,11 +15,19 @@
 
     {% for asset in assets %}
       <p>
-        <button class="nes-btn is-{{asset.color }} small-btn asset-item right" data-asset-idx="{{ loop.index - 1 }}">
-          <span class="arrows">&#x35;</span>
-          {{ loop.index }}. {{ asset.name }}
-          - {{ asset.length|prettyduration }}<br>
-          <em>{{ asset.rotator }}</em>
+        <button
+          style="width: 100%"
+          class="nes-btn is-{{asset.color }} small-btn asset-item"
+          data-asset-idx="{{ loop.index - 1 }}"
+        >
+          <div class="left">
+            <span class="arrows">&#x35;</span>
+            {{ loop.index }}. {{ asset.name }}
+            - {{ asset.length|prettyduration }}
+          </div>
+          <div class="right">
+            <em>{{ asset.rotator }}</em>
+          </div>
         </button>
       </p>
     {% endfor %}

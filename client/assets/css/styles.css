@@ -94,13 +94,9 @@ img {
     border-right: 10px solid #000;
 }
 
-.right {
-    text-align: right;
-}
-
-.center {
-    text-align: center;
-}
+.left { text-align: left; }
+.right { text-align: right; }
+.center { text-align: center; }
 
 .small-btn {
     padding: 0 6px 2px 6px;

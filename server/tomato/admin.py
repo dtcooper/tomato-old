@@ -114,8 +114,8 @@ class NumAssetsMixin:
         else:
             filter_kwargs = {'rotators': obj}
 
-        num_enabled = Asset.objects.filter(**filter_kwargs).currently_enabled().count()
-        num_disabled = Asset.objects.filter(**filter_kwargs).count() - num_enabled
+        num_enabled = Asset.objects.filter(**filter_kwargs).distinct().currently_enabled().count()
+        num_disabled = Asset.objects.filter(**filter_kwargs).distinct().count() - num_enabled
 
         if num_enabled == num_disabled == 0:
             html = '<em>None</em>'
