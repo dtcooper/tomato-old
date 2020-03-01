@@ -14,9 +14,8 @@
     <p class="title">Stop Set: {{ stopset }}</p>
 
     {% for asset in assets %}
-      <p>
-        <button
-          style="width: 100%"
+        <div
+          style="width: 100%; margin: 6px 0;"
           class="nes-btn is-{{asset.color }} small-btn asset-item"
           data-asset-idx="{{ loop.index - 1 }}"
         >
@@ -28,8 +27,7 @@
           <div class="right">
             <em>{{ asset.rotator }}</em>
           </div>
-        </button>
-      </p>
+        </div>
     {% endfor %}
   </div>
 {% endif %}

@@ -62,11 +62,11 @@
         'constants': {{ constants|tojson }},
         {# generate API calls #}
         {% for namespace, methods in js_apis.items() %}
-            {{ namespace|tojson }}: {
-              {% for method in methods %}
-                {{ method|tojson }}: generateBridgeCall(
-                  {{ namespace|tojson }}, {{ method|tojson}}){% if not loop.last %},{% endif %}
-              {% endfor %}
+          {{ namespace|tojson }}: {
+            {% for method in methods %}
+              {{ method|tojson }}: generateBridgeCall(
+                {{ namespace|tojson }}, {{ method|tojson}}){% if not loop.last %},{% endif %}
+            {% endfor %}
           }{% if not loop.last %},{% endif %}
         {% endfor %}
       };
@@ -83,6 +83,7 @@
            2. Swap status and menu
         -->
       <div id="dropdown" class="header-mouseover-common">
+        {# TODO: use something other than buttons to avoid tabbing #}
         <button class="nes-btn btn-primary">
           &#x00BB;
         </button>

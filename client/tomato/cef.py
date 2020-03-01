@@ -339,6 +339,7 @@ class CefWindow:
         kwargs = {
             'switches': {
                 'autoplay-policy': 'no-user-gesture-required',  # Allow audio to play with no gesture
+                'disable-tab-to-links': '',  # No tabbing of links
                 'enable-media-stream': '',  # Get device names from `mediaDevices.enumerateDevices();'
                 'enable-font-antialiasing': '',  # Better fonts in some cases on Windows
                 # These two are required to disable pinch zooming on macOS, along with @viewport CSS
@@ -380,7 +381,7 @@ class CefWindow:
                 return '000000' if (red * 0.299 + green * 0.587 + blue * 0.114) > 186 else 'FFFFFF'
 
             default_context.update({
-                'conf': self.conf.data,
+                'conf': dict(self.conf),
                 'constants': {c: getattr(constants, c) for c in dir(constants) if c.isupper()},
                 'js_apis': {
                     api.namespace: [

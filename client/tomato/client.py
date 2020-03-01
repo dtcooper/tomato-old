@@ -1,3 +1,4 @@
+import argparse
 import logging
 from io import StringIO
 import os
@@ -26,7 +27,7 @@ class Client:
     def ensure_not_running(self):
         # Adapted from
         # https://github.com/pycontribs/tendo/blob/master/tendo/singleton.py
-        lockfile_path = os.path.join(USER_DIR, 'tomato.run')
+        lockfile_path = os.path.join(USER_DIR, 'run.lock')
         is_running = False
 
         if IS_WINDOWS:
@@ -52,8 +53,26 @@ class Client:
             logger.warn('Client already found running. Exiting')
             sys.exit(0)
 
+    def parse_args(self):
+        parser = argparse.ArgumentParser(description='Tomato Radio Automation', add_help=False,
+                                         prog='tomato', epilog='...and remember kids, have fun!')
+        parser.add_argument('-d', '--debug', action='store_true',
+                            help="Run in debug mode. Use `-d' to debug just Tomato, and"
+                                 "`--debug' to debug both CEF Python and Tomato.")
+        parser.add_argument('--print-html', action='store_true', help='Print all rendered HTML templates.')
+        parser.add_argument('--allow-multiple', action='store_true',
+                            help='Allow multiple instances of Tomato to run at once.')
+        parser.add_argument('-v', '--version', action='version', version=f'Tomato v{__version__}',
+                            help="Show program's version number and exit.")
+        parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
+                            help='Show this help message and exit.')
+        return vars(parser.parse_args())
+
     def run(self):
+        args = self.parse_args()
         conf = Config()
+        conf._set_args(args)
+
         if conf.debug:
             logging.basicConfig(
                 level=logging.INFO,
@@ -61,7 +80,9 @@ class Client:
 
         logger.info(f'Starting Tomato v{__version__} with configuration: {dict(conf)}')
 
-        self.ensure_not_running()
+        if not conf.allow_multiple:
+            self.ensure_not_running()
+
         self.init_django()
         self.run_cef()
 

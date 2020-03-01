@@ -62,8 +62,6 @@ html, body, pre, code, kbd, samp {
     -webkit-touch-callout: none;
     -webkit-user-drag: none;
     user-select: none;
-    outline: none !important;
-    box-shadow: none !important;
     box-sizing: border-box;
     -webkit-font-smoothing: none;
 }
