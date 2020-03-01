@@ -7,10 +7,11 @@ from django.apps import apps
 from django.conf import settings
 from django.core import signing
 from django.core.serializers import serialize
-from django.contrib.auth import authenticate
-from django.http import HttpResponseForbidden, JsonResponse
+from django.contrib.auth import authenticate, login
+from django.http import HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.gzip import gzip_page
+from django.urls import reverse
 
 from constance import config
 
@@ -38,6 +39,14 @@ def auth(request):
             'pw_hash': hashlib.md5(user.password.encode('utf8')).hexdigest(),
         })})
 
+    return response
+
+
+def token_login(request):
+    response = HttpResponseForbidden()
+    if request.valid_token:
+        login(request, request.user)
+        response = HttpResponseRedirect(reverse('admin:index'))
     return response
 
 

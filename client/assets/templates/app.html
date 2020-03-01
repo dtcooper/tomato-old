@@ -91,9 +91,10 @@
           <div class="nes-container is-rounded">
             <p>
               <button class="nes-btn is-success" onclick="sync();">Sync</button>
-              <button class="nes-btn is-primary" onclick="cef.bridge.toggle_fullscreen();">Toggle Fullscreen</button>
-              <button class="nes-btn is-warning" onclick="showModal('logout-dialog');">Logout</button>
               <button class="nes-btn" onclick="showDevicePickerModal();">Select Output Device</button>
+              <button class="nes-btn is-primary" onclick="cef.bridge.toggle_fullscreen();">Toggle Fullscreen</button>
+              <button class="nes-btn" onclick="window.open(cef.conf.protocol + '://' + cef.conf.hostname + '/token-login?auth_token=' + cef.conf.auth_token, '_blank');">Admin</button>
+              <button class="nes-btn is-warning" onclick="showModal('logout-dialog');">Logout</button>
               <button class="nes-btn is-error" onclick="showModal('close-dialog');">Quit</button>
             </p>
           </div>
