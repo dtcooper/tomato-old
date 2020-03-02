@@ -19,18 +19,23 @@ The client utilizes the following,
 
 * [CEF Python](https://github.com/cztomczak/cefpython/), ie Python's bindings to
   the [Chromium Embedded Framework](https://bitbucket.org/chromiumembedded/cef).
+* [Jinja2](https://palletsprojects.com/p/jinja/) for HTML templates.
 * [NES.css](https://nostalgic-css.github.io/NES.css/) as a novel CSS library for
-   most of the UI components.
+  retro UI components.
+* [Tachyons](https://tachyons.io/) as a CSS framework.
 * [wavesurfer.js](https://wavesurfer-js.org/) to play audio assets and render
-   seekable audio waveforms in the UI.
-* And others!
+  seekable audio waveforms in the UI.
+* [jQuery](https://jquery.com/) for UI interactions. _Don't judge me!_
+* [PyInstaller](https://pyinstaller.readthedocs.io/en/stable/) to build
+  distributable, cross-platform binaries.
 
 ## Server
 
 <img src="docs/server-screenshot-preview1.png">
 
 Server is a straightforward [Django](https://www.djangoproject.com/) app, taking full
-advance of Django's admin interface.
+advance of Django's admin interface with
+[Constance](https://github.com/jazzband/django-constance) as a configuration editor.
 
 ## License
 
