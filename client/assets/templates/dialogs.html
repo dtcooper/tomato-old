@@ -11,7 +11,7 @@
         {% endif %}
       </p>
       {% if buttons %}
-        <menu class="dialog-menu right">
+        <menu class="mt3 tr">
         {% for id, class, text in buttons %}
           <button class="nes-btn{% if class %} {{ class }}{% endif %}"{% if id %} id="{{ id }}"{% endif %}>
             {{ text }}
@@ -33,11 +33,11 @@
   {% set login_body %}
     <div id="login-errors"></div>
 
-    <div class="nes-field is-inline">
+    <div class="mt3 mb2 nes-field is-inline">
       <label for="hostname">Host:</label>
       <input type="text" id="hostname" class="nes-input" placeholder="eg. tomato.host.com or 1.2.3.4">
     </div>
-    <div class="center">
+    <div class="tc mt2">
       <label>
         <input type="radio" class="nes-radio" name="protocol" value="https" checked>
         <span>Secure (https)</span>
@@ -47,11 +47,11 @@
         <span>Insecure (http)</span>
       </label>
     </div>
-    <div class="nes-field is-inline auth-field">
+    <div class="mv3 nes-field is-inline auth-field">
       <label for="username">Username:</label>
       <input type="text" id="username" class="nes-input" placeholder="Enter username">
     </div>
-    <div class="nes-field is-inline auth-field">
+    <div class="mv3 nes-field is-inline auth-field">
       <label for="password">Password:</label>
       <input type="password" id="password" class="nes-input" placeholder="Enter password">
     </div>
@@ -86,7 +86,7 @@
 {% with %}
   {% set audio_devices_body %}
     <label for="audio-device">Select an output device</label>
-    <div class="nes-select">
+    <div class="nes-select mb4">
       <select required id="audio-device"></select>
     </div>
   {% endset %}

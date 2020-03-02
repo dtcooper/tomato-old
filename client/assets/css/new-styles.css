@@ -1,0 +1,98 @@
+:root {
+    --header-font-size: 6.1vw;
+    --max-width: 1400px;
+}
+
+@media (min-width: 1200px) {
+  :root {
+     --header-font-size: 4.625rem;
+  }
+}
+
+@font-face {
+    font-family: 'Retro Gaming';
+    src: url('../fonts/text.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Vermin Vibes 1989';
+    src: url('../fonts/title.otf') format('opentype');
+}
+
+@font-face {
+    font-family: 'PixArrows';
+    src: url('../fonts/arrows.ttf') format('truetype');
+}
+
+/* cefpython66, in order for @viewport to work and disable pinch zooming we need to
+   add the following to CEF's switches
+    --enable-experimental-web-platform-features
+    --enable-viewport */
+@viewport {
+    width: device-width;
+    user-scalable: no;
+    zoom: 1.0;
+    min-zoom: 1.0;
+    max-zoom: 1.0;
+}
+
+html, body {
+    user-select: none;
+    overflow-wrap: break-word;
+    overscroll-behavior: none;
+}
+
+html, body, pre, code, kbd, samp {
+    font-family: 'Retro Gaming';
+}
+
+img {
+    image-rendering: pixelated;
+}
+
+* {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    box-sizing: border-box;
+    -webkit-font-smoothing: none;
+}
+
+dialog {
+    width: 80vw;
+    max-width: 750px;
+}
+
+#app {
+    max-width: var(--max-width);
+}
+
+.nes-input, .nes-select > select, .nes-btn {
+    line-height: 1.5;
+}
+
+.arrow {
+    font-family: PixArrows;
+}
+
+/* Custom CSS for Header Text + Images */
+header h1 {
+    font-family: 'Vermin Vibes 1989';
+    font-size: var(--header-font-size);
+    line-height: var(--header-font-size);
+    min-height: 3.5rem;
+    color: #f30000;
+    text-shadow: #93c22e 1px 1px 0px, #93c22e 2px 2px 0px, #93c22e 3px 3px 0px, #93c22e 4px 4px 0px, #93c22e 5px 5px 0px, #93c22e 6px 6px 0px, #93c22e 7px 7px 0px, #93c22e 8px 8px 0px, #93c22e 9px 9px 0px, #93c22e 10px 10px 0px;
+}
+
+header h1 > img {
+    height: calc(var(--header-font-size) * 0.75);
+    width: calc(var(--header-font-size) * 0.75);
+    vertical-align: text-top;
+}
+
+/* Header Dropdowns */
+#dropdown-container:hover > #dropdown,
+#connection-status-asterisk:hover + #conntection-status {
+    display: inline-block;
+}
