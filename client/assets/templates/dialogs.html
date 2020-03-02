@@ -1,4 +1,4 @@
-{% macro render_dialog(id, title, body=None, body_html=None, buttons=None) %}
+{% macro render_dialog(id, title, body=None, body_html=None, buttons=None, focus_last_button=True) %}
   {# buttons=[(<id or None>, <class or None>, text), ...] #}
   <dialog class="nes-dialog is-rounded" id="{{ id }}-dialog">
     <form method="dialog">
@@ -13,7 +13,7 @@
       {% if buttons %}
         <menu class="mt3 tr">
         {% for id, class, text in buttons %}
-          <button class="nes-btn{% if class %} {{ class }}{% endif %}"{% if id %} id="{{ id }}"{% endif %}>
+          <button class="nes-btn{% if class %} {{ class }}{% endif %}"{% if id %} id="{{ id }}"{% endif %}{% if loop.last and focus_last_button %} autofocus{% endif %}>
             {{ text }}
           </button>
         {% endfor %}
@@ -58,7 +58,7 @@
   {% endset %}
 
   {{
-    render_dialog('login', 'Please Login', body_html=login_body,
+    render_dialog('login', 'Please Login', body_html=login_body, focus_last_button=False,
       buttons=[(None, 'is-success', 'Login')])
   }}
 
@@ -91,7 +91,7 @@
     </div>
   {% endset %}
   {{
-    render_dialog('audio-devices', 'Output Device', body_html=audio_devices_body,
+    render_dialog('audio-devices', 'Output Device', body_html=audio_devices_body, focus_last_button=False,
       buttons=[(None, 'is-error', 'Cancel'), ('select-audio-device', 'is-success', 'Select Device')])
   }}
 {% endwith %}
