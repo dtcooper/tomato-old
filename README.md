@@ -24,7 +24,6 @@ The client utilizes the following,
 * [Jinja2](https://palletsprojects.com/p/jinja/) for HTML templates.
 * [NES.css](https://nostalgic-css.github.io/NES.css/) as a novel CSS library for
   retro UI components.
-* [Tachyons](https://tachyons.io/) as a CSS framework.
 * [wavesurfer.js](https://wavesurfer-js.org/) to play audio assets and render
   seekable audio waveforms in the UI.
 * [jQuery](https://jquery.com/) for UI interactions. _Don't judge me!_
