@@ -71,15 +71,11 @@ dialog {
     line-height: 1.5;
 }
 
-a:hover {
-    text-decoration: none;
-}
-
 .arrow {
     font-family: PixArrows;
 }
 
-/* Custom CSS for header text, images, and header dropdowns */
+/* Custom CSS for Header Text + Images */
 header h1 {
     font-family: 'Vermin Vibes 1989';
     font-size: var(--header-font-size);
