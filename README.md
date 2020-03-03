@@ -1,4 +1,6 @@
-# <img src="tomato.png" width="40" height="40"> Tomato Radio Automation <img src="tomato.png" width="40" height="40">
+# Tomato Radio Automation
+
+<img src="docs/banner.png" width="200">
 
 Client and server code for Tomato Radio Automation software. Simple, easy to use,
 and hard to screw up Playout software written very specifically
