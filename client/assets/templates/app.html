@@ -4,8 +4,7 @@
   <title>Tomato Radio Automation</title>
 
   <link href="../css/nes-2.3.0.min.css" rel="stylesheet">
-  <link href="../css/tachyons-4.11.1.min.css" rel="stylesheet">
-  <link href="../css/new-styles.css" rel="stylesheet">
+  <link href="../css/styles.css" rel="stylesheet">
   <style>
     {% for name, hex in colors.items() if not name.endswith('-dark') and not name.endswith('-light') %}
       .nes-btn.is-{{ name}} {
@@ -78,45 +77,49 @@
 <body>
   <div id="loading"></div>
 
-  <div id="app" class="center">
-    <header class="mb2">
+  <div id="app">
+    <header>
       <!-- 1. Convert header contents to flex
            2. Swap status and menu
         -->
-      <div id="dropdown-container" class="di z-999 absolute ml1 mt1">
+      <div id="dropdown" class="header-mouseover-common">
         {# TODO: use something other than buttons to avoid tabbing #}
-        <div class="nes-btn btn-primary dib v-top ma2">
+        <button class="nes-btn btn-primary">
           &#x00BB;
-        </div>
-        <div id="dropdown" class="dn top-1 bg-white nes-container is-rounded" style="max-width: 85vw">
-          <p>
-            <button class="mv2 nes-btn is-success" onclick="sync();">Sync</button>
-            <button class="mv2 nes-btn" onclick="showDevicePickerModal();">Output Device</button>
-            <button class="mv2 nes-btn is-primary" onclick="cef.bridge.toggle_fullscreen();">Toggle Fullscreen</button>
-            <button class="mv2 nes-btn" onclick="window.open(cef.conf.protocol + '://' + cef.conf.hostname + '/token-login?auth_token=' + cef.conf.auth_token, '_blank');">Admin</button>
-            <button class="mv2 nes-btn is-warning" onclick="showModal('logout-dialog');">Logout</button>
-            <button class="mv2 nes-btn is-error" onclick="showModal('close-dialog');">Quit</button>
-          </p>
-        </div>
-      </div>
-
-      <div class="di z-999 absolute right-0 mr3" style="direction: rtl">
-        <div id="connection-status-asterisk" class="dib mt2 v-top nes-text nes-pointer">
-          *
-        </div>
-        <div id="conntection-status" class="dn top-1 bg-white nes-container is-rounded" style="direction: ltr; max-width: 85vw;">
-          This is a test
+        </button>
+        <div>
+          <div class="nes-container is-rounded">
+            <p>
+              <button class="nes-btn is-success" onclick="sync();">Sync</button>
+              <button class="nes-btn" onclick="showDevicePickerModal();">Select Output Device</button>
+              <button class="nes-btn is-primary" onclick="cef.bridge.toggle_fullscreen();">Toggle Fullscreen</button>
+              <button class="nes-btn" onclick="window.open(cef.conf.protocol + '://' + cef.conf.hostname + '/token-login?auth_token=' + cef.conf.auth_token, '_blank');">Admin</button>
+              <button class="nes-btn is-warning" onclick="showModal('logout-dialog');">Logout</button>
+              <button class="nes-btn is-error" onclick="showModal('close-dialog');">Quit</button>
+            </p>
+          </div>
         </div>
       </div>
 
-      <h1 class="tc ma0">
+      <h1>
         <img src="../images/tomato.png">
         Tomato Radio Automation
         <img src="../images/tomato.png">
       </h1>
+
+      <div id="connection-status" class="header-mouseover-common">
+        <span id="connection-status-asterisk" class="nes-text nes-pointer">
+          *
+        </span>
+        <div>
+          <div id="conntection-status-bubble" class="nes-container is-rounded">
+            This is a test
+          </div>
+        </div>
+      </div>
     </header>
 
-    <section class="mv1">
+    <section>
       <div class="nes-container" style="border-color: #e76e55">
         <p class="nes-text is-error center" style="font-weight: normal;">
           <strong><u>WARNING:</u></strong>
@@ -125,19 +128,19 @@
       </div>
     </section>
 
-    <section class="mv1">
+    <section>
       <div class="nes-container with-title">
         <p class="title">Now Playing<span id="track-title"></span><span style="text-transform: full-width;" id="track-time"></span></p>
         <div id="waveform-timeline" style="height: 11px;"></div>
         {# Relative position fixes cursor #}
         <div id="waveform" style="height: 100px; margin-bottom: 5px; position: relative;"></div>
         <p class="center">
-          <button title="Play or Pause" class="nes-btn small-btn is-success arrow" onclick="if (wavesurfer) { wavesurfer.playPause() }">&#x35;&#x31;</button>
-          <button class="nes-btn small-btn is-warning arrow" id="next-btn">&#x33;</button>
-          <button class="nes-btn small-btn is-primary arrow" onclick="loadBlock();">&#x54;</button>
+          <button title="Play or Pause" class="nes-btn small-btn is-success arrows" onclick="if (wavesurfer) { wavesurfer.playPause() }">&#x35;&#x31;</button>
+          <button class="nes-btn small-btn is-warning arrows" id="next-btn">&#x33;</button>
+          <button class="nes-btn small-btn is-primary arrows" onclick="loadBlock();">&#x54;</button>
           {% if conf.debug %}
-            <button class="nes-btn small-btn arrow" onclick="sync();">&#x38;</button>
-            <button class="nes-btn small-btn is-error arrow" onclick="location.reload()">&#x54;&#x54;&#x54;</button>
+            <button class="nes-btn small-btn arrows" onclick="sync();">&#x38;</button>
+            <button class="nes-btn small-btn is-error arrows" onclick="location.reload()">&#x54;&#x54;&#x54;</button>
           {% endif %}
         </p>
 
@@ -158,10 +161,12 @@
     </main>
 
     <footer>
+      <p class="center">
         <a href="https://github.com/dtcooper/tomato" data-description="github.com/dtcooper/tomato">Tomato</a>
         v{{ constants.VERSION }} &bull; &copy;<script>document.write('' + (new Date()).getFullYear());</script>
         <a href="mailto:david.cooper@burningman.org" data-description="david.cooper@burningman.org">David Cooper</a>
         &amp; <a href="https://bmir.org" data-description="bmir.org">BMIR</a>
+      </p>
     </footer>
 
   </div>
