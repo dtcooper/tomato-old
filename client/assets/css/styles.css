@@ -180,7 +180,7 @@ header {
     left: 8px;
 }
 
-#dropdown > button {
+#dropdown > span {
     vertical-align: top;
 }
 
