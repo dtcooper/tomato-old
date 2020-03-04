@@ -101,7 +101,7 @@ img {
 }
 
 .nes-container {
-    margin: 7px 0;
+    margin: 5px 0;
     padding: 10px;
 }
 
@@ -184,6 +184,11 @@ header {
     vertical-align: top;
 }
 
+#dropdown .nes-btn {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
 #dropdown:hover > div, #connection-status-asterisk:hover + div {
     display: inline-block;
 }
@@ -192,7 +197,7 @@ header {
     display: none;
     position: relative;
     width: max-content;
-    max-width: 80vw;
+    max-width: 85vw;
 }
 
 #dropdown .nes-container, #connection-status .nes-container {
@@ -226,6 +231,7 @@ main {
     align-items: stretch;
     flex-direction: column;
     width: 100%;
+    margin-bottom: 0;
 }
 
 #play-queue-container > p.title {
