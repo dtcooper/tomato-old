@@ -311,10 +311,6 @@ class CefWindow:
         self.template_env.filters['prettyduration'] = lambda seconds: (
             f'{round(seconds) // 60}:{round(seconds) % 60:02}')
 
-    def init_platform(self):
-        if IS_LINUX:
-            self.ewmh = ewmh.EWMH()
-
     def init_window_dimensions(self):
         if IS_WINDOWS:
             max_width, max_height = map(win32api.GetSystemMetrics,
@@ -323,6 +319,7 @@ class CefWindow:
             frame_size = AppKit.NSScreen.mainScreen().frame().size
             max_width, max_height = map(int, (frame_size.width, frame_size.height))
         elif IS_LINUX:
+            self.ewmh = ewmh.EWMH()
             desktop = self.ewmh.getCurrentDesktop()
             max_width, max_height = self.ewmh.getWorkArea()[4 * desktop + 2:4 * (desktop + 1)]
 
@@ -479,7 +476,6 @@ class CefWindow:
         original_excepthook, sys.excepthook = sys.excepthook, cef.ExceptHook
 
         try:
-            self.init_platform()
             self.init_window_dimensions()
 
             if IS_WINDOWS:

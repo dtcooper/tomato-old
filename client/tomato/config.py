@@ -43,7 +43,8 @@ class Config:
 
         if os.path.exists(self.DATA_FILE):
             with open(self.DATA_FILE) as file:
-                self.data.update(json.load(file))
+                self.data.update({k: v for k, v in json.load(file).items()
+                                  if k not in self.DEFAULT_ARGS.keys()})
         else:
             self.save()
 
