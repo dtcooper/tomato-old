@@ -294,7 +294,11 @@ function loadWaveform(asset, play = true) {
         backend: 'MediaElement',  // less modern backend, but loads faster
         plugins: plugins
     });
-    wavesurfer.on('finish', loadNext);
+    wavesurfer.on('finish', function() {
+        var asset = assets[assetIdx - 1];
+        cef.models.log(cef.constants.ACTION_PLAYED_ASSET, asset.name + ' in ' + asset.rotator, asset.length);
+        loadNext();
+    });
     wavesurfer.on('audioprocess', updateTrackTime);
     wavesurfer.on('seek', updateTrackTime);
     wavesurfer.on('ready', function() {

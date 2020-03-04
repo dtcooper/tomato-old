@@ -3,12 +3,13 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 
-from tomato.models import Asset, Rotator, StopSet, StopSetRotator
+from tomato.models import Asset, LogEntry, Rotator, StopSet, StopSetRotator
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
         asset = ContentType.objects.get_for_model(Asset)
+        log_entry = ContentType.objects.get_for_model(LogEntry)
         all_models = (
             asset,
             ContentType.objects.get_for_model(Rotator),
@@ -23,6 +24,9 @@ class Command(BaseCommand):
         group.permissions.add(*Permission.objects.filter(content_type__in=all_models,
                                                          codename__startswith='view_'))
         group.permissions.add(*Permission.objects.filter(content_type=asset))
+
+        group, _ = Group.objects.get_or_create(name='View and export Client Log Entries')
+        group.permissions.add(*Permission.objects.filter(content_type=log_entry))
 
         group, _ = Group.objects.get_or_create(name='View Rotators, Stop Sets & Audio Assets')
         group.permissions.add(*Permission.objects.filter(content_type__in=all_models,

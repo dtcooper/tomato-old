@@ -7,7 +7,8 @@ from django.contrib.admin.widgets import AdminSplitDateTime
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group, User
 from django.core.exceptions import PermissionDenied
-from django.db.models.functions import Coalesce
+from django.db.models import Case, CharField, OuterRef, Q, Subquery, Value, When
+from django.db.models.functions import Coalesce, Concat
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
@@ -390,9 +391,44 @@ class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
 
 
 class LogEntryAdmin(admin.ModelAdmin):
-    empty_value_display = 'None'
-    list_max_show_all = 2500
-    list_per_page = 100
+    empty_value_display = 'N/A'
+    list_max_show_all = 5000
+    list_per_page = 250
+    # TODO abstract duration_pretty
+
+    def username_with_link(self, obj):
+        if obj and obj.user:
+            user_id, name = obj.user.split(':', 1)
+            # if request.user.has_perm('auth.change_user') or request.user.has_perm('auth.view_user'):
+            return format_html('<a href="{}">{}</a>',
+                               reverse('admin:auth_user_change', args=(user_id,)), name)
+        else:
+            return mark_safe('<em>unknown</em>')
+
+    def username(self, obj):
+        if obj and obj.user:
+            return obj.user.split(':', 1)[1]
+        else:
+            return mark_safe('<em>unknown</em>')
+    username.short_description = username_with_link.short_description = 'Username'
+
+    def get_fields(self, request, obj=None):
+        has_user_perm = request.user.has_perm('auth.change_user') or request.user.has_perm('auth.view_user')
+        return ('action', 'created', 'username_with_link' if has_user_perm else 'username',
+                'duration', 'description')
+    get_list_display = get_fields
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(user=Subquery(User.objects.annotate(
+            user=Case(
+                When(Q(~Q(first_name=''), ~Q(last_name='')),
+                     then=Concat('id', Value(':'), 'first_name', Value(' '), 'last_name')),
+                When(~Q(first_name=''), then=Concat('id', Value(':'), 'first_name')),
+                When(~Q(last_name=''), then=Concat('id', Value(':'), 'last_name')),
+                default=Concat('id', Value(':'), 'username'),
+                output_field=CharField(),
+            )).values('user').filter(id=OuterRef('user_id'))))
 
     def has_add_permission(self, request):
         return False

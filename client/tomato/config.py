@@ -1,6 +1,7 @@
 import itertools
 import json
 import os
+import threading
 
 from .client_server_constants import CLIENT_CONFIG_KEYS
 from .constants import USER_DIR, WINDOW_SIZE_DEFAULT_HEIGHT, WINDOW_SIZE_DEFAULT_WIDTH
@@ -39,6 +40,7 @@ class Config:
         self.__dict__.update({
             'args': self.DEFAULT_ARGS.copy(),
             'data': self.DEFAULTS.copy(),
+            'write_lock': threading.Lock(),
         })
 
         if os.path.exists(self.DATA_FILE):
@@ -55,9 +57,10 @@ class Config:
         if self.__on_update:
             self.__on_update(dict(self))
 
-        with open(self.DATA_FILE, 'w') as file:
-            json.dump(self.data, file, indent=2, sort_keys=True)
-            file.write('\n')
+        with self.write_lock:
+            with open(self.DATA_FILE, 'w') as file:
+                json.dump(self.data, file, indent=2, sort_keys=True)
+                file.write('\n')
 
     def update(self, **kwargs):
         # If we have multiple keys to update, we can do that with only one save

@@ -6,14 +6,14 @@ import os
 import random
 import time
 
-from django.core.serializers import deserialize
+from django.core.serializers import deserialize, serialize
 from django.db import transaction
 import requests
 
 from . import constants
 from .constants import APIException
 from .config import Config
-from .models import get_latest_tomato_migration, Asset, Rotator, StopSet, StopSetRotator
+from .models import get_latest_tomato_migration, Asset, LogEntry, Rotator, StopSet, StopSetRotator
 
 logger = logging.getLogger('tomato')
 
@@ -22,7 +22,7 @@ class make_request:
     def __init__(self):
         self.conf = Config()
 
-    def __call__(self, method, endpoint, **params):
+    def __call__(self, method, endpoint, json_expected=True, **params):
         headers = {'User-Agent': constants.REQUEST_USER_AGENT}
         if self.conf.auth_token:
             headers['X-Auth-Token'] = self.conf.auth_token
@@ -43,7 +43,7 @@ class make_request:
         else:
             if response.status_code == 200:
                 try:
-                    return response.json()
+                    return response.json() if json_expected else True
                 except JSONDecodeError:
                     raise APIException(constants.API_ERROR_JSON_DECODE_ERROR)
             else:
@@ -152,6 +152,24 @@ class ModelsAPI(APIBase):
             return os.path.getsize(local_filename)
         else:
             return 0
+
+    def log(self, action, description='', duration=None):
+        description = description[:LogEntry.MAX_DESCRIPTION_LEN]
+        if duration is not None:
+            duration = datetime.timedelta(seconds=duration)
+        LogEntry.objects.create(action=action, duration=duration, description=description)
+
+    def sync_log(self):
+        log_entries = list(LogEntry.objects.all())
+        if log_entries:
+            serialized = serialize('json', log_entries, use_natural_primary_keys=True,
+                                   fields=('uuid', 'created', 'action', 'duration', 'description'))
+
+            if make_request('post', 'log', json_expected=False, data=serialized):
+                logger.info(f'Pushed {len(log_entries)} log entries. Deleting them.')
+                LogEntry.objects.filter(id__in=[log_entry.id for log_entry in log_entries]).delete()
+        else:
+            logger.info('No log entries to push.')
 
     def load_asset_block(self):
         context = {

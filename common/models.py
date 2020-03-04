@@ -18,9 +18,8 @@ from django.db.migrations.recorder import MigrationRecorder
 from django.utils import timezone
 
 from .client_server_constants import (
-    COLORS, LOG_ACTION_PLAYED_ASSET, LOG_ACTION_SKIPPED_ASSET, LOG_ACTION_PLAYED_STOPSET,
-    LOG_ACTION_PARTIAL_STOPSET, LOG_ACTION_SKIPPED_STOPSET, LOG_ACTION_WAITED)
-
+    ACTION_PLAYED_ASSET, ACTION_SKIPPED_ASSET, ACTION_PLAYED_STOPSET,
+    ACTION_PARTIAL_STOPSET, ACTION_SKIPPED_STOPSET, ACTION_WAITED, COLORS)
 
 MAX_NAME_LEN = 75
 
@@ -280,31 +279,43 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
         ordering = ('name', 'id')
 
 
+class LogEntryManager(models.Manager):
+    def get_by_natural_key(self, uuid):
+        return self.get(uuid=uuid)
+
+
 class LogEntry(models.Model):
-    ACTIONS = (
-        (LOG_ACTION_PLAYED_ASSET, 'Played Asset'),
-        (LOG_ACTION_SKIPPED_ASSET, 'Skipped Asset'),
-        (LOG_ACTION_PLAYED_STOPSET, 'Played entire Stop Set'),
-        (LOG_ACTION_PARTIAL_STOPSET, 'Played a partial Stop Set'),
-        (LOG_ACTION_SKIPPED_STOPSET, 'Skipped entire Stop Set'),
-        (LOG_ACTION_WAITED, 'Waited'),
+    MAX_DESCRIPTION_LEN = 255
+    ACTION_CHOICES = (
+        (ACTION_PARTIAL_STOPSET, 'Played a partial Stop Set'),
+        (ACTION_PLAYED_ASSET, 'Played an Asset'),
+        (ACTION_PLAYED_STOPSET, 'Played an entire Stop Set'),
+        (ACTION_SKIPPED_ASSET, 'Skipped playing an Asset'),
+        (ACTION_SKIPPED_STOPSET, 'Skipped playing an entire Stop Set'),
+        (ACTION_WAITED, 'Waited'),
     )
 
     uuid = models.UUIDField(default=uuid_module.uuid4, unique=True)
-    created = models.DateTimeField()
-    user_id = models.IntegerField(db_index=True)
-    action = models.PositiveSmallIntegerField(choices=ACTIONS, db_index=True)
-    duration = models.DurationField(null=True)
-    description = models.CharField(max_length=255)
+    created = models.DateTimeField('Entry Created', default=timezone.now)
+    user_id = models.IntegerField(null=True)
+    action = models.CharField('Action Taken', choices=ACTION_CHOICES,
+                              max_length=max(20, max(len(c) for c, _ in ACTION_CHOICES)))
+    duration = models.DurationField(blank=True, null=True)
+    description = models.CharField('Description (if any)', blank=True, max_length=MAX_DESCRIPTION_LEN)
 
-    @classmethod
-    def record(cls, **kwargs):
-        cls.objects.create(**kwargs)
+    objects = LogEntryManager()
+
+    def __str__(self):
+        return f'{self.get_action_display()} event'
+
+    def natural_key(self):
+        return (self.uuid,)
 
     class Meta:
         db_table = 'log_entries'
         verbose_name = 'Client Log Entry'
         verbose_name_plural = 'Client Log Entries'
+        ordering = ('-created',)
 
 
 # For prettier admin display

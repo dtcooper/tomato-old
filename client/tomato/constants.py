@@ -6,6 +6,9 @@ from urllib.request import pathname2url
 
 from cefpython3 import cefpython
 
+from .client_server_constants import (  # noqa
+    ACTION_PLAYED_ASSET, ACTION_SKIPPED_ASSET, ACTION_PLAYED_STOPSET,
+    ACTION_PARTIAL_STOPSET, ACTION_SKIPPED_STOPSET, ACTION_WAITED)
 from .version import __version__
 
 

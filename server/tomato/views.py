@@ -1,13 +1,11 @@
 import hashlib
 import itertools
-import json
 from urllib.parse import urlparse
 
 
-from django.apps import apps
 from django.conf import settings
 from django.core import signing
-from django.core.serializers import serialize
+from django.core.serializers import deserialize, serialize
 from django.contrib.auth import authenticate, login
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -17,7 +15,7 @@ from django.urls import reverse
 from constance import config
 
 from .client_server_constants import CLIENT_CONFIG_KEYS
-from .models import get_latest_tomato_migration, LogEntry
+from .models import get_latest_tomato_migration, Asset, LogEntry, Rotator, StopSet, StopSetRotator
 from .version import __version__
 
 
@@ -31,9 +29,12 @@ def ping(request):
 
 @csrf_exempt
 def log(request):
-    if request.method == 'POST' and request.user.is_authenticated:
-        for log_entry_kwargs in json.loads(request.body):
-            LogEntry.record(user_id=request.user.id, **log_entry_kwargs)
+    if request.user.is_authenticated and request.method == 'POST':
+        for log_entry in deserialize('json', request.body):
+            # Make sure we're only serializing log entries
+            if isinstance(log_entry.object, LogEntry):
+                log_entry.object.user_id = request.user.id
+                log_entry.save()
 
         return HttpResponse()
     else:
@@ -78,7 +79,7 @@ def export(request):
             'conf': {key: getattr(config, key.upper()) for key in CLIENT_CONFIG_KEYS},
             'media_url': media_url.geturl(),
             'objects': serialize('python', itertools.chain.from_iterable(
-                cls.objects.all() for cls in apps.get_app_config('tomato').get_models())),
+                cls.objects.all() for cls in (Asset, Rotator, StopSet, StopSetRotator))),
         })
 
     return response
