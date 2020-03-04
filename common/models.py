@@ -296,7 +296,7 @@ class LogEntry(models.Model):
     )
 
     uuid = models.UUIDField(default=uuid_module.uuid4, unique=True)
-    created = models.DateTimeField('Entry Created', default=timezone.now)
+    created = models.DateTimeField('Action Date', default=timezone.now)
     user_id = models.IntegerField(null=True)
     action = models.CharField('Action Taken', choices=ACTION_CHOICES,
                               max_length=max(20, max(len(c) for c, _ in ACTION_CHOICES)))

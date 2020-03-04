@@ -70,6 +70,20 @@ class CurrentlyAiringListFilter(admin.SimpleListFilter):
             return queryset.not_currently_airing()
 
 
+class DurationPrettyMixin:
+    def duration_pretty(self, obj):
+        if obj.duration is None or obj.duration == datetime.timedelta(seconds=0):
+            return '-'
+        seconds = int(obj.duration.total_seconds())
+        hours, minutes, seconds = seconds // 3600, (seconds // 60) % 60, seconds % 60
+        if hours > 0:
+            return '{}:{:02d}:{:02d}'.format(hours, minutes, seconds)
+        else:
+            return '{}:{:02d}'.format(minutes, seconds)
+    duration_pretty.short_description = 'Duration'
+    duration_pretty.admin_order_field = 'duration'
+
+
 class EnabledDatesRotatorMixin:
     list_filter = ('rotators', CurrentlyAiringListFilter, 'enabled')
     actions = ('enable', 'disable')
@@ -143,7 +157,7 @@ class AssetUploadForm(forms.Form):
         label='Rotators', help_text='Optionally select Rotator(s) to add Audio Assets to.')
 
 
-class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
+class AssetModelAdmin(EnabledDatesRotatorMixin, DurationPrettyMixin, TomatoModelAdmin):
     action_form = AssetActionForm
     actions = ('enable', 'disable', 'add_rotator', 'remove_rotator')
     filter_horizontal = ('rotators',)
@@ -256,18 +270,6 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
             html = '<em>None</em>'
         return mark_safe(html)
     rotator_list.short_description = 'Rotators'
-
-    def duration_pretty(self, obj):
-        if obj.duration == datetime.timedelta(seconds=0):
-            return 'Unknown'
-        seconds = int(obj.duration.total_seconds())
-        hours, minutes, seconds = seconds // 3600, (seconds // 60) % 60, seconds % 60
-        if hours > 0:
-            return '{}:{:02d}:{:02d}'.format(hours, minutes, seconds)
-        else:
-            return '{}:{:02d}'.format(minutes, seconds)
-    duration_pretty.short_description = 'Duration'
-    duration_pretty.admin_order_field = 'duration'
 
     def audio_player(self, obj):
         return format_html('<audio src="{}" style="width: 100%" preload="auto" controls />', obj.audio.url)
@@ -390,11 +392,14 @@ class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
     stopset_list.short_description = 'Stop Sets'
 
 
-class LogEntryAdmin(admin.ModelAdmin):
+class LogEntryAdmin(DurationPrettyMixin, admin.ModelAdmin):
     empty_value_display = 'N/A'
+    list_filter = ('action',)
     list_max_show_all = 5000
     list_per_page = 250
-    # TODO abstract duration_pretty
+    save_on_top = True
+    # TODO: summary totals at bottom of page via overriding of
+    # change_list_results.html
 
     def username_with_link(self, obj):
         if obj and obj.user:
@@ -415,7 +420,7 @@ class LogEntryAdmin(admin.ModelAdmin):
     def get_fields(self, request, obj=None):
         has_user_perm = request.user.has_perm('auth.change_user') or request.user.has_perm('auth.view_user')
         return ('action', 'created', 'username_with_link' if has_user_perm else 'username',
-                'duration', 'description')
+                'duration_pretty', 'description')
     get_list_display = get_fields
 
     def get_queryset(self, request):
