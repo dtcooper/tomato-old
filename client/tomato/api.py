@@ -16,6 +16,7 @@ from .config import Config
 from .models import get_latest_tomato_migration, Asset, LogEntry, Rotator, StopSet, StopSetRotator
 
 logger = logging.getLogger('tomato')
+DEFAULT_HEADERS = {'User-Agent': constants.REQUEST_USER_AGENT}
 
 
 class make_request:
@@ -23,9 +24,11 @@ class make_request:
         self.conf = Config()
 
     def __call__(self, method, endpoint, json_expected=True, **params):
-        headers = {'User-Agent': constants.REQUEST_USER_AGENT}
         if self.conf.auth_token:
-            headers['X-Auth-Token'] = self.conf.auth_token
+            headers = {'X-Auth-Token': self.conf.auth_token}
+            headers.update(DEFAULT_HEADERS)
+        else:
+            headers = DEFAULT_HEADERS
 
         url = f'{self.conf.protocol}://{self.conf.hostname}/{endpoint}'
         logger.info(f'Hitting [{method.upper()}] {url}')
@@ -143,7 +146,7 @@ class ModelsAPI(APIBase):
             logger.info(f'sync: Downloading asset: {remote_url}')
 
             os.makedirs(os.path.dirname(local_filename), exist_ok=True)
-            with requests.get(remote_url, stream=True) as response:
+            with requests.get(remote_url, stream=True, headers=DEFAULT_HEADERS) as response:
                 response.raise_for_status()
                 with open(local_filename, 'wb') as file:
                     for chunk in response.iter_content(chunk_size=8192):
