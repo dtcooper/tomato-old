@@ -2,6 +2,7 @@ import datetime
 import os
 import random
 import subprocess
+import uuid as uuid_module
 
 try:
     import sox
@@ -16,7 +17,9 @@ from django.db import models
 from django.db.migrations.recorder import MigrationRecorder
 from django.utils import timezone
 
-from .client_server_constants import COLORS
+from .client_server_constants import (
+    COLORS, LOG_ACTION_PLAYED_ASSET, LOG_ACTION_SKIPPED_ASSET, LOG_ACTION_PLAYED_STOPSET,
+    LOG_ACTION_PARTIAL_STOPSET, LOG_ACTION_SKIPPED_STOPSET, LOG_ACTION_WAITED)
 
 
 MAX_NAME_LEN = 75
@@ -186,7 +189,7 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
                                       'metadata, failing that its filename.')
     duration = models.DurationField()
     audio = models.FileField('Audio File', upload_to='assets/')
-    audio_size = models.IntegerField()
+    audio_size = models.BigIntegerField()
     rotators = models.ManyToManyField(Rotator, related_name='assets', blank=True, verbose_name='Rotators',
                                       help_text='Rotators that this asset will be included in.')
 
@@ -275,6 +278,33 @@ class Asset(EnabledBeginEndWeightMixin, models.Model):
         verbose_name = 'Audio Asset'
         verbose_name_plural = 'Audio Assets'
         ordering = ('name', 'id')
+
+
+class LogEntry(models.Model):
+    ACTIONS = (
+        (LOG_ACTION_PLAYED_ASSET, 'Played Asset'),
+        (LOG_ACTION_SKIPPED_ASSET, 'Skipped Asset'),
+        (LOG_ACTION_PLAYED_STOPSET, 'Played entire Stop Set'),
+        (LOG_ACTION_PARTIAL_STOPSET, 'Played a partial Stop Set'),
+        (LOG_ACTION_SKIPPED_STOPSET, 'Skipped entire Stop Set'),
+        (LOG_ACTION_WAITED, 'Waited'),
+    )
+
+    uuid = models.UUIDField(default=uuid_module.uuid4, unique=True)
+    created = models.DateTimeField()
+    user_id = models.IntegerField(db_index=True)
+    action = models.PositiveSmallIntegerField(choices=ACTIONS, db_index=True)
+    duration = models.DurationField(null=True)
+    description = models.CharField(max_length=255)
+
+    @classmethod
+    def record(cls, **kwargs):
+        cls.objects.create(**kwargs)
+
+    class Meta:
+        db_table = 'log_entries'
+        verbose_name = 'Client Log Entry'
+        verbose_name_plural = 'Client Log Entries'
 
 
 # For prettier admin display

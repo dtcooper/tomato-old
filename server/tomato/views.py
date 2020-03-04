@@ -1,5 +1,6 @@
 import hashlib
 import itertools
+import json
 from urllib.parse import urlparse
 
 
@@ -8,7 +9,7 @@ from django.conf import settings
 from django.core import signing
 from django.core.serializers import serialize
 from django.contrib.auth import authenticate, login
-from django.http import HttpResponseForbidden, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.gzip import gzip_page
 from django.urls import reverse
@@ -16,7 +17,7 @@ from django.urls import reverse
 from constance import config
 
 from .client_server_constants import CLIENT_CONFIG_KEYS
-from .models import get_latest_tomato_migration
+from .models import get_latest_tomato_migration, LogEntry
 from .version import __version__
 
 
@@ -26,6 +27,17 @@ def ping(request):
         'valid_token': request.valid_token,
         'version': __version__,
     })
+
+
+@csrf_exempt
+def log(request):
+    if request.method == 'POST' and request.user.is_authenticated:
+        for log_entry_kwargs in json.loads(request.body):
+            LogEntry.record(user_id=request.user.id, **log_entry_kwargs)
+
+        return HttpResponse()
+    else:
+        return HttpResponseForbidden()
 
 
 @csrf_exempt

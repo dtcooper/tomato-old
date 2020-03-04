@@ -1,6 +1,6 @@
 # Tomato Radio Automation
 
-<img src="docs/banner.png" width="200">
+<img src="https://raw.github.com/dtcooper/tomato/master/docs/banner.png" width="200">
 
 Client and server code for Tomato Radio Automation software. Simple, easy to use,
 and hard to screw up Playout software written very specifically
@@ -9,13 +9,13 @@ for [Burning Man Information Radio](https://bmir.org/)'s use case (BMIR).
 ## Development
 
 Tomato is in *active development* right now. So expect things to change and break.
-Often.
+Often. See the [TODO list](/docs/TODO.md) for things left to implement.
 
 ## Client
 
 Cross-platform (macOS/Windows/Linux), native Desktop application.
 
-<img src="docs/client-screenshot-preview3.png">
+<img src="https://raw.github.com/dtcooper/tomato/master/docs/client-screenshot-preview3.png">
 
 The client utilizes the following,
 
@@ -32,7 +32,7 @@ The client utilizes the following,
 
 ## Server
 
-<img src="docs/server-screenshot-preview1.png">
+<img src="https://raw.github.com/dtcooper/tomato/master/docs/server-screenshot-preview1.png">
 
 Server is a straightforward [Django](https://www.djangoproject.com/) app, taking full
 advance of Django's admin interface with

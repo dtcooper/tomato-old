@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.utils.html import escape, format_html, mark_safe
 
 from .client_server_constants import COLORS
-from .models import Asset, Rotator, StopSet, StopSetRotator
+from .models import Asset, LogEntry, Rotator, StopSet, StopSetRotator
 
 
 STRFTIME_FMT = '%a %b %-d %Y %-I:%M %p'
@@ -240,7 +240,7 @@ class AssetModelAdmin(EnabledDatesRotatorMixin, TomatoModelAdmin):
         return form
 
     def get_fieldsets(self, request, obj):
-        return ((None, {'fields': ('name',) + (('audio_player',) if obj else ()) + ('audio',)}),
+        return ((None, {'fields': ('name',) + (('duration_pretty', 'audio_player',) if obj else ()) + ('audio',)}),
                 ('Eligibility', {'fields': ('weight', 'enabled', 'begin', 'end')}),
                 ('Rotators', {'fields': ('rotators',)}))
 
@@ -389,9 +389,25 @@ class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
     stopset_list.short_description = 'Stop Sets'
 
 
+class LogEntryAdmin(admin.ModelAdmin):
+    empty_value_display = 'None'
+    list_max_show_all = 2500
+    list_per_page = 100
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 admin.site.unregister(User)
 admin.site.unregister(Group)
 admin.site.register(User, TomatoUserAdmin)
-admin.site.register(StopSet, StopSetModelAdmin)
-admin.site.register(Rotator, RotatorModelAdmin)
 admin.site.register(Asset, AssetModelAdmin)
+admin.site.register(LogEntry, LogEntryAdmin)
+admin.site.register(Rotator, RotatorModelAdmin)
+admin.site.register(StopSet, StopSetModelAdmin)
