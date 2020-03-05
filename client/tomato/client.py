@@ -59,6 +59,8 @@ class Client:
         parser.add_argument('-d', '--debug', action='store_true',
                             help="Run in debug mode. Use `-d' to debug just Tomato, and"
                                  "`--debug' to debug both CEF Python and Tomato.")
+        parser.add_argument('-n', '--no-log-entries', action='store_true',
+                            help='Disable creating and pushing log entries to server.')
         parser.add_argument('--print-html', action='store_true', help='Print all rendered HTML templates.')
         parser.add_argument('--allow-multiple', action='store_true',
                             help='Allow multiple instances of Tomato to run at once.')

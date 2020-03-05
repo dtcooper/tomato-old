@@ -160,19 +160,29 @@ class ModelsAPI(APIBase):
         description = description[:LogEntry.MAX_DESCRIPTION_LEN]
         if duration is not None:
             duration = datetime.timedelta(seconds=duration)
-        LogEntry.objects.create(action=action, duration=duration, description=description)
+
+        log_line = f'{action}: duration={duration}s, description={description!r}'
+        if self.conf.no_log_entries:
+            logger.info(f'Would create log entry, but disabled by config: {log_line}')
+        else:
+            logger.info(f'Creating log entry: {log_line}')
+            LogEntry.objects.create(action=action, duration=duration, description=description)
 
     def sync_log(self):
-        log_entries = list(LogEntry.objects.all())
-        if log_entries:
-            serialized = serialize('json', log_entries, use_natural_primary_keys=True,
-                                   fields=('uuid', 'created', 'action', 'duration', 'description'))
-
-            if make_request('post', 'log', json_expected=False, data=serialized):
-                logger.info(f'Pushed {len(log_entries)} log entries. Deleting them.')
-                LogEntry.objects.filter(id__in=[log_entry.id for log_entry in log_entries]).delete()
+        if self.conf.no_log_entries:
+            logger.info(f'Would push log entries, but disabled by config.')
         else:
-            logger.info('No log entries to push.')
+            log_entries = list(LogEntry.objects.all())
+
+            if log_entries:
+                serialized = serialize('json', log_entries, use_natural_primary_keys=True,
+                                       fields=('uuid', 'created', 'action', 'duration', 'description'))
+
+                if make_request('post', 'log', json_expected=False, data=serialized):
+                    logger.info(f'Pushed {len(log_entries)} log entries. Deleting them.')
+                    LogEntry.objects.filter(id__in=[log_entry.id for log_entry in log_entries]).delete()
+            else:
+                logger.info('No log entries to push.')
 
     def load_asset_block(self):
         context = {

@@ -23,6 +23,7 @@ class Config:
     DEFAULT_ARGS = {
         'allow_multiple': False,
         'debug': False,
+        'no_log_entries': False,
         'print_html': False,
     }
 
