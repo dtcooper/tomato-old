@@ -9,7 +9,7 @@ for [Burning Man Information Radio](https://bmir.org/)'s use case (BMIR).
 ## Development
 
 Tomato is in *active development* right now. So expect things to change and break.
-Often. See the [TODO list](/docs/TODO.md) for things left to implement.
+Often. See the [TODO list](docs/TODO.md) for things left to implement.
 
 ## Client
 

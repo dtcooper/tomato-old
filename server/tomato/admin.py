@@ -1,4 +1,6 @@
+import csv
 import datetime
+import itertools
 
 from django import forms
 from django.contrib import admin, messages
@@ -9,7 +11,7 @@ from django.contrib.auth.models import Group, User
 from django.core.exceptions import PermissionDenied
 from django.db.models import Case, CharField, OuterRef, Q, Subquery, Value, When
 from django.db.models.functions import Coalesce, Concat
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
@@ -392,6 +394,11 @@ class RotatorModelAdmin(NumAssetsMixin, TomatoModelAdmin):
     stopset_list.short_description = 'Stop Sets'
 
 
+class PsuedoCsvBuffer:
+    def write(self, value):
+        return value
+
+
 class LogEntryAdmin(DurationPrettyMixin, admin.ModelAdmin):
     empty_value_display = 'N/A'
     list_filter = ('action',)
@@ -400,6 +407,30 @@ class LogEntryAdmin(DurationPrettyMixin, admin.ModelAdmin):
     save_on_top = True
     # TODO: summary totals at bottom of page via overriding of
     # change_list_results.html
+
+    def get_urls(self):
+        return [path('export/', self.admin_site.admin_view(self.export_view),
+                name='tomato_logentry_export')] + super().get_urls()
+
+    def export_view(self, request):
+        if not (self.has_add_permission(request) or self.has_view_permission(request)):
+            raise PermissionDenied
+
+        qs = self.get_queryset(request).values_list('action', 'created', 'user', 'duration', 'description')
+        tz = timezone.get_current_timezone()
+
+        rows = itertools.chain(
+            [['Action', 'Action Take Date', 'User', 'Duration (if any)', 'Description (if any)']],
+            ([action, str(tz.normalize(ts)), user.split(':', 1)[1] if user else None, dur, desc]
+             for action, ts, user, dur, desc in qs),
+        )
+
+        csv_writer = csv.writer(PsuedoCsvBuffer())
+        response = StreamingHttpResponse((csv_writer.writerow(row) for row in rows), content_type='text/csv')
+        now_str = tz.normalize(timezone.now()).strftime('%Y%m%d%H%M%S')
+        response['Content-Disposition'] = f'attachment; filename="tomato_log_export-{now_str}.csv"'
+
+        return response
 
     def username_with_link(self, obj):
         if obj and obj.user:

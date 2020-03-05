@@ -296,7 +296,7 @@ function loadWaveform(asset, play = true) {
     });
     wavesurfer.on('finish', function() {
         var asset = assets[assetIdx - 1];
-        cef.models.log(cef.constants.ACTION_PLAYED_ASSET, asset.name + ' in ' + asset.rotator, asset.length);
+        cef.models.log(cef.constants.ACTION_PLAYED_ASSET, asset.name + ' (' + asset.rotator  + ')', asset.length);
         loadNext();
     });
     wavesurfer.on('audioprocess', updateTrackTime);
@@ -357,7 +357,15 @@ var loadBlock = function() {
 };
 
 $(function() {
-    $('#next-btn').click(function() { loadNext(wavesurfer ? wavesurfer.isPlaying() : false) });
+    $('#next-btn').click(function() {
+        var isPlaying = wavesurfer ? wavesurfer.isPlaying() : false;
+        if (isPlaying) {
+            var asset = assets[assetIdx - 1];
+            // TODO: log all assets skipped, not just this one.
+            cef.models.log(cef.constants.ACTION_SKIPPED_ASSET, asset.name + ' (' + asset.rotator + ')', asset.length);
+        }
+        loadNext(isPlaying);
+    });
     $('body').on('click', '.asset-item', function() {
         assetIdx = parseInt($(this).data('asset-idx'), 0);
         loadNext(wavesurfer ? wavesurfer.isPlaying() : false);

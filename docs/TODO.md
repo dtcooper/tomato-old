@@ -5,6 +5,7 @@
 - [x] Make sure server has the same DB migration version as client via the ping
       and/or auth endpoints.
 - [ ] Report assets played to server, probably using UIDs to allow accidental dupes
+- [x] Logging and reporting on client actions.
 
 ## Server
 
