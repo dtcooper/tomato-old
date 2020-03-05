@@ -203,6 +203,7 @@ header {
 #dropdown .nes-container, #connection-status .nes-container {
     background-color: #ffffff;
     margin: 5px 0 0 0;
+    z-index: 999;
 }
 
 #connection-status {
@@ -224,6 +225,10 @@ main {
     align-self: stretch;
     display: flex;
     align-items: stretch;
+}
+
+#waveform-timeline, #waveform-timeline *, #waveform, #waveform * {
+    z-index: 0;
 }
 
 #play-queue-container {
