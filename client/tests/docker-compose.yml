@@ -1,0 +1,19 @@
+version: '3'
+services:
+  test:
+    image: test
+    build:
+      context: ../..
+      dockerfile: client/tests/Dockerfile
+    volumes:
+      - ../..:/app
+    ports:
+      - 9623:80
+      - 5900:5900
+      - 8000:8000
+    depends_on:
+      - db
+  db:
+    image: postgres:11
+    tmpfs:
+      - /var/lib/postgresql/data
