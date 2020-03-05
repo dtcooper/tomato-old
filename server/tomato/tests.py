@@ -1,5 +1,6 @@
 from collections import namedtuple
 from base64 import b64decode
+import datetime
 import shutil
 import tempfile
 
@@ -9,10 +10,10 @@ from django.conf import settings
 from django.test import Client, override_settings, TestCase
 from django.urls import reverse
 
-from .models import Asset, Rotator, StopSet, StopSetRotator
+from .models import Asset, LogEntry, Rotator, StopSet, StopSetRotator
 
 
-Dataset = namedtuple('Dataset', ('asset', 'rotator', 'stopset'))
+Dataset = namedtuple('Dataset', ('asset', 'rotator', 'stopset', 'log_entry'))
 
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
@@ -37,8 +38,10 @@ class ServerTests(TestCase):
         asset.rotators.add(rotator)
         stopset = StopSet.objects.create(name='stopset')
         StopSetRotator.objects.create(stopset=stopset, rotator=rotator)
+        log_entry = LogEntry.objects.create(
+            user_id=self.user.id, duration=datetime.timedelta(seconds=60), description='test')
 
-        return Dataset(asset, rotator, stopset)
+        return Dataset(asset, rotator, stopset, log_entry)
 
     def test_admin_urls(self):
         self.client.login(username='super', password='super')
@@ -58,6 +61,9 @@ class ServerTests(TestCase):
             reverse('admin:tomato_stopset_add'),
             reverse('admin:tomato_stopset_change', args=(data.stopset.id,)),
             reverse('admin:tomato_stopset_generate', args=(data.stopset.id,)),
+            reverse('admin:tomato_logentry_changelist'),
+            reverse('admin:tomato_logentry_change', args=(data.log_entry.id,)),
+            reverse('admin:tomato_logentry_export')
         ):
             response = self.client.get(test_url)
             self.assertEqual(response.status_code, 200)
