@@ -416,13 +416,13 @@ class LogEntryAdmin(DurationPrettyMixin, admin.ModelAdmin):
         if not (self.has_add_permission(request) or self.has_view_permission(request)):
             raise PermissionDenied
 
-        qs = self.get_queryset(request).values_list('action', 'created', 'user', 'duration', 'description')
+        qs = self.get_queryset(request).values_list('created', 'action', 'user', 'duration', 'description')
         tz = timezone.get_current_timezone()
 
         rows = itertools.chain(
-            [['Action', 'Action Take Date', 'User', 'Duration (if any)', 'Description (if any)']],
-            ([action, str(tz.normalize(ts)), user.split(':', 1)[1] if user else None, dur, desc]
-             for action, ts, user, dur, desc in qs),
+            [['Date', 'Action', 'User', 'Duration (if any)', 'Description (if any)']],
+            ([str(tz.normalize(created)), action, user.split(':', 1)[1] if user else None, dur, desc]
+             for created, action, user, dur, desc in qs),
         )
 
         csv_writer = csv.writer(PsuedoCsvBuffer())
@@ -450,7 +450,7 @@ class LogEntryAdmin(DurationPrettyMixin, admin.ModelAdmin):
 
     def get_fields(self, request, obj=None):
         has_user_perm = request.user.has_perm('auth.change_user') or request.user.has_perm('auth.view_user')
-        return ('action', 'created', 'username_with_link' if has_user_perm else 'username',
+        return ('created', 'action', 'username_with_link' if has_user_perm else 'username',
                 'duration_pretty', 'description')
     get_list_display = get_fields
 

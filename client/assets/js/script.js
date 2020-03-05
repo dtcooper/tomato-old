@@ -265,9 +265,9 @@ function loadWaveform(asset, play = true) {
             container: "#waveform-timeline",
             formatTimeCallback: prettyDuration,
             fontFamily: 'Tomato Text',
-            fontSize: 11,
+            fontSize: 10,
             height: 11,
-            labelPadding: 3
+            labelPadding: 2
       }),
     ]
 

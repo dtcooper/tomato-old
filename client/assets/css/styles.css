@@ -1,7 +1,7 @@
 /* Variables */
 
 :root {
-    --font-size: 17px;
+    --font-size: 18px;
     --header-font-size: 6.1vw;
     --footer-font-size: 12px;
     --max-width: 1400px;
@@ -16,7 +16,7 @@
 /* Fonts */
 @font-face {
     font-family: 'Tomato Text';
-    src: url('../fonts/text.ttf') format('truetype');
+    src: url('../fonts/text.woff2') format('woff2');
 }
 
 @font-face {
