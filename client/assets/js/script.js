@@ -400,4 +400,6 @@ $(function() {
             });
         }
     });
+
+    setInterval(cef.models.sync_log, 1000 * 60 * 10 /* 10 minutes */);
 });

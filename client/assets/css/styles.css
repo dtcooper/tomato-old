@@ -1,9 +1,9 @@
 /* Variables */
 
 :root {
-    --font-size: 18px;
+    --font-size: 20px;
     --header-font-size: 6.1vw;
-    --footer-font-size: 12px;
+    --footer-font-size: 10px;
     --max-width: 1400px;
 }
 
