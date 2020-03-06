@@ -6,20 +6,17 @@ ENV DISPLAY=:0
 ENV PGHOST db
 ENV PGUSER postgres
 RUN apt-get update \
-    && apt-get install -y \
+    && apt-get install -y --no-install-recommends \
+        libnss3 \
         libsox-fmt-all \
+        lxde \
         nginx \
         postgresql-client \
         sox \
         supervisor \
         x11vnc \
-        # Remove xfce4 and purge below, can use lxde or other since linux click bug
-        # exists on both
-        xfce4 \
+        xauth \
         xvfb \
-    && apt-get purge -y \
-        pm-utils \
-        xscreensaver* \
     && rm -rf /var/lib/apt/lists/*
 
 RUN wget -qO - https://github.com/novnc/noVNC/archive/v1.1.0.tar.gz \
