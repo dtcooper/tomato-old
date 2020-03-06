@@ -189,7 +189,7 @@ header {
     margin-bottom: 6px;
 }
 
-#dropdown:hover > div, #connection-status-asterisk:hover + div {
+#connection-status-asterisk:hover + div {
     display: inline-block;
 }
 

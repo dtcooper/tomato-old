@@ -77,6 +77,12 @@ $(function() {
         cef.bridge.close_browser();
     });
 
+    $('#dropdown').hover(function() {
+        $('#dropdown > div').fadeIn().css('display', 'inline-block');
+    }, function() {
+        $('#dropdown > div').fadeOut();
+    });
+
     $(window).resize(function() {
         if (!isClosing) {  // Avoid a segfault on Mac when closing in fullscreen mode
             clearTimeout(resizeTimer);

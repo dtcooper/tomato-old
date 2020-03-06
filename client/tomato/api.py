@@ -225,7 +225,7 @@ class ModelsAPI(APIBase):
                     context['errors'].append(f"Stop set {stopset.name}'s rotator {rotator.name} "
                                              'has no additional assets eligible to air.')
         else:
-            context['errors'].append('No stop sets with currently eligible to air.')
+            context['errors'].append('No stop sets currently eligible to air.')
 
         if self.conf.wait_interval_subtracts_stopset_playtime:
             context['wait'] = round(max(0, context['wait'] - sum(a['length'] for a in context['assets'])))

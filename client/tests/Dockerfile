@@ -28,15 +28,14 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir -p /venv
 WORKDIR /venv
 
-# Create venvs for client and server
+# Create venv for server
 COPY server/requirements.txt /tmp
 RUN python -m venv --prompt server server \
     && server/bin/pip install -r /tmp/requirements.txt \
     && rm /tmp/requirements.txt
 
 COPY client/requirements /tmp/requirements
-RUN python -m venv --prompt client client \
-    && client/bin/pip install -r /tmp/requirements/base.txt -r /tmp/requirements/linux.txt \
+RUN pip install -r /tmp/requirements/base.txt -r /tmp/requirements/linux.txt \
     && rm -r /tmp/requirements
 
 COPY client/tests/image /
