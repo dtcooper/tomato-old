@@ -3,10 +3,13 @@ FROM python:3.7
 EXPOSE 9623
 ENV DISPLAY=:0
 
+ENV PGHOST db
+ENV PGUSER postgres
 RUN apt-get update \
     && apt-get install -y \
         libsox-fmt-all \
         nginx \
+        postgresql-client \
         sox \
         supervisor \
         x11vnc \

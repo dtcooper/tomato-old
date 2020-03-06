@@ -23,7 +23,10 @@ def main():
             "forget to activate a virtual environment?"
         ) from exc
 
-    if settings.DEBUG and len(sys.argv) >= 2 and sys.argv[1] in ('runserver', 'runserver_plus'):
+    if (
+        settings.DEBUG and len(sys.argv) >= 2 and sys.argv[1] in ('runserver', 'runserver_plus')
+        and not os.environ.get('TOAMTO_DISABLE_DEBUG_TOOLBAR')
+    ):
         settings.INSTALLED_APPS.append('debug_toolbar')
         settings.MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
         settings.DEBUG_TOOLBAR_CONFIG = {'SHOW_TOOLBAR_CALLBACK': 'manage.show_toolbar'}
