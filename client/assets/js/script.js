@@ -197,7 +197,7 @@ var sync = function() {
         if (error == cef.constants.API_ERROR_ACCESS_DENIED || !cef.conf.last_sync) {
             $('#login-errors').html('<span class="nes-text is-error">An error occurred while'
                     + " synchronizing with the server. <br>Please try logging in again.</span>");
-            cef.auth.logout().then(showLoginModal);
+            cef.auth.logout(false).then(showLoginModal);
         } else {
             setStatusColor('error', 'Error syncing');
             loadBlock();

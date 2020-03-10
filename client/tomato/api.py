@@ -68,20 +68,21 @@ class APIBase:
 class AuthAPI(APIBase):
     namespace = 'auth'
 
-    def logout(self):
+    def logout(self, remove_unused_assets=True):
         self.conf.update(auth_token=None, last_sync=None)
 
         # TODO: When is the best time clean up assets? We shouldn't do it on sync
         # because old assets may be being streamed from in CEF window.
 
-        # Clean up unused assets on logout
-        db_asset_paths = {asset.audio.path for asset in Asset.objects.all()}
-        for dirpath, dirnames, filenames in os.walk(constants.MEDIA_DIR):
-            for filename in filenames:
-                asset_path = os.path.join(dirpath, filename)
-                if asset_path not in db_asset_paths:
-                    logger.info(f'sync: Removing unused asset: {asset_path}')
-                    os.remove(asset_path)
+        if remove_unused_assets:
+            # Clean up unused assets on logout
+            db_asset_paths = {asset.audio.path for asset in Asset.objects.all()}
+            for dirpath, dirnames, filenames in os.walk(constants.MEDIA_DIR):
+                for filename in filenames:
+                    asset_path = os.path.join(dirpath, filename)
+                    if asset_path not in db_asset_paths:
+                        logger.info(f'sync: Removing unused asset: {asset_path}')
+                        os.remove(asset_path)
 
     def check_authorization(self):
         logged_in = connected = False
