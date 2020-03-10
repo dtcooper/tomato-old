@@ -17,9 +17,7 @@ from django.db import models
 from django.db.migrations.recorder import MigrationRecorder
 from django.utils import timezone
 
-from .client_server_constants import (
-    ACTION_PLAYED_ASSET, ACTION_SKIPPED_ASSET, ACTION_PLAYED_STOPSET,
-    ACTION_PARTIAL_STOPSET, ACTION_SKIPPED_STOPSET, ACTION_WAITED, COLORS)
+from .client_server_constants import ACTION_CHOICES, COLORS
 
 MAX_NAME_LEN = 75
 
@@ -286,20 +284,12 @@ class LogEntryManager(models.Manager):
 
 class LogEntry(models.Model):
     MAX_DESCRIPTION_LEN = 255
-    ACTION_CHOICES = (
-        (ACTION_PARTIAL_STOPSET, 'Played a partial Stop Set'),
-        (ACTION_PLAYED_ASSET, 'Played an Asset'),
-        (ACTION_PLAYED_STOPSET, 'Played an entire Stop Set'),
-        (ACTION_SKIPPED_ASSET, 'Skipped playing an Asset'),
-        (ACTION_SKIPPED_STOPSET, 'Skipped playing an entire Stop Set'),
-        (ACTION_WAITED, 'Waited'),
-    )
 
     uuid = models.UUIDField(default=uuid_module.uuid4, unique=True)
     created = models.DateTimeField('Action Date', default=timezone.now)
     user_id = models.IntegerField(null=True)
     action = models.CharField('Action Taken', choices=ACTION_CHOICES,
-                              max_length=max(20, max(len(c) for c, _ in ACTION_CHOICES)))
+                              max_length=max(len(c) for c, _ in ACTION_CHOICES))
     duration = models.DurationField(blank=True, null=True)
     description = models.CharField('Description (if any)', blank=True, max_length=MAX_DESCRIPTION_LEN)
 

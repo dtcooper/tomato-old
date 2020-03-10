@@ -1,9 +1,30 @@
-ACTION_PARTIAL_STOPSET = 'partial_stopset'
+ACTION_ADDED_ASSET = 'added_asset'
+ACTION_ADDED_ROTATOR = 'added_rotator'
+ACTION_ADDED_STOPSET = 'added_stopset'
+ACTION_EDITED_ASSET = 'edited_asset'
+ACTION_EDITED_ROTATOR = 'edited_rotator'
+ACTION_EDITED_STOPSET = 'edited_stopset'
 ACTION_PLAYED_ASSET = 'played_asset'
+ACTION_PLAYED_PARTIAL_STOPSET = 'played_part_stopset'
 ACTION_PLAYED_STOPSET = 'played_stopset'
 ACTION_SKIPPED_ASSET = 'skipped_asset'
 ACTION_SKIPPED_STOPSET = 'skipped_stopset'
 ACTION_WAITED = 'waited'
+
+ACTION_CHOICES = (
+    (ACTION_ADDED_ASSET, 'Added an Audio Asset'),
+    (ACTION_ADDED_ROTATOR, 'Added a Rotator'),
+    (ACTION_ADDED_STOPSET, 'Added a Stop Set'),
+    (ACTION_EDITED_ASSET, 'Edited an Audio Asset'),
+    (ACTION_EDITED_ROTATOR, 'Edited a Rotator'),
+    (ACTION_EDITED_STOPSET, 'Edited a Stop Set'),
+    (ACTION_PLAYED_ASSET, 'Played an Audio Asset'),
+    (ACTION_PLAYED_PARTIAL_STOPSET, 'Played a partial Stop Set'),
+    (ACTION_PLAYED_STOPSET, 'Played an entire Stop Set'),
+    (ACTION_SKIPPED_ASSET, 'Skipped playing an Audio Asset'),
+    (ACTION_SKIPPED_STOPSET, 'Skipped playing an entire Stop Set'),
+    (ACTION_WAITED, 'Waited'),
+)
 
 CLIENT_CONFIG_KEYS = {
     # Map to default values

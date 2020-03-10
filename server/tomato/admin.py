@@ -57,6 +57,14 @@ class TomatoModelAdmin(admin.ModelAdmin):
             queryset = queryset.prefetch_related(self.list_prefetch_related)
         return queryset
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        LogEntry.objects.create(
+            user_id=request.user.id,
+            action=f'{"edited" if change else "added"}_{obj.__class__.__name__.lower()}',
+            description=obj.name,
+        )
+
 
 class CurrentlyAiringListFilter(admin.SimpleListFilter):
     parameter_name = 'airing'
